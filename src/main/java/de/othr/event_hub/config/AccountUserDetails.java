@@ -24,10 +24,6 @@ public class AccountUserDetails implements UserDetails {
         this.active = (user.getActive() > 0) ? true : false;
         List<Authority> userAuthorities = (List<Authority>) user.getAuthorities();
 
-        System.out.println("username: " + this.username);
-        System.out.println("password: " + this.password);
-        System.out.println(this.username + ": " + userAuthorities.size() + " authorities");
-
         authorities = new ArrayList<>();
 
         for (int i = 0; i < userAuthorities.size(); i++) {

@@ -26,8 +26,8 @@ public class WebSecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/h2-console/**", "/console/**", "/signup/", "/signin/").permitAll()
                 .requestMatchers("/images/**", "/js/**", "/webjars/**").permitAll()
-                .requestMatchers("/home").permitAll()
-                .requestMatchers("/student/**").hasAnyAuthority("ADMIN", "STUDENT")
+                .requestMatchers("/", "/home").permitAll()
+                .requestMatchers("/organizer").hasAnyAuthority("ADMIN", "ORGANISATOR")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated())
                 .formLogin(form -> form
