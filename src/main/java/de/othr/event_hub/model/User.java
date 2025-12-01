@@ -14,20 +14,39 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
-import lombok.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class User { // for Spring Security @Jonas
+public class User {
 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank(message = "Email should not be blank.")
+    @Email(message = "Invalid email.")
+    private String email;
+
+    @NotBlank(message = "Username should not be blank.")
+    private String username;
+
+    @NotBlank(message = "Password should not be blank.")
+    @Size(min = 5, message = "Password must have at least 5 characters.")
+    private String password;
+
+    private Integer active;
 
     @OneToMany(mappedBy = "requestor")
     private Set<Friendship> sentRequests = new HashSet<>();
@@ -44,11 +63,7 @@ public class User { // for Spring Security @Jonas
     @OneToMany(mappedBy = "user")
     private Set<ChatMembership> chatMemberships = new HashSet<>();
 
-    @ManyToMany(fetch=FetchType.EAGER)
-	@JoinTable(
-		name="userauthority",
-		joinColumns = @JoinColumn(name="iduser"),
-		inverseJoinColumns = @JoinColumn(name="idauthority")
-	)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "userauthority", joinColumns = @JoinColumn(name = "iduser"), inverseJoinColumns = @JoinColumn(name = "idauthority"))
     private List<Authority> eventAuthorities = new ArrayList<>();
 }
