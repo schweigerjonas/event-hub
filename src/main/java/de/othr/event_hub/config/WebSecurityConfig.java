@@ -31,7 +31,7 @@ public class WebSecurityConfig {
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated())
                 .formLogin(form -> form
-                        .loginPage("/login")
+                        // .loginPage("/login")
                         .permitAll())
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login")
