@@ -14,14 +14,17 @@
         <div class="centered">
             <div class="card shadow p-4">
                 <div class="card-body"> 
-                    <h2 class="card-title text-center mb-4">Welcome Back!</h2> 
+                    <h2 class="card-title text-center mb-4">Welcome Back!</h2>
+                    <div th:if="${param.error}" class="alert alert-danger" role="alert">
+                        Invalid username or password.
+                    </div>
                     <form th:action="@{/perform_login}" method="POST">    
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Username" th:classappend="${param.error} ? 'is-invalid' : ''" required>
                             <label for="username" class="form-label">Username</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="password" name="password"  placeholder="Password" required>
+                            <input type="password" class="form-control" id="password" name="password"  placeholder="Password" th:classappend="${param.error} ? 'is-invalid' : ''" required>
                             <label for="password" class="form-label">Password</label>
                         </div>
                         <button type="submit" class="btn btn-primary w-100">
