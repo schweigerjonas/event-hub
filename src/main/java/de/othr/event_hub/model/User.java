@@ -17,7 +17,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,7 +44,6 @@ public class User {
     private String username;
 
     @NotBlank(message = "Password should not be blank.")
-    @Size(min = 5, message = "Password must have at least 5 characters.")
     private String password;
 
     private Integer active;
