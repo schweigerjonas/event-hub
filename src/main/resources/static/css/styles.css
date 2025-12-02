@@ -1,0 +1,20 @@
+html,
+body {
+    height: 100%;
+}
+
+body {
+    background-color: #f8f9fa;
+}
+
+.centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.card {
+    max-width: 400px;
+    width: 90%;
+}

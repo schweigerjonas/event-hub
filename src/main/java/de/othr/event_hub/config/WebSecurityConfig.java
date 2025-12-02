@@ -24,14 +24,14 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/h2-console/**", "/console/**", "/signup/", "/signin/").permitAll()
-                .requestMatchers("/images/**", "/js/**", "/webjars/**").permitAll()
+                .requestMatchers("/h2-console/**", "/console/**", "/signup", "/login").permitAll()
+                .requestMatchers("/images/**", "/css/**", "/js/**", "/webjars/**").permitAll()
                 .requestMatchers("/", "/home").permitAll()
                 .requestMatchers("/organizer").hasAnyAuthority("ADMIN", "ORGANISATOR")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated())
                 .formLogin(form -> form
-                        // .loginPage("/login")
+                        .loginPage("/login")
                         .permitAll())
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login")
