@@ -34,10 +34,10 @@ public class WebSecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/perform_login")
-                        .defaultSuccessUrl("/home", true)
+                        .defaultSuccessUrl("/", true)
                         .permitAll())
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/login")
+                        .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
                         .permitAll());
 

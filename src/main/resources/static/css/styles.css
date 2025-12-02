@@ -7,6 +7,10 @@ body {
     background-color: #f8f9fa;
 }
 
+.logout-form {
+    display: inline;
+}
+
 .centered {
     display: flex;
     justify-content: center;
