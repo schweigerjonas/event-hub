@@ -1,8 +1,10 @@
 package de.othr.event_hub.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import jakarta.persistence.Entity;
@@ -29,7 +31,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users")
-public class User {
+public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -71,4 +73,31 @@ public class User {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "authority_id"))
     private List<Authority> authorities = new ArrayList<>();
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
+
+        if (getClass() != o.getClass()) {
+            return false;
+        }
+
+        final User other = (User) o;
+        if (!Objects.equals(id, other.id)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        if (id == null) {
+            return 0;
+        } else {
+            return id.hashCode();
+        }
+    }
 }
