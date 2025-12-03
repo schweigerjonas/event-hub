@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+
+<main layout:fragment="main">
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Freundschaften</h1>
+
+
+        <!-- =============================================================== -->
+        <!-- AKTIVE FREUNDSCHAFTEN (KEINE TIMESTAMPS) -->
+        <!-- =============================================================== -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                Aktive Freundschaften
+            </div>
+
+            <div class="card-body">
+
+                <div th:if="${#lists.isEmpty(activeFriendships)}">
+                    <p class="text-muted">Du hast aktuell keine aktiven Freundschaften.</p>
+                </div>
+
+                <ul class="list-group" th:if="${!#lists.isEmpty(activeFriendships)}">
+                    <li class="list-group-item d-flex justify-content-between align-items-center"
+                        th:each="fs : ${activeFriendships}">
+                        
+                        <!-- Freund ermitteln -->
+                        <span th:text="${fs.requestor.id == currentUserId} 
+                                        ? ${fs.addressee.id} 
+                                        : ${fs.requestor.id}">
+                        </span>
+
+                        <span class="badge bg-success">Aktiv</span>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+
+
+        <!-- =============================================================== -->
+        <!-- AUSGEHENDE ANFRAGEN (PENDING + TIMESTAMP) -->
+        <!-- =============================================================== -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning">
+                Von dir gesendete Freundschaftsanfragen
+            </div>
+
+            <div class="card-body">
+
+                <div th:if="${#lists.isEmpty(pendingRequestsBy)}">
+                    <p class="text-muted">Du hast keine offenen gesendeten Anfragen.</p>
+                </div>
+
+                <ul class="list-group" th:if="${!#lists.isEmpty(pendingRequestsBy)}">
+                    <li class="list-group-item"
+                        th:each="fs : ${pendingRequestsBy}">
+                        
+                        <div class="d-flex justify-content-between">
+                            
+                            <div>
+                                <!-- Empfänger -->
+                                <strong th:text="${fs.addressee.id}"></strong><br>
+
+                                <!-- TIMESTAMP -->
+                                <small class="text-muted">
+                                    Angefragt am:
+                                    <span th:text="${#temporals.format(fs.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+                                </small>
+                            </div>
+
+                            <span class="badge bg-secondary h-50 my-auto">Ausstehend</span>
+                        </div>
+
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+
+
+        <!-- =============================================================== -->
+        <!-- EINGEHENDE ANFRAGEN (PENDING + TIMESTAMP) -->
+        <!-- =============================================================== -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                An dich gerichtete Freundschaftsanfragen
+            </div>
+
+            <div class="card-body">
+
+                <div th:if="${#lists.isEmpty(pendingRequestsTo)}">
+                    <p class="text-muted">Du hast keine offenen erhaltenen Anfragen.</p>
+                </div>
+
+                <ul class="list-group" th:if="${!#lists.isEmpty(pendingRequestsTo)}">
+                    <li class="list-group-item d-flex justify-content-between align-items-center"
+                        th:each="fs : ${pendingRequestsTo}">
+
+                        <div>
+                            <!-- Absender -->
+                            <strong th:text="${fs.requestor.id}"></strong><br>
+
+                            <!-- TIMESTAMP -->
+                            <small class="text-muted">
+                                Angefragt am:
+                                <span th:text="${#temporals.format(fs.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+                            </small>
+                        </div>
+
+                        <div>
+                            <a th:href="@{'/friends/accept/' + ${fs.id}}"
+                               class="btn btn-success btn-sm me-2">Annehmen</a>
+
+                            <a th:href="@{'/friends/decline/' + ${fs.id}}"
+                               class="btn btn-danger btn-sm">Ablehnen</a>
+                        </div>
+
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+
+    </div>
+
+</main>
+</html>

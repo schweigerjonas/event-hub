@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import de.othr.event_hub.model.Friendship;
+import de.othr.event_hub.model.User;
 
 public interface FriendshipService {
     
@@ -18,4 +19,10 @@ public interface FriendshipService {
     void deleteFriendship(Friendship friendship);
 
     void deleteAllFriendships();
+
+    public List<Friendship> findActiveFriendshipsByUser(User user);
+
+    public List<Friendship> findPendingFriendshipsRequestedByUser(User user);
+
+    public List<Friendship> findPendingFriendshipsRequestedToUser(User user);
 }
