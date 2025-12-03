@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import de.othr.event_hub.dto.UserDto;
 import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.User;
 import jakarta.validation.Valid;
@@ -18,37 +19,40 @@ import jakarta.validation.Valid;
 public class SignupController {
     @GetMapping("/signup")
     public String getSignUp(Model model) {
-        User user = new User();
+        UserDto userDto = new UserDto();
 
-        // create default authority for all accounts
-        Authority defaultAuthority = new Authority();
-        defaultAuthority.setDescription("BENUTZER");
+        // default account role
+        userDto.setRole("BENUTZER");
 
-        // set default authority
-        List<Authority> userAuthorities = user.getAuthorities();
-        userAuthorities.add(defaultAuthority);
-        user.setAuthorities(userAuthorities);
-
-        model.addAttribute("user", user);
+        model.addAttribute("userDto", userDto);
 
         return "signup";
     }
 
     @PostMapping("/register")
-    public String registerUser(@ModelAttribute @Valid User user, BindingResult result, RedirectAttributes attr,
+    public String registerUser(
+            @ModelAttribute @Valid UserDto userDto,
+            BindingResult result,
+            RedirectAttributes attr,
             Model model) {
         if (result.hasErrors()) {
             // System.out.println("Errors: " + result.getAllErrors());
             return "signup";
         }
 
-        System.out.println("Registered:");
-        System.out.println("\tEmail: " + user.getEmail());
-        System.out.println("\tUsername: " + user.getUsername());
-        System.out.println("\tPassword: " + user.getPassword());
-        System.out.println("\tAuthorities: " + user.getAuthorities());
+        User user = new User();
+        user.setEmail(userDto.getEmail());
+        user.setUsername(userDto.getUsername());
+        user.setPassword(userDto.getPassword());
 
-        return "redirect:/";
+        Authority authority = new Authority();
+        authority.setDescription(userDto.getRole());
+        user.setAuthorities(List.of(authority));
+
+        // TODO: maybe redirect directly to homepage -> would need manual
+        // authentication/authorization
+        // on new user
+        return "redirect:/login";
     }
 
 }

@@ -16,36 +16,41 @@
                 <div class="card-body"> 
                     <h2 class="card-title text-center">Your Account</h2>
                     <p class="fs-6 text-center text-muted mb-4">Welcome to EventHub!</p>
-                    <div th:if="${#fields.hasErrors('user.*')}" class="alert alert-danger" role="alert">
+                    <div th:if="${#fields.hasErrors('userDto.*')}" class="alert alert-danger" role="alert">
                         Registration failed. Please check the details and try again.
                     </div>
-                    <form th:object="${user}" th:action="@{/register}" method="POST">
+                    <form th:object="${userDto}" th:action="@{/register}" method="POST">
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" id="radio_user" th:value="BENUTZER" th:name="role" th:field="*{role}" checked>
+                            <input class="form-check-input" type="radio" id="radio_user" value="BENUTZER" th:name="role" th:field="*{role}" checked>
                             <label class="form-check-label" for="radio_user">
                                 User
                             </label>
                         </div>
                         <div class="form-check form-check-inline mb-3">
-                            <input class="form-check-input" type="radio" id="radio_organizer" th:value="ORGANISATOR" th:name="role" th:field="*{role}">
+                            <input class="form-check-input" type="radio" id="radio_organizer" value="ORGANISATOR" th:name="role" th:field="*{role}">
                             <label class="form-check-label" for="radio_organizer">
                                 Organizer
                             </label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="username" name="username" placeholder="Username" th:classappend="${#fields.hasErrors('username')} ? 'is-invalid' : ''" th:value="${user.username} ?: ''" required>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Username" th:classappend="${#fields.hasErrors('username')} ? 'is-invalid' : ''" th:value="${userDto.username} ?: ''" required>
                             <label for="username">Username</label>
                             <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="invalid-feedback"></div>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="email" th:name="email" placeholder="email@example.com" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''" th:value="${user.email} ?: ''" required>
+                            <input type="email" class="form-control" id="email" th:name="email" placeholder="email@example.com" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''" th:value="${userDto.email} ?: ''" required>
                             <label for="email">Email address</label>
                             <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="invalid-feedback"></div>
                         </div>
-                        <div class="form-floating mb-5">
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''" th:value="${user.password} ?: ''" required>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''" th:value="${userDto.password} ?: ''" required>
                             <label for="password">Password</label>
                             <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="invalid-feedback"></div>
+                        </div>
+                        <div class="form-floating mb-5">
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm password" th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''" th:value="${userDto.confirmPassword} ?: ''" required>
+                            <label for="confirmPassword">Confirm Password</label>
+                            <div th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="invalid-feedback"></div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100">
                             <strong>Sign Up</strong>
