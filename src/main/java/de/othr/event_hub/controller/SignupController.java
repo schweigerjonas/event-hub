@@ -1,7 +1,5 @@
 package de.othr.event_hub.controller;
 
-import java.util.List;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -11,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import de.othr.event_hub.dto.UserDto;
-import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.service.UserService;
 import jakarta.validation.Valid;
@@ -52,12 +49,9 @@ public class SignupController {
         user.setEmail(userDto.getEmail());
         user.setUsername(userDto.getUsername());
         user.setPassword(userDto.getPassword());
+        user.setActive(1);
 
-        Authority authority = new Authority();
-        authority.setDescription(userDto.getRole());
-        user.setAuthorities(List.of(authority));
-
-        userService.saveUser(user);
+        userService.saveUser(user, userDto.getRole());
 
         // TODO: maybe redirect directly to homepage -> would need manual
         // authentication/authorization

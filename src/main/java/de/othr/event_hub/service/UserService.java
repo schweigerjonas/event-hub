@@ -5,7 +5,7 @@ import java.util.List;
 import de.othr.event_hub.model.User;
 
 public interface UserService {
-    User saveUser(User user);
+    User saveUser(User user, String authorityDescription);
 
     List<User> getAllUsers();
 

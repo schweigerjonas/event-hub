@@ -68,8 +68,6 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "user")
     private Set<ChatMembership> chatMemberships = new HashSet<>();
 
-    private String role;
-
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "authority_id"))
     private List<Authority> authorities = new ArrayList<>();
