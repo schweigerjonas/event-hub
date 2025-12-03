@@ -1,1 +1,67 @@
-test
+<!DOCTYPE html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"> 
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}">
+        <link rel="stylesheet" th:href="@{/css/styles.css}">
+        <title>Event Hub</title>
+    </head>
+    <body>
+        <div class="centered">
+            <div class="card shadow p-4">
+                <div class="card-body"> 
+                    <h2 class="card-title text-center">Your Account</h2>
+                    <p class="fs-6 text-center text-muted mb-4">Welcome to EventHub!</p>
+                    <div th:if="${#fields.hasErrors('user.*')}" class="alert alert-danger" role="alert">
+                        Registration failed. Please check the details and try again.
+                    </div>
+                    <form th:object="${user}" th:action="@{/register}" method="POST">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="radio_user" th:value="BENUTZER" th:name="role" th:field="*{role}" checked>
+                            <label class="form-check-label" for="radio_user">
+                                User
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline mb-3">
+                            <input class="form-check-input" type="radio" id="radio_organizer" th:value="ORGANISATOR" th:name="role" th:field="*{role}">
+                            <label class="form-check-label" for="radio_organizer">
+                                Organizer
+                            </label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Username" th:classappend="${#fields.hasErrors('username')} ? 'is-invalid' : ''" th:value="${user.username} ?: ''" required>
+                            <label for="username">Username</label>
+                            <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="invalid-feedback"></div>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="email" th:name="email" placeholder="email@example.com" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''" th:value="${user.email} ?: ''" required>
+                            <label for="email">Email address</label>
+                            <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="invalid-feedback"></div>
+                        </div>
+                        <div class="form-floating mb-5">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''" th:value="${user.password} ?: ''" required>
+                            <label for="password">Password</label>
+                            <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="invalid-feedback"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <strong>Sign Up</strong>
+                        </button>
+                    </form>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                           Already have an account?
+                           <a th:href="@{/login}" class="text-decoration-none">Log in</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+        <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+    </body>
+</html>

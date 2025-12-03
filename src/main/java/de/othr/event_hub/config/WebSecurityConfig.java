@@ -24,7 +24,8 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/h2-console/**", "/console/**", "/signup", "/login", "/perform_login", "/logout")
+                .requestMatchers("/h2-console/**", "/console/**", "/signup", "/register", "/login", "/perform_login",
+                        "/logout")
                 .permitAll()
                 .requestMatchers("/images/**", "/css/**", "/js/**", "/webjars/**", "/script/**").permitAll()
                 .requestMatchers("/", "/home").permitAll()
