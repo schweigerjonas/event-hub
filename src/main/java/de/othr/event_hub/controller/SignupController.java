@@ -13,10 +13,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import de.othr.event_hub.dto.UserDto;
 import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.User;
+import de.othr.event_hub.service.UserService;
 import jakarta.validation.Valid;
 
 @Controller
 public class SignupController {
+    private UserService userService;
+
+    public SignupController(UserService userService) {
+        super();
+        this.userService = userService;
+    }
+
     @GetMapping("/signup")
     public String getSignUp(Model model) {
         UserDto userDto = new UserDto();
@@ -36,7 +44,7 @@ public class SignupController {
             RedirectAttributes attr,
             Model model) {
         if (result.hasErrors()) {
-            // System.out.println("Errors: " + result.getAllErrors());
+            System.out.println("Errors: " + result.getAllErrors().toString());
             return "signup";
         }
 
@@ -48,6 +56,8 @@ public class SignupController {
         Authority authority = new Authority();
         authority.setDescription(userDto.getRole());
         user.setAuthorities(List.of(authority));
+
+        userService.saveUser(user);
 
         // TODO: maybe redirect directly to homepage -> would need manual
         // authentication/authorization
