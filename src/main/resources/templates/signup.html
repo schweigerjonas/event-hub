@@ -43,12 +43,12 @@
                             <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="invalid-feedback"></div>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''" th:value="${userDto.password} ?: ''" required>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''" required>
                             <label for="password">Password</label>
                             <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="invalid-feedback"></div>
                         </div>
                         <div class="form-floating mb-5">
-                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm password" th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''" th:value="${userDto.confirmPassword} ?: ''" required>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm password" th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''" required>
                             <label for="confirmPassword">Confirm Password</label>
                             <div th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="invalid-feedback"></div>
                         </div>
