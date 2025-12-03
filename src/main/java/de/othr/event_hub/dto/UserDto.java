@@ -25,6 +25,8 @@ public class UserDto {
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 
+    @NotBlank(message = "Confirm password must not be blank")
+    @Size(min = 8, message = "Confirm password must be at least 8 characters long")
     private String confirmPassword;
 
     @NotBlank(message = "Role must not be blank")
