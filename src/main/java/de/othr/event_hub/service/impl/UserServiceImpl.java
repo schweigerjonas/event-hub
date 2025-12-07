@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
 
-        Authority authority = authorityRepository.findByDescription(authorityDescription)
+        Authority authority = authorityRepository.findAuthorityByDescription(authorityDescription)
                 .orElseThrow(() -> new RuntimeException("Authority not found: " + authorityDescription));
         user.setAuthorities(new ArrayList<>(List.of(authority)));
 

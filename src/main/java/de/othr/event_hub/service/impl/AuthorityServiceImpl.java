@@ -31,6 +31,6 @@ public class AuthorityServiceImpl implements AuthorityService {
 
     @Override
     public Authority getAuthorityByDescription(String description) {
-        return authorityRepository.findByDescription(description).get();
+        return authorityRepository.findAuthorityByDescription(description).get();
     }
 }
