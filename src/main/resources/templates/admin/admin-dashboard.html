@@ -5,7 +5,18 @@
       layout:decorate="~{layout}">
     <main layout:fragment="main">
         <div class="container">
-            <h1 class="mb-5">Willkommen auf Admin Dashboard</h1>
+            <h1 class="my-3">Willkommen auf Admin Dashboard</h1>
+            <div class="d-flex justify-content-end">
+                <button
+                    type="button"
+                    class="btn btn-primary d-flex flex-row mb-3"
+                    data-bs-toggle="modal"
+                    data-bs-target="#create-user-modal"
+                >
+                    <span class="material-symbols-outlined me-1">add</span>
+                    Add User
+                </button>
+            </div>
             <table class="table">
                 <thead>
                     <tr>
@@ -40,7 +51,7 @@
                                 >
                                     <span class="material-symbols-outlined">edit_square</span>
                                 </button>
-                                <form th:action="@{/admin/{id}(id = ${user.id})}" th:method="patch">
+                                <form th:action="@{/admin/{id}(id = ${user.id})}" th:method="PATCH">
                                     <button type="submit" class="btn" th:classappend="${user.active} == 1 ? 'btn-warning' : 'btn-info'">
                                         <span th:if="${user.active == 1}" class="material-symbols-outlined">
                                             toggle_on
@@ -50,7 +61,7 @@
                                         </span>
                                     </button>
                                 </form>
-                                <form th:action="@{/admin/{id}(id = ${user.id})}" th:method="delete">
+                                <form th:action="@{/admin/{id}(id = ${user.id})}" th:method="DELETE">
                                     <button type="submit" class="btn btn-danger">
                                         <span class="material-symbols-outlined">delete</span>
                                     </button>
@@ -60,6 +71,63 @@
                     </tr>
                 </tbody>
             </table>
+
+            <!-- Create user modal -->
+            <div class="modal fade" id="create-user-modal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="create-user-modal-label">
+                                <strong>Create User</strong>
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form id="create-user-form" th:object="${userDto}" th:action="@{/admin}" th:method="POST">
+                            <div class="modal-body">
+                                <div class="form-check form-check-inline mb-3">
+                                    <input class="form-check-input" type="radio" id="radio_user" value="BENUTZER" th:name="role" th:field="*{role}" checked required>
+                                    <label class="form-check-label" for="radio_user">
+                                        User
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline mb-3">
+                                    <input class="form-check-input" type="radio" id="radio_organizer" value="ORGANISATOR" th:name="role" th:field="*{role}" required>
+                                    <label class="form-check-label" for="radio_organizer">
+                                        Organizer
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline mb-3">
+                                    <input class="form-check-input" type="radio" id="radio_admin" value="ADMIN" th:name="role" th:field="*{role}" required>
+                                    <label class="form-check-label" for="radio_admin">
+                                        Admin
+                                    </label>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="username" name="username" placeholder="Username" th:classappend="${#fields.hasErrors('username')} ? 'is-invalid' : ''" th:value="${userDto.username} ?: ''" required>
+                                    <label for="username">Username</label>
+                                    <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="invalid-feedback"></div>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input type="email" class="form-control" id="email" th:name="email" placeholder="email@example.com" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''" th:value="${userDto.email} ?: ''" required>
+                                    <label for="email">Email address</label>
+                                    <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="invalid-feedback"></div>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Password" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''" required>
+                                    <label for="password">Password</label>
+                                    <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="invalid-feedback"></div>
+                                </div>
+                                <div class="form-floating mb-5">
+                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm password" th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''" required>
+                                    <label for="confirmPassword">Confirm Password</label>
+                                    <div th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="invalid-feedback"></div>
+                                </div>
+                                <button type="submit" class="btn btn-success">Create User</button> 
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
             <!-- Edit user modal -->
             <div class="modal fade" id="edit-user-modal" tabindex="-1">
@@ -71,7 +139,7 @@
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
-                        <form id="edit-user-form" th:method="put">
+                        <form id="edit-user-form" th:method="PUT">
                             <div class="modal-body">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" id="radio_user" value="BENUTZER" th:name="authority">
