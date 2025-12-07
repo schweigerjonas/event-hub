@@ -9,7 +9,7 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th scope="col">#</th>
+                    <th scope="col">ID</th>
                     <th scope="col">Email</th>
                     <th scope="col">Username</th>
                     <th scope="col">Authorities</th>
@@ -18,7 +18,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="user: ${users}">
+                <tr th:each="user: ${users}" th:classappend="${user.active} == 0 ? 'table-warning' : ''">
                     <th scope="row" th:text="${user.id}"></th>
                     <td th:text="${user.email}"></td>
                     <td th:text="${user.username}"></td>
@@ -27,11 +27,23 @@
                     </td>
                     <td th:text="${user.active} == 1 ? 'TRUE' : 'FALSE'"></td>
                     <td>
-                        <form th:action="@{/admin/{id}(id = ${user.id})}" th:method="delete">
-                            <button type="submit" class="btn btn-light">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
-                        </form>
+                        <div class="d-flex flex-row gap-1">
+                            <form th:action="@{/admin/{id}(id = ${user.id})}" th:method="patch">
+                                <button type="submit" class="btn" th:classappend="${user.active} == 1 ? 'btn-warning' : 'btn-info'">
+                                    <span th:if="${user.active == 1}" class="material-symbols-outlined">
+                                        toggle_on
+                                    </span>
+                                    <span th:if="${user.active == 0}" class="material-symbols-outlined">
+                                        toggle_off
+                                    </span>
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/{id}(id = ${user.id})}" th:method="delete">
+                                <button type="submit" class="btn btn-danger">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             </tbody>
