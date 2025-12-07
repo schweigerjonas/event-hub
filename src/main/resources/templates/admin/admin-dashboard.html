@@ -5,7 +5,35 @@
       layout:decorate="~{layout}">
 <main layout:fragment="main">
     <div class="container">
-        <p>Willkommen auf Admin Dashboard</p>
+        <h1 class="mb-5">Willkommen auf Admin Dashboard</h1>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">Authorities</th>
+                    <th scope="col">Active</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="user: ${users}">
+                    <th scope="row" th:text="${user.id}"></th>
+                    <td th:text="${user.email}"></td>
+                    <td th:text="${user.username}"></td>
+                    <td th:each="authority: ${user.authorities}">
+                        <span th:text="${authority.description}"></span>
+                    </td>
+                    <td th:text="${user.active} == 1 ? 'TRUE' : 'FALSE'"></td>
+                    <td>
+                        <button type="button" class="btn btn-light">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </main>
 </html>
