@@ -1,5 +1,6 @@
 package de.othr.event_hub.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +33,7 @@ public class UserServiceImpl implements UserService {
 
         Authority authority = authorityRepository.findByDescription(authorityDescription)
                 .orElseThrow(() -> new RuntimeException("Authority not found: " + authorityDescription));
-        user.setAuthorities(List.of(authority));
+        user.setAuthorities(new ArrayList<>(List.of(authority)));
 
         return userRepository.save(user);
     }
