@@ -27,9 +27,11 @@
                     </td>
                     <td th:text="${user.active} == 1 ? 'TRUE' : 'FALSE'"></td>
                     <td>
-                        <button type="button" class="btn btn-light">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
+                        <form th:action="@{/admin/{id}(id = ${user.id})}" th:method="delete">
+                            <button type="submit" class="btn btn-light">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </form>
                     </td>
                 </tr>
             </tbody>
