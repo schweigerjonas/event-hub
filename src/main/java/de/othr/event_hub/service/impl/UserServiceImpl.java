@@ -62,4 +62,14 @@ public class UserServiceImpl implements UserService {
         // TODO Auto-generated method stub
         userRepository.delete(user);
     }
+
+    @Override
+    public boolean usernameExists(String username) {
+        return userRepository.findUserByUsername(username).isPresent();
+    }
+
+    @Override
+    public boolean emailExists(String email) {
+        return userRepository.findUserByEmail(email).isPresent();
+    }
 }

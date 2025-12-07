@@ -27,7 +27,7 @@ public class SignupController {
 
     @InitBinder
     public void InitBinder(WebDataBinder binder) {
-        binder.addValidators(new SignupValidator());
+        binder.addValidators(new SignupValidator(userService));
     }
 
     @GetMapping("/signup")
