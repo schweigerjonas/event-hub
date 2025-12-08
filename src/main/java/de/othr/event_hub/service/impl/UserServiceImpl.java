@@ -1,6 +1,7 @@
 package de.othr.event_hub.service.impl;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -65,6 +66,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByUsername(String username) {
         // TODO Auto-generated method stub
-        return userRepository.findUserByUsername(username).get();
+        Optional<User> user = userRepository.findUserByUsername(username);
+        if (user.isPresent()) {
+            return user.get();
+        } else {
+            return null;
+        }
     }
 }
