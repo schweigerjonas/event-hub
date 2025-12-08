@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -45,14 +48,27 @@ public class AdminDashboardController {
     }
 
     @GetMapping("/admin")
-    public String getAdminDashboard(Model model) {
+    public String getAdminDashboard(
+            Model model,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "5") int size) {
         UserDto userDto = new UserDto();
-        List<User> users = userService.getAllUsers();
+        List<User> users;
 
+        Pageable paging = PageRequest.of(page - 1, size);
+        Page<User> pageUsers = userService.getAllUsers(paging);
+        users = pageUsers.getContent();
         userDto.setRole("BENUTZER");
 
         model.addAttribute("users", users);
         model.addAttribute("userDto", userDto);
+
+        // paginator variables
+        model.addAttribute("entityType", "user");
+        model.addAttribute("currentPage", pageUsers.getNumber() + 1);
+        model.addAttribute("totalItems", pageUsers.getTotalElements());
+        model.addAttribute("totalPages", pageUsers.getTotalPages());
+        model.addAttribute("pageSize", size);
 
         return "admin/admin-dashboard";
     }
