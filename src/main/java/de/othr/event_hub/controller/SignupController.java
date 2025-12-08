@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import de.othr.event_hub.dto.UserDto;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.service.UserService;
+import de.othr.event_hub.util.UserMapper;
 import de.othr.event_hub.validator.SignupValidator;
 import jakarta.validation.Valid;
 
@@ -27,7 +28,7 @@ public class SignupController {
 
     @InitBinder
     public void InitBinder(WebDataBinder binder) {
-        binder.addValidators(new SignupValidator());
+        binder.addValidators(new SignupValidator(userService));
     }
 
     @GetMapping("/signup")
@@ -53,12 +54,7 @@ public class SignupController {
             return "signup";
         }
 
-        User user = new User();
-        user.setEmail(userDto.getEmail());
-        user.setUsername(userDto.getUsername());
-        user.setPassword(userDto.getPassword());
-        user.setActive(1);
-
+        User user = new UserMapper().toEntity(userDto);
         userService.saveUser(user, userDto.getRole());
 
         // TODO: maybe redirect directly to homepage -> would need manual

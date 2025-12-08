@@ -1,5 +1,6 @@
 package de.othr.event_hub.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,9 +31,9 @@ public class UserServiceImpl implements UserService {
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
 
-        Authority authority = authorityRepository.findByDescription(authorityDescription)
+        Authority authority = authorityRepository.findAuthorityByDescription(authorityDescription)
                 .orElseThrow(() -> new RuntimeException("Authority not found: " + authorityDescription));
-        user.setAuthorities(List.of(authority));
+        user.setAuthorities(new ArrayList<>(List.of(authority)));
 
         return userRepository.save(user);
     }
@@ -60,5 +61,15 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(User user) {
         // TODO Auto-generated method stub
         userRepository.delete(user);
+    }
+
+    @Override
+    public boolean usernameExists(String username) {
+        return userRepository.findUserByUsername(username).isPresent();
+    }
+
+    @Override
+    public boolean emailExists(String email) {
+        return userRepository.findUserByEmail(email).isPresent();
     }
 }
