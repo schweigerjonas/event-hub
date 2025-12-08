@@ -7,8 +7,10 @@ import java.util.Map;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +25,7 @@ import de.othr.event_hub.model.User;
 import de.othr.event_hub.service.AuthorityService;
 import de.othr.event_hub.service.UserService;
 import de.othr.event_hub.util.UserMapper;
+import de.othr.event_hub.validator.SignupValidator;
 import jakarta.validation.Valid;
 
 @Controller
@@ -34,6 +37,11 @@ public class AdminDashboardController {
         super();
         this.userService = userService;
         this.authorityService = authorityService;
+    }
+
+    @InitBinder
+    public void InitBinder(WebDataBinder binder) {
+        binder.addValidators(new SignupValidator(userService));
     }
 
     @GetMapping("/admin")
@@ -58,12 +66,14 @@ public class AdminDashboardController {
         if (result.hasErrors()) {
             System.out.println("Errors: " + result.getAllErrors().toString());
 
-            // TODO: Add attributes with dto values etc and open modal again if there
-            // occured any errors, ideally it should behave like this: Create User -> error
-            // -> get sent to /admin -> automatically reopen create user modal -> have modal
-            // input and validation errors displayed in the modal
+            // repopulate model with users to render user list
+            List<User> users = userService.getAllUsers();
+            model.addAttribute("users", users);
 
-            return "redirect:/admin";
+            model.addAttribute("userDto", userDto);
+            model.addAttribute("openModal", true);
+
+            return "admin/admin-dashboard";
         }
 
         User user = new UserMapper().toEntity(userDto);

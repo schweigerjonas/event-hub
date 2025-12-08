@@ -180,6 +180,18 @@
         <!-- Populate edit user modal -->
         <script th:inline="javascript">
             var editUserModal = document.getElementById("edit-user-modal");
+            // thymeleaf javascript inline syntax /*[[...]]*/
+            var openModal = /*[[${openModal ?: false}]]*/ false;
+
+            if (openModal) {
+                // try to open modal only after full DOM is loaded
+                document.addEventListener('DOMContentLoaded', function () {
+                    var createUserModal = document.getElementById("create-user-modal");
+                    const modal = new bootstrap.Modal(createUserModal);
+
+                    modal.show(); 
+                })
+            }
 
             if (editUserModal) {
                 // event occurs when modal is opened
