@@ -39,16 +39,16 @@ public class User implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Email must not be blank")
-    @Email(message = "Enter a valid email address")
+    @NotBlank(message = "Bitte geben Sie Ihre Email-Adresse ein")
+    @Email(message = "Bitte geben Sie eine gültige Email-Adresse ein")
     private String email;
 
-    @NotBlank(message = "Username must not be blank")
-    @Size(min = 3, max = 50, message = "Username should have between 3 and 50 characters")
+    @NotBlank(message = "Bitte geben Sie einen Benutzernamen ein")
+    @Size(min = 3, max = 50, message = "Der Benutzername muss zwischen 3 und 50 Zeichen lang sein")
     private String username;
 
-    @NotBlank(message = "Password must not be blank")
-    @Size(min = 8, message = "Password must be at least 8 characters long")
+    @NotBlank(message = "Bitte geben Sie ein Passwort ein")
+    @Size(min = 8, message = "Das Passwort muss mindestens 8 Zeichen lang sein")
     private String password;
 
     private Integer active;

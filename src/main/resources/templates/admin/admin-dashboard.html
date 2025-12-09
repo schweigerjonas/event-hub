@@ -8,7 +8,7 @@
             <button type="button" class="btn btn-primary d-flex flex-row mb-3" data-bs-toggle="modal"
                 data-bs-target="#create-user-modal">
                 <span class="material-symbols-outlined me-1">add</span>
-                Add User
+                Benutzer hinzufügen
             </button>
         </div>
 
@@ -16,24 +16,22 @@
         <div>
             <form th:action="@{/admin}" id="searchForm" th:method="GET">
                 <div class="d-flex flex-row align-items-center justify-content-between my-3 gap-3">
-                    <div>
+                    <div class="input-group w-auto">
                         <select form="searchForm" name="size" th:value="${pageSize}" onchange="changePageSize()"
                             class="form-select" id="pageSize">
-                            <option th:each="s : ${ {5, 10, 15} }" th:value="${s}" th:text="${s} + ' Items'"
-                                th:selected="${s == pageSize}">Items</option>
+                            <option th:each="s : ${ {5, 10, 15} }" th:value="${s}" th:text="${s}"
+                                th:selected="${s == pageSize}"></option>
                         </select>
+                        <label class="input-group-text" for="pageSize">Einträge</label>
                     </div>
                     <div class="flex-grow-1">
                         <div class="search input-group">
-                            <label class="input-group-text" for="keyword-input">
-                                <span class="material-symbols-outlined">search</span>
-                            </label>
                             <input id="keyword-input" type="search" name="keyword" th:value="${keyword}"
-                                class="form-control" placeholder="Search for a user">
+                                class="form-control" placeholder="Suche">
+                            <button class="btn btn-outline-secondary pb-0" type="submit">
+                                <span class="material-symbols-outlined">search</span>
+                            </button>
                         </div>
-                    </div>
-                    <div>
-                        <button type="submit" class="btn btn-secondary">Search</button>
                     </div>
                 </div>
             </form>
@@ -45,10 +43,10 @@
                 <tr>
                     <th scope="col">ID</th>
                     <th scope="col">Email</th>
-                    <th scope="col">Username</th>
-                    <th scope="col">Authorities</th>
-                    <th scope="col">Active</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col">Benutzername</th>
+                    <th scope="col">Rechte</th>
+                    <th scope="col">Aktiv</th>
+                    <th scope="col">Aktionen</th>
                 </tr>
             </thead>
             <tbody>
@@ -94,157 +92,35 @@
         <nav aria-label="Pagination" th:if="${totalPages > 0}">
             <ul class="pagination">
                 <li class=" page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-                    <a th:replace="~{fragments/paging :: paging(1, '<<', 'First Page')}"></a>
+                    <a th:replace="~{fragments/paging :: paging(1, '<<', 'Erste Seite')}"></a>
                 </li>
                 <li class="page-item font-weight-bold" th:classappend="${currentPage == 1} ? 'disabled'">
-                    <a th:replace="~{fragments/paging :: paging(${currentPage - 1}, 'Prev', 'Previous Page')} "></a>
+                    <a th:replace="~{fragments/paging :: paging(${currentPage - 1}, 'Zurück', 'Vorherige Seite')} "></a>
                 </li>
                 <li class="page-item disabled" th:if="${currentPage - 2 > 1}">
                     <a class="page-link" href="#">...</a>
                 </li>
                 <li class="page-item" th:classappend="${page == currentPage} ? 'active'" th:each="page : ${#numbers.sequence(currentPage > 2 ? currentPage - 2 : 1, currentPage + 2 < totalPages ? currentPage + 2 :
 totalPages)}">
-                    <a th:replace="~{fragments/paging :: paging(${page}, ${page}, 'Page ' + ${page})}"></a>
+                    <a th:replace="~{fragments/paging :: paging(${page}, ${page}, 'Seite ' + ${page})}"></a>
                 </li>
                 <li class="page-item disabled" th:if="${currentPage + 2 < totalPages}">
                     <a class="page-link" href="#">...</a>
                 </li>
                 <li class="page-item font-weight-bold" th:classappend="${currentPage == totalPages} ? 'disabled'">
-                    <a th:replace="~{fragments/paging :: paging(${currentPage + 1},'Next', 'Next Page')}"></a>
+                    <a th:replace="~{fragments/paging :: paging(${currentPage + 1},'Weiter', 'Nächste Seite')}"></a>
                 </li>
                 <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
-                    <a th:replace="~{fragments/paging :: paging(${totalPages}, '>>', 'Last Page')}"></a>
+                    <a th:replace="~{fragments/paging :: paging(${totalPages}, '>>', 'Letzte Seite')}"></a>
                 </li>
             </ul>
         </nav>
 
         <!-- Create user modal -->
-        <div class="modal fade" id="create-user-modal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="create-user-modal-label">
-                            <strong>Create User</strong>
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <!-- Add pagination parameters to request for displaying correct page in case of errors-->
-                    <form id="create-user-form" th:object="${userDto}"
-                        th:action="@{/admin(keyword=${keyword}, page=${currentPage}, size=${pageSize})}"
-                        th:method="POST">
-                        <div class="modal-body">
-                            <div class="form-check form-check-inline mb-3">
-                                <input class="form-check-input" type="radio" id="radio_user" value="BENUTZER"
-                                    th:name="role" th:field="*{role}" checked required>
-                                <label class="form-check-label" for="radio_user">
-                                    User
-                                </label>
-                            </div>
-                            <div class="form-check form-check-inline mb-3">
-                                <input class="form-check-input" type="radio" id="radio_organizer" value="ORGANISATOR"
-                                    th:name="role" th:field="*{role}" required>
-                                <label class="form-check-label" for="radio_organizer">
-                                    Organizer
-                                </label>
-                            </div>
-                            <div class="form-check form-check-inline mb-3">
-                                <input class="form-check-input" type="radio" id="radio_admin" value="ADMIN"
-                                    th:name="role" th:field="*{role}" required>
-                                <label class="form-check-label" for="radio_admin">
-                                    Admin
-                                </label>
-                            </div>
-                            <div class="form-floating mb-3">
-                                <input type="text" class="form-control" id="username" name="username"
-                                    placeholder="Username"
-                                    th:classappend="${#fields.hasErrors('username')} ? 'is-invalid' : ''"
-                                    th:value="${userDto.username} ?: ''" required>
-                                <label for="username">Username</label>
-                                <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}"
-                                    class="invalid-feedback"></div>
-                            </div>
-                            <div class="form-floating mb-3">
-                                <input type="email" class="form-control" id="email" th:name="email"
-                                    placeholder="email@example.com"
-                                    th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"
-                                    th:value="${userDto.email} ?: ''" required>
-                                <label for="email">Email address</label>
-                                <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}"
-                                    class="invalid-feedback"></div>
-                            </div>
-                            <div class="form-floating mb-3">
-                                <input type="password" class="form-control" id="password" name="password"
-                                    placeholder="Password"
-                                    th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''" required>
-                                <label for="password">Password</label>
-                                <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}"
-                                    class="invalid-feedback"></div>
-                            </div>
-                            <div class="form-floating mb-5">
-                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword"
-                                    placeholder="Confirm password"
-                                    th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''"
-                                    required>
-                                <label for="confirmPassword">Confirm Password</label>
-                                <div th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"
-                                    class="invalid-feedback"></div>
-                            </div>
-                            <button type="submit" class="btn btn-success">Create User</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <div th:insert="~{admin/fragments/create-user-modal :: create-user-modal}"></div>
 
         <!-- Edit user modal -->
-        <div class="modal fade" id="edit-user-modal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="edit-user-modal-label">
-                            <strong>Edit User: </strong><span id="modal-username-header"></span>
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <form id="edit-user-form" th:method="PUT">
-                        <div class="modal-body">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" id="radio_user" value="BENUTZER"
-                                    th:name="authority">
-                                <label class="form-check-label" for="radio_user">
-                                    User
-                                </label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" id="radio_organizer" value="ORGANISATOR"
-                                    th:name="authority">
-                                <label class="form-check-label" for="radio_organizer">
-                                    Organizer
-                                </label>
-                            </div>
-                            <div class="form-check form-check-inline mb-3">
-                                <input class="form-check-input" type="radio" id="radio_admin" value="ADMIN"
-                                    th:name="authority">
-                                <label class="form-check-label" for="radio_organizer">
-                                    Admin
-                                </label>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="edit-email" th:name="email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="edit-username" th:name="username" required>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-success">Save Changes</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <div th:insert="~{admin/fragments/edit-user-modal :: edit-user-modal}"></div>
     </div>
 
     <!-- Populate edit user modal -->
