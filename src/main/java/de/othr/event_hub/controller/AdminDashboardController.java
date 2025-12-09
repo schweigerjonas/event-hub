@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -45,14 +48,13 @@ public class AdminDashboardController {
     }
 
     @GetMapping("/admin")
-    public String getAdminDashboard(Model model) {
-        UserDto userDto = new UserDto();
-        List<User> users = userService.getAllUsers();
-
-        userDto.setRole("BENUTZER");
-
-        model.addAttribute("users", users);
-        model.addAttribute("userDto", userDto);
+    public String getAdminDashboard(
+            Model model,
+            @ModelAttribute UserDto userDto,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "5") int size) {
+        populateAdminDashboard(model, userDto, keyword, page, size);
 
         return "admin/admin-dashboard";
     }
@@ -62,15 +64,14 @@ public class AdminDashboardController {
             @ModelAttribute @Valid UserDto userDto,
             BindingResult result,
             RedirectAttributes attr,
-            Model model) {
+            Model model,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "5") int size) {
         if (result.hasErrors()) {
             System.out.println("Errors: " + result.getAllErrors().toString());
 
-            // repopulate model with users to render user list
-            List<User> users = userService.getAllUsers();
-            model.addAttribute("users", users);
-
-            model.addAttribute("userDto", userDto);
+            populateAdminDashboard(model, userDto, keyword, page, size);
             model.addAttribute("openModal", true);
 
             return "admin/admin-dashboard";
@@ -115,5 +116,26 @@ public class AdminDashboardController {
         userService.updateUser(user);
 
         return "redirect:/admin";
+    }
+
+    private void populateAdminDashboard(Model model, UserDto userDto, String keyword, int page, int size) {
+        Pageable paging = PageRequest.of(page - 1, size);
+        Page<User> pageUsers = userService.getAllUsers(keyword, paging);
+        List<User> users = pageUsers.getContent();
+
+        if (userDto.getRole() == null) {
+            userDto.setRole("BENUTZER");
+        }
+
+        model.addAttribute("keyword", keyword == null ? "" : keyword);
+        model.addAttribute("users", users);
+        model.addAttribute("userDto", userDto);
+
+        // paginator variables
+        model.addAttribute("entityType", "user");
+        model.addAttribute("currentPage", pageUsers.getNumber() + 1);
+        model.addAttribute("totalItems", pageUsers.getTotalElements());
+        model.addAttribute("totalPages", pageUsers.getTotalPages());
+        model.addAttribute("pageSize", size);
     }
 }
