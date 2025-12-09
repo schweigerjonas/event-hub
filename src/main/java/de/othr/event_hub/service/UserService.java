@@ -22,5 +22,5 @@ public interface UserService {
 
     boolean emailExists(String username);
 
-    Page<User> getAllUsers(Pageable pageable);
+    Page<User> getAllUsers(String username, Pageable pageable);
 }

@@ -11,6 +11,35 @@
                 Add User
             </button>
         </div>
+
+        <!-- Search bar -->
+        <div>
+            <form th:action="@{/admin}" id="searchForm" th:method="GET">
+                <div class="d-flex flex-row align-items-center justify-content-between my-3 gap-3">
+                    <div>
+                        <select form="searchForm" name="size" th:value="${pageSize}" onchange="changePageSize()"
+                            class="form-select" id="pageSize">
+                            <option th:each="s : ${ {3, 6, 9} }" th:value="${s}" th:text="${s} + ' Items'"
+                                th:selected="${s == pageSize}">Items</option>
+                        </select>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="search input-group">
+                            <label class="input-group-text" for="keyword-input">
+                                <span class="material-symbols-outlined">search</span>
+                            </label>
+                            <input id="keyword-input" type="search" name="keyword" th:value="${keyword}"
+                                class="form-control" placeholder="Search for a user">
+                        </div>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-secondary">Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- User table -->
         <table class="table">
             <thead>
                 <tr>
@@ -60,6 +89,8 @@
                 </tr>
             </tbody>
         </table>
+
+        <!-- Pagination -->
         <nav aria-label="Pagination" th:if="${totalPages > 0}">
             <ul class="pagination">
                 <li class=" page-item" th:classappend="${currentPage == 1} ? 'disabled'">
@@ -257,6 +288,10 @@ totalPages)}">
                     authorityRadio.checked = true;
                 }
             });
+        }
+
+        function changePageSize() {
+            $("#searchForm").submit();
         }
     </script>
 </main>

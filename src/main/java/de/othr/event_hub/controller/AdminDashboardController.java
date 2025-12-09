@@ -50,16 +50,18 @@ public class AdminDashboardController {
     @GetMapping("/admin")
     public String getAdminDashboard(
             Model model,
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false, defaultValue = "1") int page,
             @RequestParam(required = false, defaultValue = "5") int size) {
         UserDto userDto = new UserDto();
         List<User> users;
 
         Pageable paging = PageRequest.of(page - 1, size);
-        Page<User> pageUsers = userService.getAllUsers(paging);
+        Page<User> pageUsers = userService.getAllUsers(keyword, paging);
         users = pageUsers.getContent();
         userDto.setRole("BENUTZER");
 
+        model.addAttribute("keyword", keyword);
         model.addAttribute("users", users);
         model.addAttribute("userDto", userDto);
 
