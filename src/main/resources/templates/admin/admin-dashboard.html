@@ -8,7 +8,7 @@
             <button type="button" class="btn btn-primary d-flex flex-row mb-3" data-bs-toggle="modal"
                 data-bs-target="#create-user-modal">
                 <span class="material-symbols-outlined me-1">add</span>
-                Add User
+                Benutzer hinzufügen
             </button>
         </div>
 
@@ -16,24 +16,22 @@
         <div>
             <form th:action="@{/admin}" id="searchForm" th:method="GET">
                 <div class="d-flex flex-row align-items-center justify-content-between my-3 gap-3">
-                    <div>
+                    <div class="input-group w-auto">
                         <select form="searchForm" name="size" th:value="${pageSize}" onchange="changePageSize()"
                             class="form-select" id="pageSize">
-                            <option th:each="s : ${ {5, 10, 15} }" th:value="${s}" th:text="${s} + ' Items'"
-                                th:selected="${s == pageSize}">Items</option>
+                            <option th:each="s : ${ {5, 10, 15} }" th:value="${s}" th:text="${s}"
+                                th:selected="${s == pageSize}"></option>
                         </select>
+                        <label class="input-group-text" for="pageSize">Einträge</label>
                     </div>
                     <div class="flex-grow-1">
                         <div class="search input-group">
-                            <label class="input-group-text" for="keyword-input">
-                                <span class="material-symbols-outlined">search</span>
-                            </label>
                             <input id="keyword-input" type="search" name="keyword" th:value="${keyword}"
-                                class="form-control" placeholder="Search for a user">
+                                class="form-control" placeholder="Suche">
+                            <button class="btn btn-outline-secondary pb-0" type="submit">
+                                <span class="material-symbols-outlined">search</span>
+                            </button>
                         </div>
-                    </div>
-                    <div>
-                        <button type="submit" class="btn btn-secondary">Search</button>
                     </div>
                 </div>
             </form>
@@ -45,10 +43,10 @@
                 <tr>
                     <th scope="col">ID</th>
                     <th scope="col">Email</th>
-                    <th scope="col">Username</th>
-                    <th scope="col">Authorities</th>
-                    <th scope="col">Active</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col">Benutzername</th>
+                    <th scope="col">Rechte</th>
+                    <th scope="col">Aktiv</th>
+                    <th scope="col">Aktionen</th>
                 </tr>
             </thead>
             <tbody>
@@ -94,26 +92,26 @@
         <nav aria-label="Pagination" th:if="${totalPages > 0}">
             <ul class="pagination">
                 <li class=" page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-                    <a th:replace="~{fragments/paging :: paging(1, '<<', 'First Page')}"></a>
+                    <a th:replace="~{fragments/paging :: paging(1, '<<', 'Erste Seite')}"></a>
                 </li>
                 <li class="page-item font-weight-bold" th:classappend="${currentPage == 1} ? 'disabled'">
-                    <a th:replace="~{fragments/paging :: paging(${currentPage - 1}, 'Prev', 'Previous Page')} "></a>
+                    <a th:replace="~{fragments/paging :: paging(${currentPage - 1}, 'Zurück', 'Vorherige Seite')} "></a>
                 </li>
                 <li class="page-item disabled" th:if="${currentPage - 2 > 1}">
                     <a class="page-link" href="#">...</a>
                 </li>
                 <li class="page-item" th:classappend="${page == currentPage} ? 'active'" th:each="page : ${#numbers.sequence(currentPage > 2 ? currentPage - 2 : 1, currentPage + 2 < totalPages ? currentPage + 2 :
 totalPages)}">
-                    <a th:replace="~{fragments/paging :: paging(${page}, ${page}, 'Page ' + ${page})}"></a>
+                    <a th:replace="~{fragments/paging :: paging(${page}, ${page}, 'Seite ' + ${page})}"></a>
                 </li>
                 <li class="page-item disabled" th:if="${currentPage + 2 < totalPages}">
                     <a class="page-link" href="#">...</a>
                 </li>
                 <li class="page-item font-weight-bold" th:classappend="${currentPage == totalPages} ? 'disabled'">
-                    <a th:replace="~{fragments/paging :: paging(${currentPage + 1},'Next', 'Next Page')}"></a>
+                    <a th:replace="~{fragments/paging :: paging(${currentPage + 1},'Weiter', 'Nächste Seite')}"></a>
                 </li>
                 <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
-                    <a th:replace="~{fragments/paging :: paging(${totalPages}, '>>', 'Last Page')}"></a>
+                    <a th:replace="~{fragments/paging :: paging(${totalPages}, '>>', 'Letzte Seite')}"></a>
                 </li>
             </ul>
         </nav>
