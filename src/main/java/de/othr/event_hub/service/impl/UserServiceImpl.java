@@ -1,8 +1,11 @@
 package de.othr.event_hub.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,9 +34,9 @@ public class UserServiceImpl implements UserService {
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
 
-        Authority authority = authorityRepository.findByDescription(authorityDescription)
+        Authority authority = authorityRepository.findAuthorityByDescription(authorityDescription)
                 .orElseThrow(() -> new RuntimeException("Authority not found: " + authorityDescription));
-        user.setAuthorities(List.of(authority));
+        user.setAuthorities(new ArrayList<>(List.of(authority)));
 
         return userRepository.save(user);
     }
@@ -72,5 +75,27 @@ public class UserServiceImpl implements UserService {
         } else {
             return null;
         }
+    }
+  
+    public boolean usernameExists(String username) {
+        return userRepository.findUserByUsername(username).isPresent();
+    }
+
+    @Override
+    public boolean emailExists(String email) {
+        return userRepository.findUserByEmail(email).isPresent();
+    }
+
+    @Override
+    public Page<User> getAllUsers(String username, Pageable pageable) {
+        Page<User> pageUsers;
+
+        if (username == null) {
+            pageUsers = userRepository.findAll(pageable);
+        } else {
+            pageUsers = userRepository.findByUsernameContainingIgnoreCase(username, pageable);
+        }
+
+        return pageUsers;
     }
 }

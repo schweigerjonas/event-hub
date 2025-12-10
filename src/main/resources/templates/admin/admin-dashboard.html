@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<main layout:fragment="main">
+    <div class="container">
+        <h1 class="my-3">Willkommen auf Admin Dashboard</h1>
+        <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-primary d-flex flex-row mb-3" data-bs-toggle="modal"
+                data-bs-target="#create-user-modal">
+                <span class="material-symbols-outlined me-1">add</span>
+                Benutzer hinzufügen
+            </button>
+        </div>
+
+        <!-- Search bar -->
+        <div>
+            <form th:action="@{/admin}" id="searchForm" th:method="GET">
+                <div class="d-flex flex-row align-items-center justify-content-between my-3 gap-3">
+                    <div class="input-group w-auto">
+                        <select form="searchForm" name="size" th:value="${pageSize}" onchange="changePageSize()"
+                            class="form-select" id="pageSize">
+                            <option th:each="s : ${ {5, 10, 15} }" th:value="${s}" th:text="${s}"
+                                th:selected="${s == pageSize}"></option>
+                        </select>
+                        <label class="input-group-text" for="pageSize">Einträge</label>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="search input-group">
+                            <input id="keyword-input" type="search" name="keyword" th:value="${keyword}"
+                                class="form-control" placeholder="Suche">
+                            <button class="btn btn-outline-secondary pb-0" type="submit">
+                                <span class="material-symbols-outlined">search</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- User table -->
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Benutzername</th>
+                    <th scope="col">Rechte</th>
+                    <th scope="col">Aktiv</th>
+                    <th scope="col">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="user: ${users}" th:classappend="${user.active} == 0 ? 'table-warning' : ''">
+                    <th scope="row" th:text="${user.id}"></th>
+                    <td th:text="${user.email}"></td>
+                    <td th:text="${user.username}"></td>
+                    <td th:each="authority: ${user.authorities}">
+                        <span th:text="${authority.description}"></span>
+                    </td>
+                    <td th:text="${user.active} == 1 ? 'TRUE' : 'FALSE'"></td>
+                    <td>
+                        <div class="d-flex flex-row gap-1">
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                                data-bs-target="#edit-user-modal" th:data-user-id="${user.id}"
+                                th:data-user-email="${user.email}" th:data-user-username="${user.username}"
+                                th:data-user-authority="${user.authorities[0].description}">
+                                <span class="material-symbols-outlined">edit_square</span>
+                            </button>
+                            <form th:action="@{/admin/{id}(id = ${user.id})}" th:method="PATCH">
+                                <button type="submit" class="btn"
+                                    th:classappend="${user.active} == 1 ? 'btn-warning' : 'btn-info'">
+                                    <span th:if="${user.active == 1}" class="material-symbols-outlined">
+                                        toggle_on
+                                    </span>
+                                    <span th:if="${user.active == 0}" class="material-symbols-outlined">
+                                        toggle_off
+                                    </span>
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/{id}(id = ${user.id})}" th:method="DELETE">
+                                <button type="submit" class="btn btn-danger">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <nav aria-label="Pagination" th:if="${totalPages > 0}">
+            <ul class="pagination">
+                <li class=" page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                    <a th:replace="~{fragments/paging :: paging(1, '<<', 'Erste Seite')}"></a>
+                </li>
+                <li class="page-item font-weight-bold" th:classappend="${currentPage == 1} ? 'disabled'">
+                    <a th:replace="~{fragments/paging :: paging(${currentPage - 1}, 'Zurück', 'Vorherige Seite')} "></a>
+                </li>
+                <li class="page-item disabled" th:if="${currentPage - 2 > 1}">
+                    <a class="page-link" href="#">...</a>
+                </li>
+                <li class="page-item" th:classappend="${page == currentPage} ? 'active'" th:each="page : ${#numbers.sequence(currentPage > 2 ? currentPage - 2 : 1, currentPage + 2 < totalPages ? currentPage + 2 :
+totalPages)}">
+                    <a th:replace="~{fragments/paging :: paging(${page}, ${page}, 'Seite ' + ${page})}"></a>
+                </li>
+                <li class="page-item disabled" th:if="${currentPage + 2 < totalPages}">
+                    <a class="page-link" href="#">...</a>
+                </li>
+                <li class="page-item font-weight-bold" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                    <a th:replace="~{fragments/paging :: paging(${currentPage + 1},'Weiter', 'Nächste Seite')}"></a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                    <a th:replace="~{fragments/paging :: paging(${totalPages}, '>>', 'Letzte Seite')}"></a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Create user modal -->
+        <div th:insert="~{admin/fragments/create-user-modal :: create-user-modal}"></div>
+
+        <!-- Edit user modal -->
+        <div th:insert="~{admin/fragments/edit-user-modal :: edit-user-modal}"></div>
+    </div>
+
+    <!-- Populate edit user modal -->
+    <script th:inline="javascript">
+        var editUserModal = document.getElementById("edit-user-modal");
+        // thymeleaf javascript inline syntax /*[[...]]*/
+        var openModal = /*[[${openModal ?: false}]]*/ false;
+
+        if (openModal) {
+            // try to open modal only after full DOM is loaded
+            document.addEventListener('DOMContentLoaded', function () {
+                var createUserModal = document.getElementById("create-user-modal");
+                const modal = new bootstrap.Modal(createUserModal);
+
+                modal.show();
+            })
+        }
+
+        if (editUserModal) {
+            // event occurs when modal is opened
+            editUserModal.addEventListener("show.bs.modal", function (event) {
+                var button = event.relatedTarget;
+
+                // extract attribute values from "open modal" button
+                var id = button.getAttribute("data-user-id");
+                var email = button.getAttribute("data-user-email");
+                var username = button.getAttribute("data-user-username");
+                var authority = button.getAttribute("data-user-authority");
+
+                var modalTitle = editUserModal.querySelector("#modal-username-header");
+                var modalForm = document.getElementById("edit-user-form");
+                var emailInput = editUserModal.querySelector("#edit-email");
+                var usernameInput = editUserModal.querySelector("#edit-username");
+                // get radio button with same value as user authority
+                var authorityRadio = editUserModal.querySelector('input[value="' + authority + '"]');
+
+                modalForm.setAttribute("action", "/admin/" + id);
+
+                modalTitle.textContent = username;
+                emailInput.value = email;
+                usernameInput.value = username;
+
+                if (authorityRadio) {
+                    authorityRadio.checked = true;
+                }
+            });
+        }
+
+        function changePageSize() {
+            $("#searchForm").submit();
+        }
+    </script>
+</main>
+
+</html>

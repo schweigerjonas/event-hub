@@ -1,50 +1,51 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"> 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}">
-        <link rel="stylesheet" th:href="@{/css/styles.css}">
-        <title>Event Hub</title>
-    </head>
-    <body>
-        <div class="centered">
-            <div class="card shadow p-4">
-                <div class="card-body"> 
-                    <h2 class="card-title text-center mb-4">Welcome Back!</h2>
-                    <div th:if="${param.error}" class="alert alert-danger" role="alert">
-                        Invalid username or password.
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <title>Event Hub</title>
+</head>
+
+<body>
+    <div class="centered">
+        <div class="card shadow p-4">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Willkommen Zurück!</h2>
+                <div th:if="${param.error}" class="alert alert-danger" role="alert">
+                    Ungültiger Benutzername oder Email.
+                </div>
+                <form th:action="@{/perform_login}" method="POST">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Username"
+                            th:classappend="${param.error} ? 'is-invalid' : ''" required>
+                        <label for="username" class="form-label">Benutzername</label>
                     </div>
-                    <form th:action="@{/perform_login}" method="POST">    
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="username" name="username" placeholder="Username" th:classappend="${param.error} ? 'is-invalid' : ''" required>
-                            <label for="username" class="form-label">Username</label>
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="password" name="password"  placeholder="Password" th:classappend="${param.error} ? 'is-invalid' : ''" required>
-                            <label for="password" class="form-label">Password</label>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <strong>Log In</strong>
-                        </button>
-                    </form>
-                    <div class="text-center mt-3">
-                        <small class="text-muted">
-                           Don't have an account?
-                           <a th:href="@{/signup}" class="text-decoration-none">Sign up</a> 
-                        </small>
+                    <div class="form-floating mb-3">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password"
+                            th:classappend="${param.error} ? 'is-invalid' : ''" required>
+                        <label for="password" class="form-label">Passwort</label>
                     </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <strong>Anmelden</strong>
+                    </button>
+                </form>
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Neu bei EventHub?
+                        <a th:href="@{/signup}" class="text-decoration-none">Account erstellen</a>
+                    </small>
                 </div>
             </div>
         </div>
+    </div>
 
-        <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
-        <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
-    </body>
-</html>
+    <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+</body>
 
 <style>
     .card {

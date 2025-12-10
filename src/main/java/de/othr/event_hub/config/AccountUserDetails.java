@@ -12,7 +12,6 @@ import de.othr.event_hub.model.User;
 
 public class AccountUserDetails implements UserDetails {
     private static final long serialVersionUID = 1L;
-    private String email;
     private String username;
     private String password;
     private boolean active;

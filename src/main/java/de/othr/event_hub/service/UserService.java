@@ -2,6 +2,9 @@ package de.othr.event_hub.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import de.othr.event_hub.model.User;
 
 public interface UserService {
@@ -16,4 +19,10 @@ public interface UserService {
     void deleteUser(User user);
 
     User getUserByUsername(String username);
+  
+    boolean usernameExists(String username);
+
+    boolean emailExists(String username);
+
+    Page<User> getAllUsers(String username, Pageable pageable);
 }
