@@ -61,4 +61,9 @@ public class FriendshipServiceImpl implements FriendshipService {
     public List<Friendship> findPendingFriendshipsRequestedToUser(User user) {
         return friendshipRepository.findPendingFriendshipsRequestedToUser(user);
     }
+
+    @Override
+    public boolean existsFriendshipBetween(User current, User other) {
+        return friendshipRepository.existsFriendshipBetween(current, other);
+    }
 }

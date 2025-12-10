@@ -14,12 +14,16 @@
             <div class="card-body">
                 <form th:action="@{/friends/request}" method="POST" class="row g-3">
                     <div class="col-md-8">
-                        <input type="text" name="username" class="form-control" placeholder="Username eingeben" required>
+                        <input type="text" name="name" class="form-control" placeholder="Username eingeben" required>
                     </div>
                     <div class="col-md-4 d-grid">
                         <button class="btn btn-success">Anfrage senden</button>
                     </div>
                 </form>
+            </div>
+            <div th:if="${error}" class="alert alert-warning alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         </div>
 

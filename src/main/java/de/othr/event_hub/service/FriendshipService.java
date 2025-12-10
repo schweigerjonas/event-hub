@@ -25,4 +25,5 @@ public interface FriendshipService {
     public List<Friendship> findPendingFriendshipsRequestedByUser(User user);
 
     public List<Friendship> findPendingFriendshipsRequestedToUser(User user);
+    public boolean existsFriendshipBetween(User current, User other);
 }
