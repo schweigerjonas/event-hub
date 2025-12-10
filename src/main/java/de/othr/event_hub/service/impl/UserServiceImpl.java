@@ -2,6 +2,7 @@ package de.othr.event_hub.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -66,6 +67,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getUserByUsername(String username) {
+        // TODO Auto-generated method stub
+        Optional<User> user = userRepository.findUserByUsername(username);
+        if (user.isPresent()) {
+            return user.get();
+        } else {
+            return null;
+        }
+    }
+  
     public boolean usernameExists(String username) {
         return userRepository.findUserByUsername(username).isPresent();
     }

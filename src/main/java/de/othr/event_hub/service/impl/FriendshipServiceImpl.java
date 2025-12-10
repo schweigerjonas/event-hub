@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import de.othr.event_hub.model.Friendship;
+import de.othr.event_hub.model.User;
 import de.othr.event_hub.repository.FriendshipRepository;
 import de.othr.event_hub.service.FriendshipService;
 
@@ -44,5 +45,25 @@ public class FriendshipServiceImpl implements FriendshipService {
     @Override
     public void deleteAllFriendships() {
         friendshipRepository.deleteAll();
+    }
+
+    @Override
+    public List<Friendship> findActiveFriendshipsByUser(User user) {
+        return friendshipRepository.findActiveFriendshipsByUser(user);
+    }
+
+    @Override
+    public List<Friendship> findPendingFriendshipsRequestedByUser(User user) {
+        return friendshipRepository.findPendingFriendshipsRequestedByUser(user);
+    }
+
+    @Override
+    public List<Friendship> findPendingFriendshipsRequestedToUser(User user) {
+        return friendshipRepository.findPendingFriendshipsRequestedToUser(user);
+    }
+
+    @Override
+    public boolean existsFriendshipBetween(User current, User other) {
+        return friendshipRepository.existsFriendshipBetween(current, other);
     }
 }

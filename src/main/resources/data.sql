@@ -12,3 +12,8 @@ INSERT INTO users (email, username, password, active) VALUES ('admin@gmail.com',
 INSERT INTO user_authorities(user_id, authority_id) VALUES (1, 1);
 INSERT INTO user_authorities(user_id, authority_id) VALUES (2, 2);
 INSERT INTO user_authorities(user_id, authority_id) VALUES (3, 3);
+
+-- Add friendships
+INSERT INTO Friendship (requestor_id, addressee_id, status, created_at, accepted_at) VALUES (1, 2, 'ACCEPTED', NOW() - 20, NOW() - 10);
+INSERT INTO Friendship (requestor_id, addressee_id, status, created_at, accepted_at) VALUES (1, 2, 'PENDING', NOW() - 5, null); 
+INSERT INTO Friendship (requestor_id, addressee_id, status, created_at, accepted_at) VALUES (2, 1, 'PENDING', NOW(), null);  

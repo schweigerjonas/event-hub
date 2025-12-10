@@ -16,8 +16,11 @@ public class AccountUserDetails implements UserDetails {
     private String password;
     private boolean active;
     private List<GrantedAuthority> authorities;
+    private User user;
 
     public AccountUserDetails(User user) {
+        this.user = user;
+        this.email = user.getEmail();
         this.username = user.getUsername();
         this.password = user.getPassword();
         this.active = (user.getActive() > 0) ? true : false;
@@ -75,5 +78,9 @@ public class AccountUserDetails implements UserDetails {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public User getUser() {
+        return user;
     }
 }

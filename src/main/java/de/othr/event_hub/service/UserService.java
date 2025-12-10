@@ -18,6 +18,8 @@ public interface UserService {
 
     void deleteUser(User user);
 
+    User getUserByUsername(String username);
+  
     boolean usernameExists(String username);
 
     boolean emailExists(String username);

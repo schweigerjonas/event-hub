@@ -17,9 +17,3 @@ body {
     align-items: center;
     height: 100%;
 }
-
-.card {
-    max-width: 400px;
-    width: 90%;
-    margin: auto;
-}

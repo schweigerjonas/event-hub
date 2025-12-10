@@ -2,6 +2,7 @@ package de.othr.event_hub.model;
 
 import java.time.LocalDateTime;
 
+import de.othr.event_hub.model.enums.FriendshipStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -39,10 +40,4 @@ public class Friendship {
     private LocalDateTime createdAt;
 
     private LocalDateTime acceptedAt;
-}
-
-enum FriendshipStatus {
-    PENDING,
-    ACCEPTED,
-    DECLINED
 }
