@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import de.othr.event_hub.model.enums.ChatRoomType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -49,9 +50,4 @@ public class ChatRoom {
 
     @OneToMany(mappedBy = "chatRoom")
     private Set<ChatMessage> messages = new HashSet<>();
-}
-
-enum ChatRoomType {
-    EVENT,
-    Group
 }

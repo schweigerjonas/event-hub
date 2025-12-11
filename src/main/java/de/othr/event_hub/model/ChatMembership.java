@@ -2,6 +2,7 @@ package de.othr.event_hub.model;
 
 import java.time.LocalDateTime;
 
+import de.othr.event_hub.model.enums.ChatMembershipRole;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -37,9 +38,4 @@ public class ChatMembership {
     private ChatMembershipRole role;
 
     private LocalDateTime joinedAt = LocalDateTime.now();
-}
-
-enum ChatMembershipRole {
-    MEMBER,
-    CHATADMIN
 }
