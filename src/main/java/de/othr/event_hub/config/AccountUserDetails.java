@@ -13,6 +13,7 @@ import de.othr.event_hub.model.User;
 public class AccountUserDetails implements UserDetails {
     private static final long serialVersionUID = 1L;
     private String username;
+    private String email;
     private String password;
     private boolean active;
     private List<GrantedAuthority> authorities;
@@ -82,5 +83,9 @@ public class AccountUserDetails implements UserDetails {
 
     public User getUser() {
         return user;
+    }
+
+    public String getEmail() {
+        return email;
     }
 }
