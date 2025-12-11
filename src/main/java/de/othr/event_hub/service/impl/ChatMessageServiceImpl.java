@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import de.othr.event_hub.model.ChatMessage;
+import de.othr.event_hub.model.ChatRoom;
 import de.othr.event_hub.repository.ChatMessageRepository;
 import de.othr.event_hub.service.ChatMessageService;
 
@@ -44,5 +45,10 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     @Override
     public void deleteAllChatMessages() {
         chatMessageRepository.deleteAll();
+    }
+
+    @Override
+    public List<ChatMessage> getChatMessagesByChatRoom(ChatRoom chatRoom) {
+        return chatMessageRepository.findByChatRoomOrderBySentAtAsc(chatRoom);
     }
 }

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+
+<main layout:fragment="main">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="text-center" th:text="${chatRoom.name}"></h1>
+            <button class="btn btn-primary btn-lg rounded-circle" style="width:50px; height:50px; font-size:24px;">i</button>
+        </div>
+
+        <div class="chat-container d-flex flex-column gap-3 mb-5">
+            <div th:each="msg : ${messages}">
+                <div th:if="${msg.sender.id == currentUser.id}" class="d-flex justify-content-end">
+                    <div class="p-3 rounded" style="background-color: #f1f1f1; max-width: 70%;">
+                        <p class="mb-1" th:text="${msg.message}">Nachrichttext</p>
+                        <small class="text-muted d-block text-end" th:text="${#temporals.format(msg.sentAt, 'dd.MM.yyyy HH:mm')}"></small>
+                    </div>
+                </div>
+                <div th:if="${msg.sender.id != currentUser.id}" class="d-flex justify-content-start">
+                    <div class="p-3 rounded" style="background-color: #d0e7ff; max-width: 70%;">
+                        <strong th:text="${msg.sender.username}">Username</strong>
+                        <p class="mb-1 mt-1" th:text="${msg.message}">Nachrichttext</p>
+                        <small class="text-muted d-block" th:text="${#temporals.format(msg.sentAt, 'dd.MM.yyyy HH:mm')}"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form th:action="@{'/chat/' + ${chatRoom.id} + '/send'}" method="post" class="d-flex gap-2">
+            <input type="text" name="message" class="form-control" placeholder="Nachricht schreiben...">
+            <button type="submit" class="btn btn-primary">Senden</button>
+        </form>
+    </div>
+</main>
+</html>

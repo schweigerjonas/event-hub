@@ -5,6 +5,31 @@
       layout:decorate="~{layout}">
 
 <main layout:fragment="main">
-    <h1>Chats</h1>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="text-center">Meine Chats</h1>
+            <button class="btn btn-primary btn-lg rounded-circle" style="width:50px; height:50px; font-size:24px;">+</button>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="col" th:each="membership : ${userChats}">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <h5 class="card-title" th:text="${membership.chatRoom.name != null ? membership.chatRoom.name : membership.chatRoom.event.name}">Chatname</h5>
+                        <p class="card-text text-muted mb-2" th:text="${membership.chatRoom.type}">Chattyp</p>
+                        <div class="mt-auto d-flex justify-content-between">
+                            <a th:href="@{'/chats/' + ${membership.chatRoom.id}}" class="btn btn-success btn-sm">Öffnen</a>
+                            <form th:action="@{'/chats/' + ${membership.chatRoom.id} + '/leave'}" method="post" th:object="${membership}">
+                                <button type="submit" class="btn btn-danger btn-sm">Verlassen</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted small">
+                        Erstellt: <span th:text="${#temporals.format(membership.chatRoom.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 </html>

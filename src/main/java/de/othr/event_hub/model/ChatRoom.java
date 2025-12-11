@@ -15,6 +15,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "chat_rooms")
 public class ChatRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,8 +39,8 @@ public class ChatRoom {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @OneToOne
-    @JoinColumn(name = "event_id", referencedColumnName = "id")
+    @OneToOne(optional = true)
+    @JoinColumn(name = "event_id", referencedColumnName = "id", nullable = true)
     private Event event; // event is only needed for event chats
 
     @ManyToOne

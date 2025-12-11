@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import de.othr.event_hub.model.ChatMembership;
+import de.othr.event_hub.model.User;
 import de.othr.event_hub.repository.ChatMembershipRepository;
 import de.othr.event_hub.service.ChatMembershipService;
 
@@ -44,5 +45,10 @@ public class ChatMembershipServiceImpl implements ChatMembershipService {
     @Override
     public void deleteAllChatMemberships() {
         chatMembershipRepository.deleteAll();
+    }
+
+    @Override
+    public List<ChatMembership> getChatMembershipsByUser(User user) {
+        return chatMembershipRepository.findByUser(user);
     }
 }

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import de.othr.event_hub.model.ChatMessage;
+import de.othr.event_hub.model.ChatRoom;
 
 public interface ChatMessageService {
     
@@ -18,4 +19,6 @@ public interface ChatMessageService {
     void deleteChatMessage(ChatMessage chatMessage);
 
     void deleteAllChatMessages();
+
+    List<ChatMessage> getChatMessagesByChatRoom(ChatRoom chatRoom);
 }
