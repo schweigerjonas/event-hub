@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import de.othr.event_hub.config.AccountUserDetails;
+import de.othr.event_hub.dto.ChatMessageDTO;
 import de.othr.event_hub.model.ChatMessage;
 import de.othr.event_hub.model.ChatRoom;
 import de.othr.event_hub.model.User;
@@ -32,12 +34,14 @@ public class ChatController {
     private ChatMembershipService chatMembershipService;
     private ChatMessageService chatMessageService;
     private ChatRoomService chatRoomService;
+    private SimpMessagingTemplate messagingTemplate;
 
-    public ChatController(ChatMembershipService chatMembershipService, ChatMessageService chatMessageService, ChatRoomService chatRoomService) {
+    public ChatController(ChatMembershipService chatMembershipService, ChatMessageService chatMessageService, ChatRoomService chatRoomService, SimpMessagingTemplate messagingTemplate) {
         super();
         this.chatMembershipService = chatMembershipService;
         this.chatMessageService = chatMessageService;
         this.chatRoomService = chatRoomService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @GetMapping("/all")
@@ -91,6 +95,15 @@ public class ChatController {
         chatMessage.setMessage(message);
         chatMessage.setSentAt(java.time.LocalDateTime.now());
         chatMessageService.createChatMessage(chatMessage);
+
+        // notify everyone in the chatroom
+        ChatMessageDTO dto = new ChatMessageDTO();
+        dto.setMessage(message);
+        dto.setSenderName(user.getUsername());
+        dto.setSenderId(user.getId());
+        dto.setSentAt(chatMessage.getSentAt());
+        messagingTemplate.convertAndSend("/topic/chats/" + id, dto);
+
         return "redirect:/chats/" + id;
     }
 }
