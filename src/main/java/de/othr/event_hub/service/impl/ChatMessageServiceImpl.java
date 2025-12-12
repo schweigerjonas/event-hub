@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import de.othr.event_hub.model.ChatMessage;
@@ -48,7 +50,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
     @Override
-    public List<ChatMessage> getChatMessagesByChatRoom(ChatRoom chatRoom) {
-        return chatMessageRepository.findByChatRoomOrderBySentAtAsc(chatRoom);
+    public Page<ChatMessage> getChatMessagesByChatRoom(ChatRoom chatRoom, Pageable pageable) {
+        return chatMessageRepository.findByChatRoomOrderBySentAtDesc(chatRoom, pageable);
     }
 }

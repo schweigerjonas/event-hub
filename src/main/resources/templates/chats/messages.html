@@ -11,7 +11,38 @@
             <button class="btn btn-primary btn-lg rounded-circle" style="width:50px; height:50px; font-size:24px;">i</button>
         </div>
 
-        <div class="chat-container d-flex flex-column gap-3 mb-5">
+        <div class="chat-container d-flex flex-column gap-3 mb-5 overflow-auto" style="max-height: 60vh;" th:attr="data-chatroom-id=${chatRoom.id}">
+            <!-- Pagination -->
+            <!-- <nav aria-label="Pagination" th:if="${totalPages > 0}">
+                <ul class="pagination">
+                    <li class=" page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                        <a th:replace="~{fragments/messagePaging :: paging(1, '<<', 'Erste Seite')}"></a>
+                    </li>
+                    <li class="page-item font-weight-bold" th:classappend="${currentPage == 1} ? 'disabled'">
+                        <a th:replace="~{fragments/messagePaging :: paging(${currentPage - 1}, 'Zurück', 'Vorherige Seite')} "></a>
+                    </li>
+                    <li class="page-item disabled" th:if="${currentPage - 2 > 1}">
+                        <a class="page-link" href="#">...</a>
+                    </li>
+                    <li class="page-item" th:classappend="${page == currentPage} ? 'active'" th:each="page : ${#numbers.sequence(currentPage > 2 ? currentPage - 2 : 1, currentPage + 2 < totalPages ? currentPage + 2 : totalPages)}">
+                        <a th:replace="~{fragments/messagePaging :: paging(${page}, ${page}, 'Seite ' + ${page})}"></a>
+                    </li>
+                    <li class="page-item disabled" th:if="${currentPage + 2 < totalPages}">
+                        <a class="page-link" href="#">...</a>
+                    </li>
+                    <li class="page-item font-weight-bold" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                        <a th:replace="~{fragments/messagePaging :: paging(${currentPage + 1},'Weiter', 'Nächste Seite')}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                        <a th:replace="~{fragments/messagePaging :: paging(${totalPages}, '>>', 'Letzte Seite')}"></a>
+                    </li>
+                </ul>
+            </nav> -->
+            <!-- Pagination with load more Button -->
+             <div th:if="${currentPage < totalPages}" class="mb-3">
+                <a th:replace="~{fragments/messagePaging :: loadMore(${currentPage + 1})}"></a>
+            </div>
+
             <div th:each="msg : ${messages}">
                 <div th:if="${msg.sender.id == currentUser.id}" class="d-flex justify-content-end">
                     <div class="p-3 rounded" style="background-color: #f1f1f1; max-width: 70%;">
@@ -29,10 +60,45 @@
             </div>
         </div>
 
-        <form th:action="@{'/chat/' + ${chatRoom.id} + '/send'}" method="post" class="d-flex gap-2">
+        <form th:action="@{'/chats/' + ${chatRoom.id} + '/send'}" method="post" class="d-flex gap-2">
             <input type="text" name="message" class="form-control" placeholder="Nachricht schreiben...">
             <button type="submit" class="btn btn-primary">Senden</button>
         </form>
     </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const chatContainer = document.querySelector('.chat-container');
+            if (!chatContainer) return;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentPage = parseInt(urlParams.get("page") || "1");
+
+            // page 1: scroll to bottom
+            if (currentPage === 1) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                return;
+            }
+
+            // get scroll offset if load more button was clicked
+            const oldScrollOffset = sessionStorage.getItem("chatScrollOffset");
+            if (oldScrollOffset !== null) {
+                const offset = parseInt(oldScrollOffset);
+                chatContainer.scrollTop = chatContainer.scrollHeight - offset;
+                sessionStorage.removeItem("chatScrollOffset");
+            }
+        });
+
+        // save scroll offset before clicking on load more
+        document.addEventListener("click", e => {
+            if (e.target.closest(".load-more")) {
+                const chatContainer = document.querySelector('.chat-container');
+                if (!chatContainer) return;
+
+                const offset = chatContainer.scrollHeight - chatContainer.scrollTop;
+                sessionStorage.setItem("chatScrollOffset", offset);
+            }
+        });
+    </script>
 </main>
 </html>

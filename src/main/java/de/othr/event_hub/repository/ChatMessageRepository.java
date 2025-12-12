@@ -1,13 +1,15 @@
 package de.othr.event_hub.repository;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import de.othr.event_hub.model.ChatMessage;
 import de.othr.event_hub.model.ChatRoom;
 
+@Repository
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
     
-    List<ChatMessage> findByChatRoomOrderBySentAtAsc(ChatRoom chatRoom);
+    Page<ChatMessage> findByChatRoomOrderBySentAtDesc(ChatRoom chatRoom, Pageable pageable);
 }

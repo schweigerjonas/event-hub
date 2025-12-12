@@ -3,6 +3,9 @@ package de.othr.event_hub.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import de.othr.event_hub.model.ChatMessage;
 import de.othr.event_hub.model.ChatRoom;
 
@@ -20,5 +23,5 @@ public interface ChatMessageService {
 
     void deleteAllChatMessages();
 
-    List<ChatMessage> getChatMessagesByChatRoom(ChatRoom chatRoom);
+    Page<ChatMessage> getChatMessagesByChatRoom(ChatRoom chatRoom, Pageable pageable);
 }
