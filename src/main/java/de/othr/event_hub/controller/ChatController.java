@@ -1,5 +1,6 @@
 package de.othr.event_hub.controller;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,9 +20,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import de.othr.event_hub.config.AccountUserDetails;
 import de.othr.event_hub.dto.ChatMessageDTO;
 import de.othr.event_hub.dto.SendMessageDTO;
+import de.othr.event_hub.model.ChatMembership;
 import de.othr.event_hub.model.ChatMessage;
 import de.othr.event_hub.model.ChatRoom;
 import de.othr.event_hub.model.User;
+import de.othr.event_hub.model.enums.ChatMembershipRole;
+import de.othr.event_hub.model.enums.ChatRoomType;
 import de.othr.event_hub.service.ChatMembershipService;
 import de.othr.event_hub.service.ChatMessageService;
 import de.othr.event_hub.service.ChatRoomService;
@@ -29,6 +33,7 @@ import de.othr.event_hub.service.UserService;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 
 @Controller
@@ -55,6 +60,30 @@ public class ChatController {
         User user = details.getUser();
         model.addAttribute("userChats", chatMembershipService.getChatMembershipsByUser(user));
         return "chats/chats-all";
+    }
+
+    @PostMapping("/all")
+    public String createChat(@RequestParam("groupname") String groupname, @AuthenticationPrincipal AccountUserDetails details) {
+        User user = details.getUser();
+        LocalDateTime now = LocalDateTime.now();
+
+        // create chat room
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.setName(groupname);
+        chatRoom.setType(ChatRoomType.GROUP);
+        chatRoom.setOwner(user);
+        chatRoom.setCreatedAt(now);
+        chatRoom =chatRoomService.createChatRoom(chatRoom);
+
+        // configure chat membership
+        ChatMembership chatMembership = new ChatMembership();
+        chatMembership.setChatRoom(chatRoom);
+        chatMembership.setUser(user);
+        chatMembership.setRole(ChatMembershipRole.CHATADMIN);
+        chatMembership.setJoinedAt(now);
+        chatMembershipService.createChatMembership(chatMembership);
+
+        return "redirect:/chats/all";
     }
 
     @GetMapping("/{id}")
