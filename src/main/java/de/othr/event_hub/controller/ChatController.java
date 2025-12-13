@@ -7,6 +7,8 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -16,15 +18,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import de.othr.event_hub.config.AccountUserDetails;
 import de.othr.event_hub.dto.ChatMessageDTO;
+import de.othr.event_hub.dto.SendMessageDTO;
 import de.othr.event_hub.model.ChatMessage;
 import de.othr.event_hub.model.ChatRoom;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.service.ChatMembershipService;
 import de.othr.event_hub.service.ChatMessageService;
 import de.othr.event_hub.service.ChatRoomService;
+import de.othr.event_hub.service.UserService;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 
 
 @Controller
@@ -34,14 +38,16 @@ public class ChatController {
     private ChatMembershipService chatMembershipService;
     private ChatMessageService chatMessageService;
     private ChatRoomService chatRoomService;
+    private UserService userService;
     private SimpMessagingTemplate messagingTemplate;
 
-    public ChatController(ChatMembershipService chatMembershipService, ChatMessageService chatMessageService, ChatRoomService chatRoomService, SimpMessagingTemplate messagingTemplate) {
+    public ChatController(ChatMembershipService chatMembershipService, ChatMessageService chatMessageService, ChatRoomService chatRoomService, SimpMessagingTemplate messagingTemplate, UserService userService) {
         super();
         this.chatMembershipService = chatMembershipService;
         this.chatMessageService = chatMessageService;
         this.chatRoomService = chatRoomService;
         this.messagingTemplate = messagingTemplate;
+        this.userService = userService;
     }
 
     @GetMapping("/all")
@@ -85,25 +91,25 @@ public class ChatController {
         return "chats/messages";
     }
 
-    @PostMapping("/{id}/send")
-    public String sendChatMessage(@RequestParam String message, @PathVariable("id") long id, @AuthenticationPrincipal AccountUserDetails details) {
-        User user = details.getUser();
+    @MessageMapping("/chat/{id}/send")
+    public void sendChatMessage(@DestinationVariable long id, SendMessageDTO message) {
+        User user = userService.getUserById(message.getUserId());
         ChatRoom chatRoom = chatRoomService.getChatRoomById(id).get();
+
+        // save message in DB
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setChatRoom(chatRoom);
         chatMessage.setSender(user);
-        chatMessage.setMessage(message);
+        chatMessage.setMessage(message.getMessage());
         chatMessage.setSentAt(java.time.LocalDateTime.now());
         chatMessageService.createChatMessage(chatMessage);
 
         // notify everyone in the chatroom
         ChatMessageDTO dto = new ChatMessageDTO();
-        dto.setMessage(message);
+        dto.setMessage(message.getMessage());
         dto.setSenderName(user.getUsername());
         dto.setSenderId(user.getId());
         dto.setSentAt(chatMessage.getSentAt());
         messagingTemplate.convertAndSend("/topic/chats/" + id, dto);
-
-        return "redirect:/chats/" + id;
     }
 }

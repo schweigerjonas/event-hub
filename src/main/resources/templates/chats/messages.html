@@ -47,21 +47,21 @@
                 <div th:if="${msg.sender.id == currentUser.id}" class="d-flex justify-content-end">
                     <div class="p-3 rounded" style="background-color: #f1f1f1; max-width: 70%;">
                         <p class="mb-1" th:text="${msg.message}">Nachrichttext</p>
-                        <small class="text-muted d-block text-end" th:text="${#temporals.format(msg.sentAt, 'dd.MM.yyyy HH:mm')}"></small>
+                        <small class="text-muted d-block text-end" th:text="${#temporals.format(msg.sentAt, 'dd.MM.yyyy, HH:mm')}"></small>
                     </div>
                 </div>
                 <div th:if="${msg.sender.id != currentUser.id}" class="d-flex justify-content-start">
                     <div class="p-3 rounded" style="background-color: #d0e7ff; max-width: 70%;">
                         <strong th:text="${msg.sender.username}">Username</strong>
                         <p class="mb-1 mt-1" th:text="${msg.message}">Nachrichttext</p>
-                        <small class="text-muted d-block" th:text="${#temporals.format(msg.sentAt, 'dd.MM.yyyy HH:mm')}"></small>
+                        <small class="text-muted d-block" th:text="${#temporals.format(msg.sentAt, 'dd.MM.yyyy, HH:mm')}"></small>
                     </div>
                 </div>
             </div>
         </div>
 
-        <form th:action="@{'/chats/' + ${chatRoom.id} + '/send'}" method="post" class="d-flex gap-2">
-            <input type="text" name="message" class="form-control" placeholder="Nachricht schreiben...">
+        <form id="chat-form" class="d-flex gap-2">
+            <input type="text" id="message-input" class="form-control" placeholder="Nachricht schreiben...">
             <button type="submit" class="btn btn-primary">Senden</button>
         </form>
     </div>
@@ -75,63 +75,73 @@
         const socket = new SockJS('/ws-chat');
         const stompClient = Stomp.over(socket);
 
-        stompClient.connect({}, function(frame) {
-            stompClient.subscribe('/topic/chats/' + chatId, function(messageOutput) {
-                const message = JSON.parse(messageOutput.body);
-
-                const msgWrapper = document.createElement('div');
-                msgWrapper.classList.add('d-flex', 'gap-3');
-
-                if (message.senderId === userId) { 
-                    msgWrapper.classList.add('justify-content-end');
-
-                    const msgDiv = document.createElement('div');
-                    msgDiv.classList.add('p-3', 'rounded');
-                    msgDiv.style.backgroundColor = '#f1f1f1';
-                    msgDiv.style.maxWidth = '70%';
-
-                    const msgText = document.createElement('p');
-                    msgText.classList.add('mb-1');
-                    msgText.textContent = message.message;
-
-                    const msgTime = document.createElement('small');
-                    msgTime.classList.add('text-muted', 'd-block', 'text-end');
-                    msgTime.textContent = new Date(message.sentAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-                    msgDiv.appendChild(msgText);
-                    msgDiv.appendChild(msgTime);
-                    msgWrapper.appendChild(msgDiv);
-
-                } else {
-                    msgWrapper.classList.add('justify-content-start');
-
-                    const msgDiv = document.createElement('div');
-                    msgDiv.classList.add('p-3', 'rounded');
-                    msgDiv.style.backgroundColor = '#d0e7ff';
-                    msgDiv.style.maxWidth = '70%';
-
-                    const msgSender = document.createElement('strong');
-                    msgSender.textContent = message.senderName;
-
-                    const msgText = document.createElement('p');
-                    msgText.classList.add('mb-1', 'mt-1');
-                    msgText.textContent = message.message;
-
-                    const msgTime = document.createElement('small');
-                    msgTime.classList.add('text-muted', 'd-block');
-                    msgTime.textContent = new Date(message.sentAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-                    msgDiv.appendChild(msgSender);
-                    msgDiv.appendChild(msgText);
-                    msgDiv.appendChild(msgTime);
-                    msgWrapper.appendChild(msgDiv);
-                }
-
-                chatBox.appendChild(msgWrapper);
-
-                chatBox.scrollTop = chatBox.scrollHeight;
+        stompClient.connect({}, () => {
+            console.log("WebSocket connected");
+            stompClient.subscribe('/topic/chats/' + chatId, (payload) => {
+                const message = JSON.parse(payload.body);
+                console.log(message);
+                appendMessage(message);
             });
         });
+
+        // send message
+        document.getElementById('chat-form').addEventListener('submit', e => {
+            e.preventDefault();
+
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            stompClient.send(
+                '/app/chat/' + chatId + '/send',
+                {},
+                JSON.stringify({ userId: userId, message: text })
+            );
+
+            input.value = '';
+        });
+
+        function appendMessage(message) {
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('d-flex');
+
+            const bubble = document.createElement('div');
+            bubble.classList.add('p-3', 'rounded');
+            bubble.style.maxWidth = '70%';
+
+            const currentUserId = Number(userId);
+            if (message.senderId === currentUserId) {
+                wrapper.classList.add('justify-content-end');
+                bubble.style.backgroundColor = '#f1f1f1';
+            } else {
+                wrapper.classList.add('justify-content-start');
+                bubble.style.backgroundColor = '#d0e7ff';
+
+                const sender = document.createElement('strong');
+                sender.textContent = message.senderName;
+                bubble.appendChild(sender);
+            }
+
+            const text = document.createElement('p');
+            text.classList.add('mb-1', 'mt-1');
+            text.textContent = message.message;
+
+            const time = document.createElement('small');
+            time.classList.add('text-muted', 'd-block');
+            time.textContent = new Date(message.sentAt).toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            bubble.append(text, time);
+            wrapper.appendChild(bubble);
+            chatBox.appendChild(wrapper);
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             const chatContainer = document.querySelector('.chat-container');
