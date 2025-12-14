@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import de.othr.event_hub.model.ChatMembership;
+import de.othr.event_hub.model.ChatRoom;
 import de.othr.event_hub.model.User;
 
 public interface ChatMembershipService {
@@ -21,4 +22,6 @@ public interface ChatMembershipService {
     void deleteAllChatMemberships();
 
     List<ChatMembership> getChatMembershipsByUser(User user);
+
+    void deleteChatMembershipByChatRoomAndUser(ChatRoom chatRoom, User user);
 }

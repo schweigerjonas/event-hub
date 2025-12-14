@@ -86,6 +86,19 @@ public class ChatController {
         return "redirect:/chats/all";
     }
 
+    @PostMapping("/{id}/leave")
+    public String leaveChat(@PathVariable("id") Long id, @AuthenticationPrincipal AccountUserDetails details) {
+        User user = details.getUser();
+        ChatRoom chatRoom = chatRoomService.getChatRoomById(id).get();
+        if (chatRoom.getOwner().equals(user)) {
+            chatRoomService.deleteChatRoom(chatRoom);
+        }
+        else {
+            chatMembershipService.deleteChatMembershipByChatRoomAndUser(chatRoom, user);
+        }
+        return "redirect:/chats/all";
+    }
+
     @GetMapping("/{id}")
     public String getChatMessages(
         Model model, 

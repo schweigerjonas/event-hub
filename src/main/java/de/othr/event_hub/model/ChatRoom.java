@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import de.othr.event_hub.model.enums.ChatRoomType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -47,9 +48,9 @@ public class ChatRoom {
     @JoinColumn(name = "owner_id", referencedColumnName = "id")
     private User owner; // for event chats: owner = event organisator
 
-    @OneToMany(mappedBy = "chatRoom")
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ChatMembership> members = new HashSet<>();
 
-    @OneToMany(mappedBy = "chatRoom")
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ChatMessage> messages = new HashSet<>();
 }
