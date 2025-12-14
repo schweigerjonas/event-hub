@@ -3,7 +3,10 @@ package de.othr.event_hub.controller;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import de.othr.event_hub.config.AccountUserDetails;
 import de.othr.event_hub.dto.ChatMessageDTO;
+import de.othr.event_hub.dto.ChatUpdateDTO;
 import de.othr.event_hub.dto.SendMessageDTO;
 import de.othr.event_hub.model.ChatMembership;
 import de.othr.event_hub.model.ChatMessage;
@@ -32,6 +36,7 @@ import de.othr.event_hub.service.ChatRoomService;
 import de.othr.event_hub.service.UserService;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -99,6 +104,53 @@ public class ChatController {
         return "redirect:/chats/all";
     }
 
+    @PostMapping("/{id}/edit")
+    public String editChat(@PathVariable("id") Long id, @ModelAttribute ChatUpdateDTO chat) {
+        ChatRoom chatRoom = chatRoomService.getChatRoomById(id).get();
+
+        // update name
+        chatRoom.setName(chat.getGroupname());
+        chatRoomService.updateChatRoom(chatRoom);
+
+        // new members
+        Set<Long> requestedMemberIds = new HashSet<>(chat.getMemberIds().stream().map(Long::valueOf).toList());
+        requestedMemberIds.add(chatRoom.getOwner().getId());
+
+        // current members
+        List<ChatMembership> chatMemberships = chatMembershipService.getChatMembersByChatRoom(chatRoom);
+        Set<Long> currentMemberIds = chatMemberships
+            .stream()
+            .map(m -> m.getUser().getId())
+            .collect(Collectors.toSet());
+
+        // add new members
+        Set<Long> membersToAdd = new HashSet<>(requestedMemberIds);
+        membersToAdd.removeAll(currentMemberIds);
+        LocalDateTime now = LocalDateTime.now();
+        for (Long userId : membersToAdd) {
+            User user = userService.getUserById(userId);
+            ChatMembership chatMembership = new ChatMembership();
+            chatMembership.setChatRoom(chatRoom);
+            chatMembership.setUser(user);
+            chatMembership.setRole(ChatMembershipRole.MEMBER);
+            chatMembership.setJoinedAt(now);
+            chatMembershipService.createChatMembership(chatMembership);
+        }
+
+        // remove deleted members
+        Set<Long> membersToRemove = new HashSet<>(currentMemberIds);
+        membersToRemove.removeAll(requestedMemberIds);
+        membersToRemove.remove(chatRoom.getOwner().getId());
+
+        for (Long userId : membersToRemove) {
+            User user = userService.getUserById(userId);
+            chatMembershipService.deleteChatMembershipByChatRoomAndUser(chatRoom, user);
+        }
+
+        return "redirect:/chats/" + id;
+    }
+    
+
     @GetMapping("/{id}")
     public String getChatMessages(
         Model model, 
@@ -130,6 +182,9 @@ public class ChatController {
         model.addAttribute("pageSize", size);
         int totalPages = (int) Math.ceil((double) pageMessages.getTotalElements() / size);
         model.addAttribute("totalPages", totalPages);
+        // data for edit chat modal
+        model.addAttribute("allUsers", userService.getAllUsers());
+        model.addAttribute("chatMembers", chatMembershipService.getChatMembersByChatRoom(chatRoom).stream().map(cm -> cm.getUser()).toList());
         return "chats/messages";
     }
 

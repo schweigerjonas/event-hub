@@ -11,8 +11,10 @@ import de.othr.event_hub.model.ChatRoom;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.repository.ChatMembershipRepository;
 import de.othr.event_hub.service.ChatMembershipService;
+import jakarta.transaction.Transactional;
 
 @Service
+@Transactional
 public class ChatMembershipServiceImpl implements ChatMembershipService {
     
     @Autowired
@@ -56,5 +58,10 @@ public class ChatMembershipServiceImpl implements ChatMembershipService {
     @Override
     public void deleteChatMembershipByChatRoomAndUser(ChatRoom chatRoom, User user) {
         chatMembershipRepository.deleteByChatRoomAndUser(chatRoom, user);
+    }
+
+    @Override
+    public List<ChatMembership> getChatMembersByChatRoom(ChatRoom chatRoom) {
+        return chatMembershipRepository.findByChatRoom(chatRoom);
     }
 }

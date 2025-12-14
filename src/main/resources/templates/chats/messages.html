@@ -8,9 +8,23 @@
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="text-center" th:text="${chatRoom.name}"></h1>
-            <button type="button"
+            <!-- chat admin can see edit button -->
+            <button th:if="${chatRoom.owner.id == currentUser.id}"
+                    type="button"
                     class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center"
-                    style="width:48px; height:48px;">
+                    style="width:48px; height:48px;"
+                    data-bs-toggle="modal"
+                    data-bs-target="#edit-chat-modal">
+                <span class="material-symbols-outlined fs-5">edit</span>
+            </button>
+
+            <!-- chat users can see info button -->
+            <button th:if="${chatRoom.owner.id != currentUser.id}"
+                    type="button"
+                    class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center"
+                    style="width:48px; height:48px;"
+                    data-bs-toggle="modal"
+                    data-bs-target="#chat-info-modal">
                 <span class="material-symbols-outlined fs-5">info</span>
             </button>
         </div>
@@ -72,6 +86,12 @@
                 <span class="material-symbols-outlined fs-4">chevron_right</span>
             </button>
         </form>
+
+        <!-- edit chat modal -->
+        <div th:insert="~{chats/fragments/edit-chat-modal :: edit-chat-modal}"></div>
+
+        <!-- chat info modal -->
+        <div th:insert="~{chats/fragments/chat-info-modal :: chat-info-modal}"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>

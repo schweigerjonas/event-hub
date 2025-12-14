@@ -24,4 +24,6 @@ public interface ChatMembershipService {
     List<ChatMembership> getChatMembershipsByUser(User user);
 
     void deleteChatMembershipByChatRoomAndUser(ChatRoom chatRoom, User user);
+
+    List<ChatMembership> getChatMembersByChatRoom(ChatRoom chatRoom);
 }

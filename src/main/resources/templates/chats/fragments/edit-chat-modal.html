@@ -1,0 +1,44 @@
+<div th:fragment="edit-chat-modal" class="modal fade" id="edit-chat-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="edit-user-modal-label">
+                    <strong>Chat bearbeiten </strong>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="edit-chat-form" th:action="@{/chats/{id}/edit(id=${chatRoom.id})}" th:method="POST">
+                <div class="modal-body">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="groupname" th:name="groupname"
+                            placeholder="Gruppenname" th:value="${chatRoom.name}" required>
+                        <label for="groupname">Gruppenname</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Gruppenmitglieder</label>
+
+                        <div class="list-group">
+                            <label class="list-group-item"
+                                th:each="user : ${allUsers}">
+                                <input class="form-check-input me-2"
+                                    type="checkbox"
+                                    name="memberIds"
+                                    th:value="${user.id}"
+                                    th:checked="${chatMembers.contains(user)}"
+                                    th:disabled="${user.id == chatRoom.owner.id}">
+
+                                <span th:text="${user.username}"></span>
+                                <span th:if="${user.id == chatRoom.owner.id}" class="badge bg-primary ms-2">
+                                    Admin
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Bearbeitung abschließen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
