@@ -3,6 +3,7 @@ package de.othr.event_hub.controller;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -183,8 +184,19 @@ public class ChatController {
         int totalPages = (int) Math.ceil((double) pageMessages.getTotalElements() / size);
         model.addAttribute("totalPages", totalPages);
         // data for edit chat modal
-        model.addAttribute("allUsers", userService.getAllUsers());
-        model.addAttribute("chatMembers", chatMembershipService.getChatMembersByChatRoom(chatRoom).stream().map(cm -> cm.getUser()).toList());
+        model.addAttribute(
+            "allUsers",
+            userService.getAllUsers().stream()
+                .sorted(Comparator.comparing(User::getUsername, String.CASE_INSENSITIVE_ORDER))
+                .toList()
+        );
+        model.addAttribute(
+            "chatMembers",
+            chatMembershipService.getChatMembersByChatRoom(chatRoom).stream()
+                .map(ChatMembership::getUser)
+                .sorted(Comparator.comparing(User::getUsername, String.CASE_INSENSITIVE_ORDER))
+                .toList()
+        );
         return "chats/messages";
     }
 
