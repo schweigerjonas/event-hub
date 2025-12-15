@@ -29,6 +29,7 @@ public class WebSecurityConfig {
                 .permitAll()
                 .requestMatchers("/images/**", "/css/**", "/js/**", "/webjars/**", "/script/**").permitAll()
                 .requestMatchers("/", "/home").permitAll()
+                .requestMatchers("/api/**").permitAll() // allow API calls without login (instead JWT token)
                 .requestMatchers("/organizer").hasAnyAuthority("ADMIN", "ORGANISATOR")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated())
