@@ -1,0 +1,11 @@
+<!-- normal Paging -->
+<!-- <a th:fragment="paging(pageNum, label, tooltip)" class="page-link" th:href="@{'/chats/' + ${id}} + '?' + 'page=' + ${pageNum} + '&size=' + ${pageSize}" th:title="${tooltip}" rel="tooltip">
+    [[${label}]]
+</a> -->
+
+<!-- Paging with load more button -->
+<a th:fragment="loadMore(pageNum)" 
+    class="btn btn-outline-secondary w-100 load-more"
+    th:href="@{'/chats/' + ${chatRoom.id}} + '?page=' + ${pageNum} + '&size=' + ${pageSize}">
+    Ältere Nachrichten laden
+</a>

@@ -2,6 +2,7 @@ package de.othr.event_hub.model;
 
 import java.time.LocalDateTime;
 
+import de.othr.event_hub.model.enums.ChatMembershipRole;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +22,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "chat_memberships")
 public class ChatMembership {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,9 +40,4 @@ public class ChatMembership {
     private ChatMembershipRole role;
 
     private LocalDateTime joinedAt = LocalDateTime.now();
-}
-
-enum ChatMembershipRole {
-    MEMBER,
-    CHATADMIN
 }
