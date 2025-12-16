@@ -83,7 +83,7 @@ public class FriendshipApiController {
             return ResponseEntity.notFound().build();
         }
         Friendship newFriendship = new Friendship(
-            friendship.getId(),
+            null, // created automatically by the DB
             requestor, 
             addressee, 
             friendship.getStatus(), 
