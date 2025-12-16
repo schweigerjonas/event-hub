@@ -14,19 +14,15 @@
             </div>
             <div class="mb-3">
                 <label for="amount" class="form-label">Betrag</label>
-                <input id="amount" type="number" class="form-control" name="amount" value="10.0">
+                <input id="amount" type="number" class="form-control" name="amount" th:value="${event.costs}" readonly>
             </div>
             <div class="mb-3">
                 <label for="currency" class="form-label">Währung</label>
-                <select class="form-control" id="currency" name="currency">
-                    <option value="EUR" selected>EUR</option>
-                    <option value="USD">USD</option>
-                    <option value="GBP">GBP</option>
-                </select>
+                <input id="currency" type="text" class="form-control" name="currency" value="EUR" readonly>
             </div>
             <div class="mb-3">
                 <label for="description" class="form-label">Beschreibung</label>
-                <input id="description" type="text" class="form-control" name="description">
+                <input id="description" type="text" class="form-control" name="description" th:value="${event.name}" readonly>
             </div>
             <div class="d-flex justify-content-center">
                 <button type="submit" class="btn btn-primary">Bezahle mit PayPal</button>

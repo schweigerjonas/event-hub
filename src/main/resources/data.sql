@@ -20,6 +20,7 @@ INSERT INTO friendships (requestor_id, addressee_id, status, created_at, accepte
 
 -- Add chat rooms
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('GROUP', 'Mein erster Chatroom', NOW(), null, 1);
+INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), null, 1);
 
 -- Add chat memberships
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (1, 1, NOW(), 'CHATADMIN');
@@ -28,3 +29,7 @@ INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (1, 
 -- Add chat messages
 INSERT INTO chat_messages (chatroom_id, sender_id, message, sent_at) VALUES (1, 1, 'Hallo. Wie geht es dir?', NOW());
 INSERT INTO chat_messages (chatroom_id, sender_id, message, sent_at) VALUES (1, 2, 'Servus. Mir geht es gut. Dir?', NOW());
+
+-- Add events
+INSERT INTO events (name, event_time, costs, chatroom_id) VALUES ('Testevent', NOW() + 7, 99.99, 2);
+UPDATE chat_rooms SET event_id = 1 WHERE id = 2;
