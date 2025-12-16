@@ -40,17 +40,11 @@ public class FriendshipApiController {
     @Autowired
     private UserService userService;
 
+    // CRUDs
     @GetMapping
     public ResponseEntity<CollectionModel<EntityModel<FriendshipDTO>>> getAllFriendships() {
         List<Friendship> friendships = friendshipService.getAllFriendships();
-        List<EntityModel<FriendshipDTO>> friendshipModels = friendships.stream()
-            .map(friendship -> {
-                FriendshipDTO dto = toDTO(friendship);
-                return EntityModel.of(dto,
-                    linkTo(methodOn(FriendshipApiController.class).getFriendshipById(friendship.getId())).withSelfRel(),
-                    linkTo(methodOn(FriendshipApiController.class).getAllFriendships()).withRel("friendships"));
-            })
-            .collect(Collectors.toList());
+        List<EntityModel<FriendshipDTO>> friendshipModels = toEntityModel(friendships);
 
         return ResponseEntity.ok(CollectionModel.of(friendshipModels));
     }
@@ -131,7 +125,51 @@ public class FriendshipApiController {
         friendshipService.deleteAllFriendships();
         return ResponseEntity.noContent().build();
     }
+
+    // Custom queries
+    @GetMapping("/active/{userId}")
+    public ResponseEntity<CollectionModel<EntityModel<FriendshipDTO>>> findActiveFriendshipsByUser(@PathVariable("userId") Long userId) {
+        User user;
+        try {
+            user = userService.getUserById(userId);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+        List<Friendship> friendships = friendshipService.findActiveFriendshipsByUser(user);
+        List<EntityModel<FriendshipDTO>> friendshipModels = toEntityModel(friendships);
+
+        return ResponseEntity.ok(CollectionModel.of(friendshipModels));
+    }
+
+    @GetMapping("/requested/by/{userId}")
+    public ResponseEntity<CollectionModel<EntityModel<FriendshipDTO>>> findPendingFriendshipsByUser(@PathVariable("userId") Long userId) {
+        User user;
+        try {
+            user = userService.getUserById(userId);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+        List<Friendship> friendships = friendshipService.findPendingFriendshipsRequestedByUser(user);
+        List<EntityModel<FriendshipDTO>> friendshipModels = toEntityModel(friendships);
+
+        return ResponseEntity.ok(CollectionModel.of(friendshipModels));
+    }
+
+    @GetMapping("/requested/to/{userId}")
+    public ResponseEntity<CollectionModel<EntityModel<FriendshipDTO>>> findPendingFriendshipsToUser(@PathVariable("userId") Long userId) {
+        User user;
+        try {
+            user = userService.getUserById(userId);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+        List<Friendship> friendships = friendshipService.findPendingFriendshipsRequestedToUser(user);
+        List<EntityModel<FriendshipDTO>> friendshipModels = toEntityModel(friendships);
+
+        return ResponseEntity.ok(CollectionModel.of(friendshipModels));
+    }
     
+    // Helpers
     private FriendshipDTO toDTO(Friendship friendship) {
         return new FriendshipDTO(
             friendship.getId(),
@@ -143,5 +181,18 @@ public class FriendshipApiController {
             friendship.getCreatedAt(),
             friendship.getAcceptedAt()
         );
+    }
+
+    private List<EntityModel<FriendshipDTO>> toEntityModel(List<Friendship> friendships) {
+        List<EntityModel<FriendshipDTO>> friendshipModels = friendships.stream()
+            .map(friendship -> {
+                FriendshipDTO dto = toDTO(friendship);
+                return EntityModel.of(dto,
+                    linkTo(methodOn(FriendshipApiController.class).getFriendshipById(friendship.getId())).withSelfRel(),
+                    linkTo(methodOn(FriendshipApiController.class).getAllFriendships()).withRel("friendships"));
+            })
+            .collect(Collectors.toList());
+
+        return friendshipModels;
     }
 }
