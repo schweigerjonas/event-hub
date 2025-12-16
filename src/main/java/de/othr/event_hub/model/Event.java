@@ -1,5 +1,7 @@
 package de.othr.event_hub.model;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,6 +22,12 @@ public class Event { // basic event class @Martin R.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private String name;
+
+    private LocalDateTime eventTime;
+
+    private double costs;
 
     @OneToOne
     @JoinColumn(name = "chatroom_id", referencedColumnName = "id")

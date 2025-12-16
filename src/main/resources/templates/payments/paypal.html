@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<body>
+<main layout:fragment="main">
+    <div class="container">
+        <h1 class="text-center mt-5">PayPal</h1>
+        <form method="post" action="/events/1/payments/create" class="mt-5 card p-3">
+            <div class="mb-3">
+                <label for="method" class="form-label">Zahlungsart</label>
+                <input id="method" type="text" class="form-control" name="method" value="PayPal" readonly>
+            </div>
+            <div class="mb-3">
+                <label for="amount" class="form-label">Betrag</label>
+                <input id="amount" type="number" class="form-control" name="amount" value="10.0">
+            </div>
+            <div class="mb-3">
+                <label for="currency" class="form-label">Währung</label>
+                <select class="form-control" id="currency" name="currency">
+                    <option value="EUR" selected>EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="GBP">GBP</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Beschreibung</label>
+                <input id="description" type="text" class="form-control" name="description">
+            </div>
+            <div class="d-flex justify-content-center">
+                <button type="submit" class="btn btn-primary">Bezahle mit PayPal</button>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>
