@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import de.othr.event_hub.model.Payment;
+import de.othr.event_hub.model.User;
 import de.othr.event_hub.repository.PaymentRepository;
 import de.othr.event_hub.service.PaymentService;
 
@@ -44,5 +45,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public void deleteAllPayments() {
         paymentRepository.deleteAll();
+    }
+
+    @Override
+    public List<Payment> getPaymentsByUser(User user) {
+        return paymentRepository.findByUser(user);
     }
 }

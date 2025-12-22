@@ -33,3 +33,8 @@ INSERT INTO chat_messages (chatroom_id, sender_id, message, sent_at) VALUES (1, 
 -- Add events
 INSERT INTO events (name, event_time, costs, chatroom_id) VALUES ('Testevent', NOW() + 7, 99.99, 2);
 UPDATE chat_rooms SET event_id = 1 WHERE id = 2;
+
+-- Add payments
+INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 99.99, 'COMPLETED', NOW()-1, 'PAYPAL-1234');
+INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 49.95, 'COMPLETED', NOW()-2, 'PAYPAL-4321');
+INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 10, 'FAILED', NOW()-3, 'PAYPAL-0000');

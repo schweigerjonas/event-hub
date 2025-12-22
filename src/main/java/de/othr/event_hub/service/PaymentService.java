@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import de.othr.event_hub.model.Payment;
+import de.othr.event_hub.model.User;
 
 public interface PaymentService {
     
@@ -18,4 +19,6 @@ public interface PaymentService {
     void deletePayment(Payment payment);
 
     void deleteAllPayments();
+
+    List<Payment> getPaymentsByUser(User user);
 }
