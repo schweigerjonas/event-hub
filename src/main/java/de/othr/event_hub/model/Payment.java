@@ -2,6 +2,7 @@ package de.othr.event_hub.model;
 
 import java.time.LocalDateTime;
 
+import de.othr.event_hub.model.enums.PaymentStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +22,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "payments")
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,11 +38,10 @@ public class Payment {
     private LocalDateTime timestamp = LocalDateTime.now();
 
     @ManyToOne
-    @JoinColumn(name = "event_participant_id", referencedColumnName = "id")
-    private EventParticipant participant;
-}
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
 
-enum PaymentStatus {
-    COMPLETED,
-    FAILED
+    @ManyToOne
+    @JoinColumn(name = "event_id", referencedColumnName = "id")
+    private Event event;
 }
