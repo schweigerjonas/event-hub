@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -26,10 +27,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private UserRepository userRepository;
     private AuthorityRepository authorityRepository;
+    private OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
-    public OAuth2LoginSuccessHandler(UserRepository userRepository, AuthorityRepository authorityRepository) {
+    public OAuth2LoginSuccessHandler(UserRepository userRepository, AuthorityRepository authorityRepository, OAuth2AuthorizedClientService oAuth2AuthorizedClientService) {
         this.userRepository = userRepository;
         this.authorityRepository = authorityRepository;
+        this.oAuth2AuthorizedClientService = oAuth2AuthorizedClientService;
     }
 
     @Override
@@ -53,10 +56,16 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         Object principal = authentication.getPrincipal();
 
         if (principal instanceof OAuth2User oAuth2User && authentication instanceof OAuth2AuthenticationToken oauthToken) {
-            String email = oAuth2User.getAttribute("email");
-            String username = email.split("@")[0];
             String providerName = oauthToken.getAuthorizedClientRegistrationId();
             String providerId = extractProviderId(oAuth2User, providerName);
+            String email = oAuth2User.getAttribute("email");
+            if ("github".equals(providerName) && email == null) {
+                email = fetchGithubEmail(oauthToken);
+            }
+            String username = email.split("@")[0];
+            if ("github".equals(providerName)) {
+                username = oAuth2User.getAttribute("login");
+            }
 
             // check if user with this email already exists. If not, create new user
             Optional<User> existingUserOpt = userRepository.findUserByUsername(username);
@@ -104,6 +113,52 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         }
 
         throw new IllegalArgumentException("Unsupported provider: " + provider);
+    }
+
+    // fetch github email: AI generated
+    private String fetchGithubEmail(OAuth2AuthenticationToken oauthToken) {
+        var client = oAuth2AuthorizedClientService.loadAuthorizedClient(
+                oauthToken.getAuthorizedClientRegistrationId(),
+                oauthToken.getName()
+        );
+
+        if (client == null || client.getAccessToken() == null) {
+            return null;
+        }
+
+        String accessToken = client.getAccessToken().getTokenValue();
+
+        try {
+            var restTemplate = new org.springframework.web.client.RestTemplate();
+            var headers = new org.springframework.http.HttpHeaders();
+            headers.setBearerAuth(accessToken);
+            var entity = new org.springframework.http.HttpEntity<Void>(headers);
+
+            var response = restTemplate.exchange(
+                    "https://api.github.com/user/emails",
+                    org.springframework.http.HttpMethod.GET,
+                    entity,
+                    java.util.List.class
+            );
+
+            var emails = response.getBody();
+            if (emails != null) {
+                for (Object obj : emails) {
+                    if (obj instanceof java.util.Map<?, ?> map) {
+                        Boolean primary = (Boolean) map.get("primary");
+                        Boolean verified = (Boolean) map.get("verified");
+                        if (Boolean.TRUE.equals(primary) && Boolean.TRUE.equals(verified)) {
+                            Object emailObj = map.get("email");
+                            if (emailObj != null) return emailObj.toString();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }
 
