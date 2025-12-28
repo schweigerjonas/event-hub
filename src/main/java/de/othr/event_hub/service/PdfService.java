@@ -32,6 +32,7 @@ public class PdfService {
     
     public byte[] generatePaymentsPdf(User user) {
         List<Payment> payments = paymentService.getPaymentsByUser(user);
+        payments.sort((p1, p2) -> p1.getTimestamp().compareTo(p2.getTimestamp()));
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Document document = new Document(PageSize.A4, 40, 40, 50, 40);
 
