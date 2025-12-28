@@ -64,6 +64,7 @@ public class WebSecurityConfig {
                 .permitAll()
                 .requestMatchers("/images/**", "/css/**", "/js/**", "/webjars/**", "/script/**").permitAll()
                 .requestMatchers("/", "/home").permitAll()
+                .requestMatchers("/events", "/events/", "/events/{id:[0-9]+}", "/events/*/join").permitAll()
                 .requestMatchers("/organizer").hasAnyAuthority("ADMIN", "ORGANISATOR")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated())

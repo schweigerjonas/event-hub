@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Event-Einladung</title>
+    <style>
+        body {
+            background-color: #f4f6f8;
+            padding: 20px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .mail-container {
+            background-color: #ffffff;
+            border-radius: 6px;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+            border: 1px solid #e2e5e9;
+        }
+        .muted {
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+<div class="mail-container">
+    <h2>Du wurdest zu einem Event eingeladen</h2>
+    <p>Hallo <strong th:text="${recipient.username}">Name</strong>,</p>
+    <p>
+        <strong th:text="${inviter.username}">Einladende Person</strong>
+        hat dich zu folgendem Event eingeladen:
+    </p>
+    <p>
+        <strong th:text="${event.name}">Eventname</strong><br>
+        <span th:text="${event.location}">Ort</span><br>
+        <span th:if="${event.eventTime != null}" th:text="${#temporals.format(event.eventTime, 'dd.MM.yyyy HH:mm')}"></span>
+    </p>
+    <p th:if="${event.description != null && !event.description.isBlank()}">
+        <span class="muted">Beschreibung:</span><br>
+        <span th:text="${event.description}"></span>
+    </p>
+    <p class="muted">
+        Melde dich an, um die Einladung anzunehmen und teilzunehmen.
+    </p>
+</div>
+</body>
+</html>
