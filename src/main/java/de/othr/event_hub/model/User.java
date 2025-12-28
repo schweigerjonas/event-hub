@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import de.othr.event_hub.model.enums.OAuthProvider;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -47,9 +48,12 @@ public class User implements Serializable {
     @Size(min = 3, max = 50, message = "Der Benutzername muss zwischen 3 und 50 Zeichen lang sein")
     private String username;
 
-    @NotBlank(message = "Bitte geben Sie ein Passwort ein")
+    // @NotBlank(message = "Bitte geben Sie ein Passwort ein")
     @Size(min = 8, message = "Das Passwort muss mindestens 8 Zeichen lang sein")
     private String password;
+
+    private OAuthProvider authProvider = OAuthProvider.LOCAL;
+    private String providerId = null;
 
     private Integer active;
 
