@@ -34,4 +34,9 @@ public class EventServiceImpl implements EventService {
         }
         return eventRepository.findByNameContainingIgnoreCaseOrLocationContainingIgnoreCase(keyword, keyword, pageable);
     }
+
+    @Override
+    public void deleteEvent(Event event) {
+        eventRepository.delete(event);
+    }
 }

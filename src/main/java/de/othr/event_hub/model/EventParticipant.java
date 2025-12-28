@@ -33,5 +33,7 @@ public class EventParticipant { // participant of an event (for n-to-m relation 
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
+    private boolean organizer;
+
     private LocalDateTime joinedAt = LocalDateTime.now();
 }

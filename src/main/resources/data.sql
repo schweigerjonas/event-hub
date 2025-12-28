@@ -7,16 +7,19 @@ INSERT INTO authorities (description) VALUES ('ADMIN');
 INSERT INTO users (email, username, password, active) VALUES ('user@gmail.com', 'user', '$2a$12$dFswRWOmIRet32bS91WWMOYXT1eyHI8FUezDks/bq67LlC6tGIzUu', 1);
 INSERT INTO users (email, username, password, active) VALUES ('organizer@gmail.com', 'organizer', '$2a$12$Xu5tpzRwH/kMc591xjxVJOwr1jCKMl57Aq0MrEau2PvyNhn.3XIre', 1);
 INSERT INTO users (email, username, password, active) VALUES ('admin@gmail.com', 'admin', '$2a$12$8MRcgh3lTl2xjHFc5X1MvO8XH2MHjTBsPQW1Sx.N4CvE1eMlEp7Mq', 1);
+INSERT INTO users (email, username, password, active) VALUES ('user2@gmail.com', 'user2', '$2b$12$Z6Gf/tv5QL0gTRjUWYtOVe4XUEOrs9O3.HWpvt9hUbVOxbmkzf/AW', 1);
 
 -- Add user roles
 INSERT INTO user_authorities(user_id, authority_id) VALUES (1, 1);
 INSERT INTO user_authorities(user_id, authority_id) VALUES (2, 2);
 INSERT INTO user_authorities(user_id, authority_id) VALUES (3, 3);
+INSERT INTO user_authorities(user_id, authority_id) VALUES (4, 1);
 
 -- Add friendships
 INSERT INTO friendships (requestor_id, addressee_id, status, created_at, accepted_at) VALUES (1, 2, 'ACCEPTED', NOW() - 20, NOW() - 10);
 INSERT INTO friendships (requestor_id, addressee_id, status, created_at, accepted_at) VALUES (1, 2, 'PENDING', NOW() - 5, null); 
 INSERT INTO friendships (requestor_id, addressee_id, status, created_at, accepted_at) VALUES (2, 1, 'PENDING', NOW(), null);  
+INSERT INTO friendships (requestor_id, addressee_id, status, created_at, accepted_at) VALUES (1, 4, 'ACCEPTED', NOW() - 2, NOW() - 1);
 
 -- Add chat rooms
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('GROUP', 'Mein erster Chatroom', NOW(), null, 1);
@@ -72,6 +75,28 @@ VALUES ('Klettertreff', 'Amberg', 120, 20, 'Bouldern für alle Levels.', NOW() +
 INSERT INTO events (name, location, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
 VALUES ('Winterwanderung mit Hüttenstopp', 'Garmisch-Partenkirchen', 240, 30, 'Schnee, Aussicht und heiße Getränke.', NOW() + 20, 0.0, 2, null);
 UPDATE chat_rooms SET event_id = 1 WHERE id = 2;
+
+-- Add event participant organizer as creator of event
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (1, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (2, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (3, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (4, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (5, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (6, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (7, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (8, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (9, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (10, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (11, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (12, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (13, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (14, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (15, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (16, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (17, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (18, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (19, 2, TRUE, NOW());
+INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (20, 2, TRUE, NOW());
 
 -- Add payments
 INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 99.99, 'COMPLETED', NOW()-1, 'PAYPAL-1234');

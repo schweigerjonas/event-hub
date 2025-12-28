@@ -133,6 +133,12 @@ public class EventController {
         event.setOrganizer(details.getUser());
 
         Event createdEvent = eventService.createEvent(event);
+        EventParticipant organizerParticipant = new EventParticipant();
+        organizerParticipant.setEvent(createdEvent);
+        organizerParticipant.setUser(details.getUser());
+        organizerParticipant.setOrganizer(true);
+        organizerParticipant.setJoinedAt(LocalDateTime.now());
+        eventParticipantService.createParticipant(organizerParticipant);
         return "redirect:/events/" + createdEvent.getId();
     }
 
@@ -148,20 +154,29 @@ public class EventController {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         model.addAttribute("event", event);
         boolean isParticipant = false;
+        boolean isOrganizer = false;
         if (details != null) {
             isParticipant = eventParticipantService.existsParticipant(event, details.getUser());
+            isOrganizer = event.getOrganizer() != null && event.getOrganizer().equals(details.getUser());
             int safePage = Math.max(participantsPage, 1);
             int safeSize = participantsSize < 1 ? 10 : participantsSize;
-            Pageable pageable = PageRequest.of(safePage - 1, safeSize, Sort.by(Sort.Direction.DESC, "joinedAt"));
+            Pageable pageable = PageRequest.of(
+                safePage - 1,
+                safeSize,
+                Sort.by(Sort.Direction.DESC, "organizer").and(Sort.by(Sort.Direction.DESC, "joinedAt"))
+            );
             Page<EventParticipant> participants = eventParticipantService.getParticipants(event, pageable);
             model.addAttribute("participants", participants.getContent());
             model.addAttribute("participantsPage", participants.getNumber() + 1);
             model.addAttribute("participantsTotalPages", participants.getTotalPages());
             model.addAttribute("participantsTotalItems", participants.getTotalElements());
             model.addAttribute("participantsSize", safeSize);
-            model.addAttribute("friends", getFriends(details.getUser()));
+            if (isParticipant) {
+                model.addAttribute("friends", getFriends(details.getUser()));
+            }
         }
         model.addAttribute("isParticipant", isParticipant);
+        model.addAttribute("isOrganizer", isOrganizer);
         return "events/event-detail";
     }
 
@@ -193,9 +208,13 @@ public class EventController {
         EventParticipant participant = new EventParticipant();
         participant.setEvent(event);
         participant.setUser(details.getUser());
+        participant.setOrganizer(false);
         participant.setJoinedAt(LocalDateTime.now());
         eventParticipantService.createParticipant(participant);
-        redirectAttributes.addFlashAttribute("success", "Du bist angemeldet.");
+        redirectAttributes.addFlashAttribute(
+            "success",
+            "Du hast dich zum Event \"" + event.getName() + "\" angemeldet."
+        );
         return "redirect:/events/" + id;
     }
 
@@ -249,13 +268,47 @@ public class EventController {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id);
             return "redirect:/login?redirect=/events/" + id;
         }
+        if (event.getOrganizer() != null && event.getOrganizer().equals(details.getUser())) {
+            redirectAttributes.addFlashAttribute("error", "Organisatoren können sich nicht abmelden.");
+            return "redirect:/events/" + id;
+        }
         if (!eventParticipantService.existsParticipant(event, details.getUser())) {
             redirectAttributes.addFlashAttribute("info", "Du bist nicht angemeldet.");
             return "redirect:/events/" + id;
         }
         eventParticipantService.deleteParticipant(event, details.getUser());
-        redirectAttributes.addFlashAttribute("success", "Du bist abgemeldet.");
+        redirectAttributes.addFlashAttribute(
+            "success",
+            "Du hast dich vom Event \"" + event.getName() + "\" abgemeldet."
+        );
         return "redirect:/events/" + id;
+    }
+
+    @PostMapping("/{id}/cancel")
+    public String cancelEvent(
+        @PathVariable("id") Long id,
+        @AuthenticationPrincipal AccountUserDetails details,
+        RedirectAttributes redirectAttributes,
+        HttpServletRequest request
+    ) {
+        Event event = eventService.getEventById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (details == null || details.getUser() == null) {
+            request.getSession(true).setAttribute("loginRedirect", "/events/" + id);
+            return "redirect:/login?redirect=/events/" + id;
+        }
+        if (event.getOrganizer() == null || !event.getOrganizer().equals(details.getUser())) {
+            redirectAttributes.addFlashAttribute("error", "Nur der Organisator kann das Event absagen.");
+            return "redirect:/events/" + id;
+        }
+        List<EventParticipant> participants = eventParticipantService.getAllParticipants(event);
+        for (EventParticipant participant : participants) {
+            emailService.sendEventCancellation(participant.getUser(), event, details.getUser());
+        }
+        eventParticipantService.deleteParticipants(event);
+        eventService.deleteEvent(event);
+        redirectAttributes.addFlashAttribute("success", "Event wurde abgesagt.");
+        return "redirect:/events";
     }
 
     private String cleanDescription(String description) {

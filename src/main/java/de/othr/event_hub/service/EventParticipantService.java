@@ -13,9 +13,13 @@ public interface EventParticipantService {
 
     Page<EventParticipant> getParticipants(Event event, Pageable pageable);
 
+    java.util.List<EventParticipant> getAllParticipants(Event event);
+
     boolean existsParticipant(Event event, User user);
 
     long countParticipants(Event event);
 
     void deleteParticipant(Event event, User user);
+
+    void deleteParticipants(Event event);
 }

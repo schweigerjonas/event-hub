@@ -29,6 +29,11 @@ public class EventParticipantServiceImpl implements EventParticipantService {
     }
 
     @Override
+    public java.util.List<EventParticipant> getAllParticipants(Event event) {
+        return eventParticipantRepository.findAllByEvent(event);
+    }
+
+    @Override
     public boolean existsParticipant(Event event, User user) {
         return eventParticipantRepository.existsByEventAndUser(event, user);
     }
@@ -42,5 +47,11 @@ public class EventParticipantServiceImpl implements EventParticipantService {
     @Transactional
     public void deleteParticipant(Event event, User user) {
         eventParticipantRepository.deleteByEventAndUser(event, user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteParticipants(Event event) {
+        eventParticipantRepository.deleteByEvent(event);
     }
 }

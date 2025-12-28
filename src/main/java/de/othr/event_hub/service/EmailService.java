@@ -43,6 +43,9 @@ public class EmailService {
     }
 
     public boolean sendEventInvitation(User recipient, Event event, User inviter) {
+        if (recipient.getEmail() == null || recipient.getEmail().isBlank()) {
+            return false;
+        }
         Context context = new Context();
         context.setVariable("recipient", recipient);
         context.setVariable("event", event);
@@ -51,6 +54,20 @@ public class EmailService {
         String text = templateEngine.process("email/event-invitation", context);
 
         return sendEmail(recipient.getEmail(), "Einladung: " + event.getName(), text);
+    }
+
+    public boolean sendEventCancellation(User recipient, Event event, User organizer) {
+        if (recipient.getEmail() == null || recipient.getEmail().isBlank()) {
+            return false;
+        }
+        Context context = new Context();
+        context.setVariable("recipient", recipient);
+        context.setVariable("event", event);
+        context.setVariable("organizer", organizer);
+
+        String text = templateEngine.process("email/event-cancelled", context);
+
+        return sendEmail(recipient.getEmail(), "Event abgesagt: " + event.getName(), text);
     }
 
     private boolean sendEmail(String to, String subject, String text) {

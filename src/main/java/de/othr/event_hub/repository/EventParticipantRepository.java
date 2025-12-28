@@ -11,9 +11,13 @@ import de.othr.event_hub.model.User;
 public interface EventParticipantRepository extends JpaRepository<EventParticipant, Long> {
     Page<EventParticipant> findByEvent(Event event, Pageable pageable);
 
+    java.util.List<EventParticipant> findAllByEvent(Event event);
+
     boolean existsByEventAndUser(Event event, User user);
 
     long countByEvent(Event event);
 
     void deleteByEventAndUser(Event event, User user);
+
+    void deleteByEvent(Event event);
 }
