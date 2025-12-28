@@ -11,6 +11,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -26,6 +30,9 @@ public class WebSecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtRequestFilter;
+
+    @Autowired
+    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Bean
     @Order(1)
@@ -53,8 +60,7 @@ public class WebSecurityConfig {
     @Order(2)
     public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/h2-console/**", "/console/**", "/signup", "/register", "/login", "/perform_login",
-                        "/logout")
+                .requestMatchers("/h2-console/**", "/console/**", "/signup", "/register", "/login", "/perform_login", "/oauth2/**", "/logout")
                 .permitAll()
                 .requestMatchers("/images/**", "/css/**", "/js/**", "/webjars/**", "/script/**").permitAll()
                 .requestMatchers("/", "/home").permitAll()
@@ -67,6 +73,11 @@ public class WebSecurityConfig {
                         .defaultSuccessUrl("/", true)
                         .failureUrl("/login?error")
                         .permitAll())
+                .oauth2Login(oauth -> oauth
+                    .loginPage("/login")
+                    .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService()))
+                    .successHandler(oAuth2LoginSuccessHandler)
+                )
                 .logout(logout -> logout
                         .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
@@ -87,5 +98,10 @@ public class WebSecurityConfig {
     @Bean
     public PasswordEncoder getPasswordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public OAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService() {
+        return new DefaultOAuth2UserService();
     }
 }
