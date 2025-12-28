@@ -20,6 +20,7 @@ import com.paypal.base.rest.PayPalRESTException;
 import de.othr.event_hub.config.AccountUserDetails;
 import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.enums.PaymentStatus;
+import de.othr.event_hub.service.EmailService;
 import de.othr.event_hub.service.EventService;
 import de.othr.event_hub.service.PaymentService;
 import de.othr.event_hub.service.PaypalService;
@@ -33,13 +34,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RequestMapping("/events/{id}/payments")
 public class PaymentController {
     
+    private final EmailService emailService;
     private final EventService eventService;
     private final PaymentService paymentService;
     private final PaypalService paypalService;
     private final UserService userService;
 
-    public PaymentController(EventService eventService, PaymentService paymentService, PaypalService paypalService, UserService userService) {
+    public PaymentController(EmailService emailService, EventService eventService, PaymentService paymentService, PaypalService paypalService, UserService userService) {
         super();
+        this.emailService = emailService;
         this.eventService = eventService;
         this.paymentService = paymentService;
         this.paypalService = paypalService;
@@ -110,6 +113,9 @@ public class PaymentController {
                 paymentEntity.setUser(userService.getUserByUsername(details.getUsername()));
                 paymentEntity.setEvent(eventService.getEventById(id).get());
                 paymentService.createPayment(paymentEntity);
+
+                // send payment confirmation to user
+                emailService.sendPaymentConfirmation(paymentEntity);
 
                 return "Show event detail page, user is participant of event";
             }
