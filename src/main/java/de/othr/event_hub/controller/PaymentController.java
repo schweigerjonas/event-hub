@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -19,8 +20,10 @@ import com.paypal.base.rest.PayPalRESTException;
 
 import de.othr.event_hub.config.AccountUserDetails;
 import de.othr.event_hub.model.Event;
+import de.othr.event_hub.model.EventParticipant;
 import de.othr.event_hub.model.enums.PaymentStatus;
 import de.othr.event_hub.service.EmailService;
+import de.othr.event_hub.service.EventParticipantService;
 import de.othr.event_hub.service.EventService;
 import de.othr.event_hub.service.PaymentService;
 import de.othr.event_hub.service.PaypalService;
@@ -36,14 +39,16 @@ public class PaymentController {
     
     private final EmailService emailService;
     private final EventService eventService;
+    private final EventParticipantService eventParticipantService;
     private final PaymentService paymentService;
     private final PaypalService paypalService;
     private final UserService userService;
 
-    public PaymentController(EmailService emailService, EventService eventService, PaymentService paymentService, PaypalService paypalService, UserService userService) {
+    public PaymentController(EmailService emailService, EventService eventService, EventParticipantService eventParticipantService, PaymentService paymentService, PaypalService paypalService, UserService userService) {
         super();
         this.emailService = emailService;
         this.eventService = eventService;
+        this.eventParticipantService = eventParticipantService;
         this.paymentService = paymentService;
         this.paypalService = paypalService;
         this.userService = userService;
@@ -94,13 +99,14 @@ public class PaymentController {
     }
 
     @GetMapping("/success")
-    @ResponseBody
     public String paymentSuccess(
         @PathVariable("id") Long id, 
         @RequestParam("paymentId") String paymentId, 
         @RequestParam("PayerID") String payerId,
-        @AuthenticationPrincipal AccountUserDetails details
+        @AuthenticationPrincipal AccountUserDetails details,
+        RedirectAttributes redirectAttributes
     ) {
+        Event event = eventService.getEventById(id).get();
         try {
             Payment payment = paypalService.executePayment(paymentId, payerId);
             if (payment.getState().equals("approved")) {
@@ -111,24 +117,39 @@ public class PaymentController {
                 paymentEntity.setStatus(PaymentStatus.COMPLETED);
                 paymentEntity.setTimestamp(LocalDateTime.now());
                 paymentEntity.setUser(userService.getUserByUsername(details.getUsername()));
-                paymentEntity.setEvent(eventService.getEventById(id).get());
+                paymentEntity.setEvent(event);
                 paymentService.createPayment(paymentEntity);
 
                 // send payment confirmation to user
                 emailService.sendPaymentConfirmation(paymentEntity);
 
-                return "Show event detail page, user is participant of event";
+                EventParticipant participant = new EventParticipant();
+                participant.setEvent(event);
+                participant.setUser(details.getUser());
+                participant.setOrganizer(false);
+                participant.setJoinedAt(LocalDateTime.now());
+                eventParticipantService.createParticipant(participant);
+                redirectAttributes.addFlashAttribute(
+                    "success",
+                    "Du hast dich zum Event \"" + event.getName() + "\" angemeldet."
+                );
+                return "redirect:/events/" + id;
             }
         } catch (PayPalRESTException e) {
             e.printStackTrace();
+            redirectAttributes.addFlashAttribute(
+                "error",
+                "Bei der Zahlung ist ein Fehler aufgetreten."
+            );
+            return "redirect:/events/" + id;
         }
-        return "Show event detail page, user is participant of event";
+        return "redirect:/events/" + id;
     }
 
     @GetMapping("/cancel")
     @ResponseBody
     public String paymentCancel() {
-        return "Show event detail page, user is not participant of event";
+        return "redirect:/events";
     }
     
     @GetMapping("/error")
