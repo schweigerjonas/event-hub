@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<main layout:fragment="main">
+    <div class="container py-4">
+        <h1 class="mb-3">Event erstellen</h1>
+
+        <form th:action="@{/events}" th:object="${eventForm}" method="post" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label" for="name">Name</label>
+                <input id="name" class="form-control" type="text" th:field="*{name}" required>
+                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="location">Ort</label>
+                <input id="location" class="form-control" type="text" th:field="*{location}" required>
+                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('location')}" th:errors="*{location}"></div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="durationMinutes">Dauer (Minuten)</label>
+                <input id="durationMinutes" class="form-control" type="number" min="1" th:field="*{durationMinutes}" required>
+                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('durationMinutes')}" th:errors="*{durationMinutes}"></div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="maxParticipants">Max. Teilnehmer</label>
+                <input id="maxParticipants" class="form-control" type="number" min="1" th:field="*{maxParticipants}" required>
+                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('maxParticipants')}" th:errors="*{maxParticipants}"></div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="eventTime">Startzeit</label>
+                <input id="eventTime" class="form-control" type="datetime-local" th:field="*{eventTime}" required>
+                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('eventTime')}" th:errors="*{eventTime}"></div>
+            </div>
+
+            <div class="col-12">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" th:field="*{paid}">
+                    <label class="form-check-label" for="paid">Kostenpflichtig</label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="costs">Preis in EUR</label>
+                <input id="costs" class="form-control" type="number" min="0" step="0.01" th:field="*{costs}">
+                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('costs')}" th:errors="*{costs}"></div>
+            </div>
+            <div class="col-12">
+                <label class="form-label" for="description">Beschreibung (optional)</label>
+                <textarea id="description" class="form-control" rows="4" th:field="*{description}"></textarea>
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Event erstellen</button>
+                <a class="btn btn-outline-secondary" th:href="@{/events}">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const paidCheckbox = document.getElementById("paid");
+        const costsInput = document.getElementById("costs");
+
+        const toggleCosts = () => {
+            const enabled = paidCheckbox && paidCheckbox.checked;
+            if (costsInput) {
+                costsInput.disabled = !enabled;
+                if (!enabled) {
+                    costsInput.value = "";
+                }
+            }
+        };
+
+        if (paidCheckbox) {
+            toggleCosts();
+            paidCheckbox.addEventListener("change", toggleCosts);
+        }
+    </script>
+</main>
+</html>

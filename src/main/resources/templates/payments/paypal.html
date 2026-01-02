@@ -7,7 +7,7 @@
 <main layout:fragment="main">
     <div class="container">
         <h1 class="text-center mt-5">PayPal</h1>
-        <form method="post" action="/events/1/payments/create" class="mt-5 card p-3">
+        <form method="post" th:action="@{'/events/' + ${event.id} + '/payments/create'}" class="mt-5 card p-3">
             <div class="mb-3">
                 <label for="method" class="form-label">Zahlungsart</label>
                 <input id="method" type="text" class="form-control" name="method" value="PayPal" readonly>

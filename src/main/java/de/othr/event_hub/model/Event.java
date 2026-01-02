@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -27,9 +28,21 @@ public class Event { // basic event class @Martin R.
 
     private String name;
 
+    private String location;
+
+    private Integer durationMinutes;
+
+    private Integer maxParticipants;
+
+    private String description;
+
     private LocalDateTime eventTime;
 
     private double costs;
+
+    @ManyToOne
+    @JoinColumn(name = "organizer_id", referencedColumnName = "id")
+    private User organizer;
 
     @OneToOne
     @JoinColumn(name = "chatroom_id", referencedColumnName = "id")
