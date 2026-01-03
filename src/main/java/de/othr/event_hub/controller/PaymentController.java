@@ -19,9 +19,12 @@ import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.PayPalRESTException;
 
 import de.othr.event_hub.config.AccountUserDetails;
+import de.othr.event_hub.model.ChatMembership;
 import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.EventParticipant;
+import de.othr.event_hub.model.enums.ChatMembershipRole;
 import de.othr.event_hub.model.enums.PaymentStatus;
+import de.othr.event_hub.service.ChatMembershipService;
 import de.othr.event_hub.service.EmailService;
 import de.othr.event_hub.service.EventParticipantService;
 import de.othr.event_hub.service.EventService;
@@ -37,6 +40,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RequestMapping("/events/{id}/payments")
 public class PaymentController {
     
+    private final ChatMembershipService chatMembershipService;
     private final EmailService emailService;
     private final EventService eventService;
     private final EventParticipantService eventParticipantService;
@@ -44,8 +48,9 @@ public class PaymentController {
     private final PaypalService paypalService;
     private final UserService userService;
 
-    public PaymentController(EmailService emailService, EventService eventService, EventParticipantService eventParticipantService, PaymentService paymentService, PaypalService paypalService, UserService userService) {
+    public PaymentController(ChatMembershipService chatMembershipService, EmailService emailService, EventService eventService, EventParticipantService eventParticipantService, PaymentService paymentService, PaypalService paypalService, UserService userService) {
         super();
+        this.chatMembershipService = chatMembershipService;
         this.emailService = emailService;
         this.eventService = eventService;
         this.eventParticipantService = eventParticipantService;
@@ -123,12 +128,23 @@ public class PaymentController {
                 // send payment confirmation to user
                 emailService.sendPaymentConfirmation(paymentEntity);
 
+                LocalDateTime now = LocalDateTime.now();
+
                 EventParticipant participant = new EventParticipant();
                 participant.setEvent(event);
                 participant.setUser(details.getUser());
                 participant.setOrganizer(false);
-                participant.setJoinedAt(LocalDateTime.now());
+                participant.setJoinedAt(now);
                 eventParticipantService.createParticipant(participant);
+
+                // join event chat room
+                ChatMembership chatMembership = new ChatMembership();
+                chatMembership.setChatRoom(event.getEventChatRoom());
+                chatMembership.setUser(details.getUser());
+                chatMembership.setRole(ChatMembershipRole.MEMBER);
+                chatMembership.setJoinedAt(now);
+                chatMembershipService.createChatMembership(chatMembership);
+
                 redirectAttributes.addFlashAttribute(
                     "success",
                     "Du hast dich zum Event \"" + event.getName() + "\" angemeldet."

@@ -19,10 +19,13 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import de.othr.event_hub.config.AccountUserDetails;
+import de.othr.event_hub.model.ChatMembership;
 import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.EventInvitation;
 import de.othr.event_hub.model.EventParticipant;
+import de.othr.event_hub.model.enums.ChatMembershipRole;
 import de.othr.event_hub.model.enums.EventInvitationStatus;
+import de.othr.event_hub.service.ChatMembershipService;
 import de.othr.event_hub.service.EventInvitationService;
 import de.othr.event_hub.service.EventParticipantService;
 import de.othr.event_hub.service.EventService;
@@ -31,16 +34,19 @@ import de.othr.event_hub.service.EventService;
 @RequestMapping("/invitations")
 public class EventInvitationController {
 
+    private final ChatMembershipService chatMembershipService;
     private final EventInvitationService invitationService;
     private final EventService eventService;
     private final EventParticipantService participantService;
 
     public EventInvitationController(
+        ChatMembershipService chatMembershipService,
         EventInvitationService invitationService,
         EventService eventService,
         EventParticipantService participantService
     ) {
         super();
+        this.chatMembershipService = chatMembershipService;
         this.invitationService = invitationService;
         this.eventService = eventService;
         this.participantService = participantService;
@@ -105,12 +111,22 @@ public class EventInvitationController {
             return "redirect:/invitations";
         }
         if (!participantService.existsParticipant(event, details.getUser())) {
+            LocalDateTime now = LocalDateTime.now();
+
             EventParticipant participant = new EventParticipant();
             participant.setEvent(event);
             participant.setUser(details.getUser());
             participant.setOrganizer(false);
-            participant.setJoinedAt(LocalDateTime.now());
+            participant.setJoinedAt(now);
             participantService.createParticipant(participant);
+
+            // join chat room for event
+            ChatMembership chatMembership = new ChatMembership();
+            chatMembership.setChatRoom(event.getEventChatRoom());
+            chatMembership.setUser(details.getUser());
+            chatMembership.setRole(ChatMembershipRole.MEMBER);
+            chatMembership.setJoinedAt(now);
+            chatMembershipService.createChatMembership(chatMembership);
         }
         invitation.setStatus(EventInvitationStatus.ACCEPTED);
         invitation.setRespondedAt(LocalDateTime.now());

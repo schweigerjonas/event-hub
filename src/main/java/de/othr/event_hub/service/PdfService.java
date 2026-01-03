@@ -24,7 +24,6 @@ import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.Payment;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.model.enums.PaymentStatus;
-import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.EventParticipant;
 
 @Service
