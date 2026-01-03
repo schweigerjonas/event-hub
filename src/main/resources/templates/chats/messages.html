@@ -6,8 +6,14 @@
 
 <main layout:fragment="main">
     <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="text-center" th:text="${chatRoom.name}"></h1>
+        <div class="d-flex justify-content-between align-items-center mb-4" th:if="${chatRoom.type.toString().equals('GROUP')}">
+            <div class="d-flex align-items-center gap-3">
+                <a th:href="@{/chats/all}" class="text-decoration-none text-dark">
+                    <i class="bi bi-caret-left-fill fs-1"></i>
+                </a>
+
+                <h1 class="mb-0 flex-grow-1 text-center" th:text="${chatRoom.name}"></h1>
+            </div>
             <!-- chat admin can see edit button -->
             <button th:if="${chatRoom.owner.id == currentUser.id}"
                     type="button"
@@ -27,6 +33,9 @@
                     data-bs-target="#chat-info-modal">
                 <span class="material-symbols-outlined fs-5">info</span>
             </button>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-4" th:if="${chatRoom.type.toString().equals('EVENT')}">
+            <h1 class="text-center" th:text="${chatRoom.event.name}"></h1>
         </div>
 
         <div id="chat-box" class="chat-container d-flex flex-column gap-3 mb-5 overflow-auto" style="max-height: 60vh;" th:attr="data-chatroom-id=${chatRoom.id}, data-user-id=${currentUser.id}">
