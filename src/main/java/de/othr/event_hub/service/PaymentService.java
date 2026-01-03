@@ -3,6 +3,7 @@ package de.othr.event_hub.service;
 import java.util.List;
 import java.util.Optional;
 
+import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.Payment;
 import de.othr.event_hub.model.User;
 
@@ -21,4 +22,6 @@ public interface PaymentService {
     void deleteAllPayments();
 
     List<Payment> getPaymentsByUser(User user);
+
+    double getTotalPaidAmountForEventAndUser(Event event, User user);
 }

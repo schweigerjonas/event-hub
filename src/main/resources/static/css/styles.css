@@ -1,9 +1,53 @@
+ :root {
+    --app-bg: #f8f9fa;
+    --app-text: #212529;
+    --app-card-bg: #ffffff;
+    --app-border: #dee2e6;
+    --app-muted: #6c757d;
+}
+
+[data-bs-theme="dark"] {
+    --app-bg: #0f1115;
+    --app-text: #f1f3f5;
+    --app-card-bg: #1a1d23;
+    --app-border: #2b3038;
+    --app-muted: #9aa4b2;
+}
+
 body {
-    background-color: #f8f9fa;
+    background-color: var(--app-bg);
+    color: var(--app-text);
+}
+
+[data-bs-theme="dark"] .bg-light {
+    background-color: var(--app-card-bg) !important;
+}
+
+[data-bs-theme="dark"] .text-muted {
+    color: var(--app-muted) !important;
+}
+
+.card {
+    background-color: var(--app-card-bg);
+    border-color: var(--app-border);
 }
 
 .logout-form {
     display: inline;
+}
+
+.theme-toggle {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle .material-symbols-outlined {
+    display: block;
+    line-height: 1;
 }
 
 .centered {

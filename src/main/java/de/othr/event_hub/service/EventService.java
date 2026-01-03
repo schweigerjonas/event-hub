@@ -16,4 +16,6 @@ public interface EventService {
     Page<Event> getEvents(String keyword, Pageable pageable);
 
     void deleteEvent(Event event);
+
+    Event updateEvent(Event event);
 }
