@@ -13,7 +13,8 @@
             </div>
             <div class="col-md-6">
                 <label class="form-label" for="location">Ort</label>
-                <input id="location" class="form-control" type="text" th:field="*{location}" required>
+                <input id="location" class="form-control" type="text" th:field="*{location}" list="location-suggestions" required>
+                <datalist id="location-suggestions"></datalist>
                 <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('location')}" th:errors="*{location}"></div>
             </div>
             <div class="col-md-4">
@@ -72,6 +73,75 @@
         if (paidCheckbox) {
             toggleCosts();
             paidCheckbox.addEventListener("change", toggleCosts);
+        }
+
+        const locationInput = document.getElementById("location");
+        const suggestionsList = document.getElementById("location-suggestions");
+        let locationTimer;
+        let lastRequestAt = 0;
+
+        const buildLocationLabel = (item) => {
+            const addr = item && item.address ? item.address : null;
+            if (!addr) {
+                return item && item.display_name ? item.display_name : "";
+            }
+            const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || addr.state || "";
+            const road = addr.road || addr.street || addr.pedestrian || addr.footway || "";
+            const houseNumber = addr.house_number || "";
+            let label = "";
+            if (city) {
+                label = city;
+            }
+            if (road) {
+                label = label ? `${label} ${road}` : road;
+            }
+            if (houseNumber) {
+                label = `${label} ${houseNumber}`;
+            }
+            return label || (item && item.display_name ? item.display_name : "");
+        };
+
+        const fetchLocationSuggestions = async () => {
+            if (!locationInput || !suggestionsList) {
+                return;
+            }
+            const query = locationInput.value.trim();
+            if (query.length < 3) {
+                suggestionsList.innerHTML = "";
+                return;
+            }
+            const now = Date.now();
+            if (now - lastRequestAt < 1000) {
+                return;
+            }
+            lastRequestAt = now;
+            const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&q=${encodeURIComponent(query)}`;
+            try {
+                const response = await fetch(url, { headers: { "Accept": "application/json" } });
+                const data = await response.json();
+                suggestionsList.innerHTML = "";
+                if (Array.isArray(data)) {
+                    const seen = new Set();
+                    data.forEach((item) => {
+                        const label = buildLocationLabel(item);
+                        if (label && !seen.has(label)) {
+                            seen.add(label);
+                            const option = document.createElement("option");
+                            option.value = label;
+                            suggestionsList.appendChild(option);
+                        }
+                    });
+                }
+            } catch (error) {
+                suggestionsList.innerHTML = "";
+            }
+        };
+
+        if (locationInput) {
+            locationInput.addEventListener("input", () => {
+                clearTimeout(locationTimer);
+                locationTimer = setTimeout(fetchLocationSuggestions, 350);
+            });
         }
     </script>
 </main>

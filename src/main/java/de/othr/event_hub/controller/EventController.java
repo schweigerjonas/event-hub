@@ -49,6 +49,8 @@ import de.othr.event_hub.service.EventInvitationService;
 import de.othr.event_hub.service.EventService;
 import de.othr.event_hub.service.EventParticipantService;
 import de.othr.event_hub.service.FriendshipService;
+import de.othr.event_hub.service.LocationCoordinates;
+import de.othr.event_hub.service.LocationService;
 import de.othr.event_hub.service.PaymentService;
 import de.othr.event_hub.service.PdfService;
 import de.othr.event_hub.service.RatingService;
@@ -68,6 +70,7 @@ public class EventController {
     private final EventInvitationService eventInvitationService;
     private final PdfService pdfService;
     private final PaymentService paymentService;
+    private final LocationService locationService;
 
     public EventController(
         ChatMembershipService chatMembershipService,
@@ -79,7 +82,8 @@ public class EventController {
         RatingService ratingService,
         EventInvitationService eventInvitationService,
         PdfService pdfService,
-        PaymentService paymentService
+        PaymentService paymentService,
+        LocationService locationService
     ) {
         super();
         this.chatMembershipService = chatMembershipService;
@@ -92,6 +96,7 @@ public class EventController {
         this.eventInvitationService = eventInvitationService;
         this.pdfService = pdfService;
         this.paymentService = paymentService;
+        this.locationService = locationService;
     }
 
     @GetMapping
@@ -155,6 +160,13 @@ public class EventController {
         if (eventForm.isPaid() && (eventForm.getCosts() == null || eventForm.getCosts() <= 0)) {
             result.rejectValue("costs", "event.costs.required", "Bitte geben Sie einen Preis an.");
         }
+        LocationCoordinates coordinates = null;
+        if (!result.hasFieldErrors("location")) {
+            coordinates = locationService.findCoordinates(eventForm.getLocation()).orElse(null);
+            if (coordinates == null) {
+                result.rejectValue("location", "event.location.invalid", "Ort wurde nicht gefunden.");
+            }
+        }
 
         if (result.hasErrors()) {
             return "events/event-form";
@@ -163,6 +175,10 @@ public class EventController {
         Event event = new Event();
         event.setName(eventForm.getName().trim());
         event.setLocation(eventForm.getLocation().trim());
+        if (coordinates != null) {
+            event.setLatitude(coordinates.latitude());
+            event.setLongitude(coordinates.longitude());
+        }
         event.setDurationMinutes(eventForm.getDurationMinutes());
         event.setMaxParticipants(eventForm.getMaxParticipants());
         event.setDescription(cleanDescription(eventForm.getDescription()));
@@ -257,12 +273,23 @@ public class EventController {
         if (eventForm.isPaid() && (eventForm.getCosts() == null || eventForm.getCosts() <= 0)) {
             result.rejectValue("costs", "event.costs.required", "Bitte geben Sie einen Preis an.");
         }
+        LocationCoordinates coordinates = null;
+        if (!result.hasFieldErrors("location")) {
+            coordinates = locationService.findCoordinates(eventForm.getLocation()).orElse(null);
+            if (coordinates == null) {
+                result.rejectValue("location", "event.location.invalid", "Ort wurde nicht gefunden.");
+            }
+        }
         if (result.hasErrors()) {
             model.addAttribute("eventId", id);
             return "events/event-edit";
         }
         event.setName(eventForm.getName().trim());
         event.setLocation(eventForm.getLocation().trim());
+        if (coordinates != null) {
+            event.setLatitude(coordinates.latitude());
+            event.setLongitude(coordinates.longitude());
+        }
         event.setDurationMinutes(eventForm.getDurationMinutes());
         event.setMaxParticipants(eventForm.getMaxParticipants());
         event.setDescription(cleanDescription(eventForm.getDescription()));

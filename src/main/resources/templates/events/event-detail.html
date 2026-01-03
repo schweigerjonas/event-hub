@@ -5,8 +5,7 @@
     layout:decorate="~{layout}">
 <main layout:fragment="main">
     <div class="container py-4">
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-            integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
             <div>
                 <h1 class="mb-1" th:text="${event.name}">Event</h1>
@@ -66,7 +65,9 @@
                             <h5>Karte</h5>
                             <div id="event-map" class="rounded border" style="min-height: 320px;"
                                  th:if="${event.location != null && !event.location.isBlank()}"
-                                 th:attr="data-location=${event.location}">
+                                 th:data-location="${event.location}"
+                                 th:data-lat="${event.latitude}"
+                                 th:data-lon="${event.longitude}">
                             </div>
                             <div id="map-message" class="text-muted small mt-2"></div>
                             <div class="text-muted small mt-2" th:if="${event.location == null || event.location.isBlank()}">
@@ -309,14 +310,31 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const mapElement = document.getElementById("event-map");
         const mapMessage = document.getElementById("map-message");
         if (mapElement) {
             const locationQuery = mapElement.dataset.location;
-            if (locationQuery) {
+            const latValue = parseFloat(mapElement.dataset.lat);
+            const lonValue = parseFloat(mapElement.dataset.lon);
+
+            const renderMap = (lat, lon, label) => {
+                const map = L.map("event-map").setView([lat, lon], 13);
+                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                    maxZoom: 19,
+                    attribution: "&copy; OpenStreetMap"
+                }).addTo(map);
+                if (label) {
+                    L.marker([lat, lon]).addTo(map).bindPopup(label).openPopup();
+                } else {
+                    L.marker([lat, lon]).addTo(map);
+                }
+            };
+
+            if (!Number.isNaN(latValue) && !Number.isNaN(lonValue)) {
+                renderMap(latValue, lonValue, locationQuery);
+            } else if (locationQuery) {
                 const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(locationQuery)}`;
                 fetch(url)
                     .then((response) => response.json())
@@ -329,12 +347,7 @@
                         }
                         const lat = parseFloat(data[0].lat);
                         const lon = parseFloat(data[0].lon);
-                        const map = L.map("event-map").setView([lat, lon], 13);
-                        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                            maxZoom: 19,
-                            attribution: "&copy; OpenStreetMap"
-                        }).addTo(map);
-                        L.marker([lat, lon]).addTo(map).bindPopup(locationQuery).openPopup();
+                        renderMap(lat, lon, locationQuery);
                     })
                     .catch(() => {
                         if (mapMessage) {
