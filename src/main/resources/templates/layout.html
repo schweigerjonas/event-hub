@@ -6,12 +6,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Event Hub</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}">
     <!-- Material Icons -->
     <!-- this link imports all google material icons -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 
 <body class="d-flex flex-column min-vh-100">
@@ -37,6 +37,34 @@
     <!-- Bootstrap JS -->
     <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
     <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+    <script>
+        (function () {
+            const themeKey = "eventhub-theme";
+            const initialTheme = storedTheme ? storedTheme : "light";
+            document.documentElement.setAttribute("data-bs-theme", initialTheme);
+
+            const toggleButton = document.getElementById("theme-toggle");
+            const icon = document.getElementById("theme-icon");
+
+            const updateIcon = (theme) => {
+                if (icon) {
+                    icon.textContent = theme === "dark" ? "light_mode" : "dark_mode";
+                }
+            };
+
+            updateIcon(initialTheme);
+
+            if (toggleButton) {
+                toggleButton.addEventListener("click", () => {
+                    const currentTheme = document.documentElement.getAttribute("data-bs-theme");
+                    const nextTheme = currentTheme === "dark" ? "light" : "dark";
+                    document.documentElement.setAttribute("data-bs-theme", nextTheme);
+                    localStorage.setItem(themeKey, nextTheme);
+                    updateIcon(nextTheme);
+                });
+            }
+        })();
+    </script>
 </body>
 
 </html>

@@ -98,6 +98,20 @@ INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES 
 INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (19, 2, TRUE, NOW());
 INSERT INTO event_participants (event_id, user_id, organizer, joined_at) VALUES (20, 2, TRUE, NOW());
 
+-- Add ratings
+INSERT INTO ratings (event_id, user_id, stars, comment, created_at) VALUES (1, 1, 5, 'Super organisiert, hat mir sehr gefallen.', NOW() - 1);
+INSERT INTO ratings (event_id, user_id, stars, comment, created_at) VALUES (2, 4, 4, 'Gute Stimmung, leckere Käseauswahl.', NOW() - 2);
+INSERT INTO ratings (event_id, user_id, stars, comment, created_at) VALUES (3, 1, 3, 'Netter Kurs, aber etwas voll.', NOW() - 3);
+INSERT INTO ratings (event_id, user_id, stars, comment, created_at) VALUES (4, 3, 5, 'Sehr informativ und gut geführt.', NOW() - 4);
+INSERT INTO ratings (event_id, user_id, stars, comment, created_at) VALUES (5, 4, 2, 'Für mich war es zu kurz.', NOW() - 5);
+INSERT INTO ratings (event_id, user_id, stars, comment, created_at) VALUES (6, 1, 4, 'Laut, aber toller Abend!', NOW() - 6);
+
+-- Add event invitations
+INSERT INTO event_invitations (event_id, inviter_id, invitee_id, status, created_at, responded_at) VALUES (1, 2, 1, 'PENDING', NOW() - 1, null);
+INSERT INTO event_invitations (event_id, inviter_id, invitee_id, status, created_at, responded_at) VALUES (2, 1, 4, 'ACCEPTED', NOW() - 3, NOW() - 2);
+INSERT INTO event_invitations (event_id, inviter_id, invitee_id, status, created_at, responded_at) VALUES (3, 1, 3, 'DECLINED', NOW() - 4, NOW() - 3);
+INSERT INTO event_invitations (event_id, inviter_id, invitee_id, status, created_at, responded_at) VALUES (4, 2, 4, 'PENDING', NOW() - 1, null);
+
 -- Add payments
 INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 99.99, 'COMPLETED', NOW()-1, 'PAYPAL-1234');
 INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 49.95, 'COMPLETED', NOW()-2, 'PAYPAL-4321');

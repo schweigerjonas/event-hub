@@ -1,16 +1,21 @@
 <div th:fragment="header"
     class="navbar navbar-expand-lg navbar-dark bg-dark d-flex justify-content-between align-items-center px-2">
     <a class="navbar-brand" th:href="@{/}" th:text="'Event Hub'"></a>
-    <div sec:authorize="!isAuthenticated()">
-        <a th:href="@{/login}" class="btn btn-light" role="button">Anmelden</a>
-    </div>
-    <div sec:authorize="isAuthenticated()" class="d-flex align-items-center">
-        <span class="navbar-text me-3 text-white">
-            Willkommen, <strong th:text="${#authentication.name}">User Name</strong>
-        </span>
+    <div class="d-flex align-items-center gap-2">
+        <div sec:authorize="!isAuthenticated()">
+            <a th:href="@{/login}" class="btn btn-light" role="button">Anmelden</a>
+        </div>
+        <div sec:authorize="isAuthenticated()" class="d-flex align-items-center">
+            <span class="navbar-text me-3 text-white">
+                Willkommen, <strong th:text="${#authentication.name}">User Name</strong>
+            </span>
 
-        <form th:action="@{/logout}" method="POST" class="logout-form">
-            <button type="submit" class="btn btn-outline-light">Abmelden</button>
-        </form>
+            <form th:action="@{/logout}" method="POST" class="logout-form">
+                <button type="submit" class="btn btn-outline-light">Abmelden</button>
+            </form>
+        </div>
+        <button id="theme-toggle" class="btn btn-outline-light btn-sm theme-toggle" type="button" aria-label="Dark Mode umschalten">
+            <span id="theme-icon" class="material-symbols-outlined">dark_mode</span>
+        </button>
     </div>
 </div>

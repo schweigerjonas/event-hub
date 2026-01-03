@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import de.othr.event_hub.model.Payment;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.model.enums.PaymentStatus;
+import de.othr.event_hub.model.Event;
+import de.othr.event_hub.model.EventParticipant;
 
 @Service
 public class PdfService {
@@ -118,6 +120,74 @@ public class PdfService {
 
             table.addCell(totalLabel);
             table.addCell(totalValue);
+
+            document.add(table);
+            document.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return out.toByteArray();
+    }
+
+    public byte[] generateEventParticipantsPdf(Event event, List<EventParticipant> participants) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4, 40, 40, 50, 40);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.GERMANY);
+
+        try {
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD);
+            Font normalFont = new Font(Font.HELVETICA, 11);
+            Font boldFont = new Font(Font.HELVETICA, 11, Font.BOLD);
+
+            Paragraph title = new Paragraph("Teilnehmerliste: " + event.getName(), titleFont);
+            title.setSpacingAfter(20);
+            document.add(title);
+
+            PdfPTable table = new PdfPTable(3);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[]{4.0f, 3.0f, 2.0f});
+            table.setSpacingBefore(10);
+
+            PdfPCell nameHeader = new PdfPCell(new Phrase("Teilnehmer", boldFont));
+            PdfPCell joinedHeader = new PdfPCell(new Phrase("Angemeldet am", boldFont));
+            PdfPCell amountHeader = new PdfPCell(new Phrase("Bezahlt", boldFont));
+
+            nameHeader.setBorder(Rectangle.BOTTOM);
+            joinedHeader.setBorder(Rectangle.BOTTOM);
+            amountHeader.setBorder(Rectangle.BOTTOM);
+
+            table.addCell(nameHeader);
+            table.addCell(joinedHeader);
+            table.addCell(amountHeader);
+
+            for (EventParticipant participant : participants) {
+                String name = participant.getUser() != null ? participant.getUser().getUsername() : "-";
+                String joinedAt = participant.getJoinedAt() != null ? participant.getJoinedAt().format(formatter) : "-";
+                double paidAmount = 0.0;
+                if (participant.getUser() != null) {
+                    paidAmount = paymentService.getTotalPaidAmountForEventAndUser(event, participant.getUser());
+                }
+
+                Font nameFont = participant.isOrganizer() ? boldFont : normalFont;
+                PdfPCell nameCell = new PdfPCell(new Phrase(name, nameFont));
+                PdfPCell joinedCell = new PdfPCell(new Phrase(joinedAt, normalFont));
+                PdfPCell amountCell = new PdfPCell(new Phrase(currencyFormat.format(paidAmount), normalFont));
+                amountCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+
+                nameCell.setBorder(Rectangle.NO_BORDER);
+                joinedCell.setBorder(Rectangle.NO_BORDER);
+                amountCell.setBorder(Rectangle.NO_BORDER);
+
+                table.addCell(nameCell);
+                table.addCell(joinedCell);
+                table.addCell(amountCell);
+            }
 
             document.add(table);
             document.close();

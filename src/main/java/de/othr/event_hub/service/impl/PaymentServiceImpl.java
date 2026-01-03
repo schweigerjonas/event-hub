@@ -6,8 +6,10 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.Payment;
 import de.othr.event_hub.model.User;
+import de.othr.event_hub.model.enums.PaymentStatus;
 import de.othr.event_hub.repository.PaymentRepository;
 import de.othr.event_hub.service.PaymentService;
 
@@ -50,5 +52,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public List<Payment> getPaymentsByUser(User user) {
         return paymentRepository.findByUser(user);
+    }
+
+    @Override
+    public double getTotalPaidAmountForEventAndUser(Event event, User user) {
+        Double total = paymentRepository.sumAmountByEventAndUserAndStatus(event, user, PaymentStatus.COMPLETED);
+        return total == null ? 0.0 : total;
     }
 }
