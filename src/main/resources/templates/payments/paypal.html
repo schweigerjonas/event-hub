@@ -5,29 +5,83 @@
       layout:decorate="~{layout}">
 <body>
 <main layout:fragment="main">
-    <div class="container">
-        <h1 class="text-center mt-5">PayPal</h1>
-        <form method="post" th:action="@{'/events/' + ${event.id} + '/payments/create'}" class="mt-5 card p-3">
-            <div class="mb-3">
-                <label for="method" class="form-label">Zahlungsart</label>
-                <input id="method" type="text" class="form-control" name="method" value="PayPal" readonly>
+    <div class="container py-5">
+
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h3 class="mb-0">
+                            <i class="bi bi-credit-card me-2"></i>
+                            Zahlungsübersicht
+                        </h3>
+                    </div>
+
+                    <div class="card-body p-4">
+
+                        <p class="text-muted text-center mb-4">
+                            Bitte überprüfe deine Zahlungsdetails, bevor du fortfährst.
+                        </p>
+
+                        <ul class="list-group list-group-flush mb-4">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Event</span>
+                                <strong th:text="${event.name}"></strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Zahlungsart</span>
+                                <strong>PayPal</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Betrag</span>
+                                <strong>
+                                    <span th:text="${#numbers.formatDecimal(event.costs, 1, 'POINT', 2, 'COMMA')}"></span> €
+                                </strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Währung</span>
+                                <strong>EUR</strong>
+                            </li>
+                        </ul>
+
+                        <div class="text-center mb-4">
+                            <h4 class="fw-bold">
+                                Gesamtbetrag:
+                                <span class="text-primary">
+                                    <span th:text="${#numbers.formatDecimal(event.costs, 1, 'POINT', 2, 'COMMA')}"></span> €
+                                </span>
+                            </h4>
+                        </div>
+
+                        <form method="post" th:action="@{'/events/' + ${event.id} + '/payments/create'}">
+                            <input type="hidden" name="method" value="PayPal">
+                            <input type="hidden" name="amount" th:value="${event.costs}">
+                            <input type="hidden" name="currency" value="EUR">
+                            <input type="hidden" name="description" th:value="${event.name}">
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    Jetzt sicher mit PayPal zahlen
+                                </button>
+                            </div>
+                        </form>
+                        <div class="d-grid mt-2">
+                            <a class="btn btn-outline-danger btn-lg" th:href="@{'/events/' + ${event.id}}">
+                                Abbrechen
+                            </a>
+                        </div>
+
+                    </div>
+
+                    <div class="card-footer text-center text-muted small">
+                        Du wirst im nächsten Schritt zu PayPal weitergeleitet.
+                    </div>
+                </div>
+
             </div>
-            <div class="mb-3">
-                <label for="amount" class="form-label">Betrag</label>
-                <input id="amount" type="number" class="form-control" name="amount" th:value="${event.costs}" readonly>
-            </div>
-            <div class="mb-3">
-                <label for="currency" class="form-label">Währung</label>
-                <input id="currency" type="text" class="form-control" name="currency" value="EUR" readonly>
-            </div>
-            <div class="mb-3">
-                <label for="description" class="form-label">Beschreibung</label>
-                <input id="description" type="text" class="form-control" name="description" th:value="${event.name}" readonly>
-            </div>
-            <div class="d-flex justify-content-center">
-                <button type="submit" class="btn btn-primary">Bezahle mit PayPal</button>
-            </div>
-        </form>
+        </div>
+
     </div>
 </main>
 </body>

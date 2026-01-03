@@ -41,7 +41,7 @@ public class Payment {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(optional = true)
     @JoinColumn(name = "event_id", referencedColumnName = "id")
     private Event event;
 }
