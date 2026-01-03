@@ -20,6 +20,7 @@ import org.openpdf.text.pdf.PdfWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.Payment;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.model.enums.PaymentStatus;
@@ -72,10 +73,12 @@ public class PdfService {
                     totalSuccess += payment.getAmount();
                 }
 
+                Event event = payment.getEvent();
+                String eventName = event != null ? event.getName() : "gelöschtes Event";
                 // Linke Spalte (Info)
                 PdfPCell infoCell = new PdfPCell(
                         new Phrase(
-                            payment.getEvent().getName() + "\n" +
+                            eventName + "\n" +
                             "Datum: " + payment.getTimestamp().format(formatter) + "\n" +
                             "Transaktions-ID (PayPal): " + payment.getPaypalTransactionId(),
                             normalFont

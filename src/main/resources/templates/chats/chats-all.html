@@ -5,9 +5,23 @@
       layout:decorate="~{layout}">
 
 <main layout:fragment="main">
-    <div class="container mt-4">
+    <div class="container mt-4 mb-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="text-center">Meine Chats</h1>
+            <div class="d-flex justify-content-center">
+                <div class="btn-group" role="group">
+                    <button type="button"
+                            class="btn btn-primary active"
+                            id="toggle-groups">
+                        Gruppenchats
+                    </button>
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            id="toggle-events">
+                        Eventchats
+                    </button>
+                </div>
+            </div>
             <button type="button"
                     class="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center"
                     style="width:48px; height:48px;"
@@ -17,34 +31,87 @@
             </button>
         </div>
 
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            <div class="col" th:each="membership : ${userChats}">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="group-chats">
+            <div class="col"
+                th:each="membership : ${groups}">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body d-flex flex-column justify-content-between">
-                        <h5 class="card-title" th:text="${membership.chatRoom.name != null ? membership.chatRoom.name : membership.chatRoom.event.name}">Chatname</h5>
-                        <p th:switch="${membership.chatRoom.type}" class="card-text text-muted mb-2">
-                            <span th:case="${T(de.othr.event_hub.model.enums.ChatRoomType).GROUP}">
-                                Gruppenchat
-                            </span>
-                            <span th:case="${T(de.othr.event_hub.model.enums.ChatRoomType).EVENT}">
-                                Eventchat
-                            </span>
-                        </p>
+                        <h5 class="card-title"
+                            th:text="${membership.chatRoom.name}">
+                        </h5>
+
+                        <p class="card-text text-muted mb-2">Gruppenchat</p>
+
                         <div class="mt-auto d-flex justify-content-between">
-                            <a th:href="@{'/chats/' + ${membership.chatRoom.id}}" class="btn btn-success btn-sm">Öffnen</a>
-                            <form th:action="@{'/chats/' + ${membership.chatRoom.id} + '/leave'}" method="post" th:object="${membership}">
-                                <button type="submit" class="btn btn-danger btn-sm">Verlassen</button>
+                            <a th:href="@{'/chats/' + ${membership.chatRoom.id}}"
+                            class="btn btn-success btn-sm">Öffnen</a>
+                            <form th:action="@{'/chats/' + ${membership.chatRoom.id} + '/leave'}"
+                                method="post">
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm">Verlassen</button>
                             </form>
                         </div>
-                    </div>
-                    <div class="card-footer text-muted small">
-                        Erstellt: <span th:text="${#temporals.format(membership.chatRoom.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
                     </div>
                 </div>
             </div>
         </div>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 d-none" id="event-chats">
+            <div class="col"
+                th:each="membership : ${events}">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <h5 class="card-title"
+                            th:text="${membership.chatRoom.event.name}">
+                        </h5>
+
+                        <p class="card-text text-muted mb-2">Eventchat</p>
+
+                        <div class="mt-auto d-flex justify-content-between">
+                            <a th:href="@{'/chats/' + ${membership.chatRoom.id}}"
+                            class="btn btn-success btn-sm">Öffnen</a>
+                            <!-- leaving event rooms = leaving event -->
+                            <!-- <form th:action="@{'/chats/' + ${membership.chatRoom.id} + '/leave'}"
+                                method="post">
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm">Verlassen</button>
+                            </form> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Create chat modal -->
         <div th:insert="~{chats/fragments/create-chat-modal :: create-chat-modal}"></div>
     </div>
+
+    <script>
+        const groupBtn = document.getElementById('toggle-groups');
+        const eventBtn = document.getElementById('toggle-events');
+        const groupChats = document.getElementById('group-chats');
+        const eventChats = document.getElementById('event-chats');
+
+        groupBtn.addEventListener('click', () => {
+            groupChats.classList.remove('d-none');
+            eventChats.classList.add('d-none');
+
+            groupBtn.classList.add('btn-primary', 'active');
+            groupBtn.classList.remove('btn-outline-primary');
+
+            eventBtn.classList.add('btn-outline-primary');
+            eventBtn.classList.remove('btn-primary', 'active');
+        });
+
+        eventBtn.addEventListener('click', () => {
+            eventChats.classList.remove('d-none');
+            groupChats.classList.add('d-none');
+
+            eventBtn.classList.add('btn-primary', 'active');
+            eventBtn.classList.remove('btn-outline-primary');
+
+            groupBtn.classList.add('btn-outline-primary');
+            groupBtn.classList.remove('btn-primary', 'active');
+        });
+    </script>
 </main>
 </html>

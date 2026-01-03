@@ -64,7 +64,23 @@ public class ChatController {
     @GetMapping("/all")
     public String getChatsOfUser(Model model, @AuthenticationPrincipal AccountUserDetails details) {
         User user = details.getUser();
-        model.addAttribute("userChats", chatMembershipService.getChatMembershipsByUser(user));
+        List<ChatMembership> chatMemberships = chatMembershipService.getChatMembershipsByUser(user);
+        List<ChatMembership> groups = chatMemberships
+            .stream()
+            .filter(chatMembership -> chatMembership.getChatRoom().getType() == ChatRoomType.GROUP)
+            .collect(Collectors.toList());
+        
+        List<ChatMembership> events = chatMemberships
+            .stream()
+            .filter(chatMembership -> chatMembership.getChatRoom().getType() == ChatRoomType.EVENT)
+            .collect(Collectors.toList());
+
+        // order chat memberships by name (if event chat: event name, else: group name)
+        groups.sort(Comparator.comparing(chatMembership -> chatMembership.getChatRoom().getName()));
+        events.sort(Comparator.comparing(chatMembership -> chatMembership.getChatRoom().getEvent().getName()));
+        
+        model.addAttribute("groups", groups);
+        model.addAttribute("events", events);
         return "chats/chats-all";
     }
 

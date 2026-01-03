@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,10 +25,17 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import de.othr.event_hub.config.AccountUserDetails;
 import de.othr.event_hub.dto.EventFormDto;
+import de.othr.event_hub.model.ChatMembership;
+import de.othr.event_hub.model.ChatRoom;
 import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.EventParticipant;
 import de.othr.event_hub.model.Friendship;
+import de.othr.event_hub.model.Payment;
 import de.othr.event_hub.model.User;
+import de.othr.event_hub.model.enums.ChatMembershipRole;
+import de.othr.event_hub.model.enums.ChatRoomType;
+import de.othr.event_hub.service.ChatMembershipService;
+import de.othr.event_hub.service.ChatRoomService;
 import de.othr.event_hub.service.EmailService;
 import de.othr.event_hub.service.EventService;
 import de.othr.event_hub.service.EventParticipantService;
@@ -38,18 +46,24 @@ import jakarta.validation.Valid;
 @RequestMapping("/events")
 public class EventController {
 
+    private final ChatMembershipService chatMembershipService;
+    private final ChatRoomService chatRoomService;
     private final EventService eventService;
     private final EventParticipantService eventParticipantService;
     private final FriendshipService friendshipService;
     private final EmailService emailService;
 
     public EventController(
+        ChatMembershipService chatMembershipService,
+        ChatRoomService chatRoomService,
         EventService eventService,
         EventParticipantService eventParticipantService,
         FriendshipService friendshipService,
         EmailService emailService
     ) {
         super();
+        this.chatMembershipService = chatMembershipService;
+        this.chatRoomService = chatRoomService;
         this.eventService = eventService;
         this.eventParticipantService = eventParticipantService;
         this.friendshipService = friendshipService;
@@ -139,6 +153,24 @@ public class EventController {
         organizerParticipant.setOrganizer(true);
         organizerParticipant.setJoinedAt(LocalDateTime.now());
         eventParticipantService.createParticipant(organizerParticipant);
+
+        // create chat room
+        LocalDateTime now = LocalDateTime.now();
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.setName(createdEvent.getName());
+        chatRoom.setType(ChatRoomType.GROUP);
+        chatRoom.setOwner(details.getUser());
+        chatRoom.setCreatedAt(now);
+        chatRoom =chatRoomService.createChatRoom(chatRoom);
+
+        // configure chat membership
+        ChatMembership chatMembership = new ChatMembership();
+        chatMembership.setChatRoom(chatRoom);
+        chatMembership.setUser(details.getUser());
+        chatMembership.setRole(ChatMembershipRole.CHATADMIN);
+        chatMembership.setJoinedAt(now);
+        chatMembershipService.createChatMembership(chatMembership);
+
         return "redirect:/events/" + createdEvent.getId();
     }
 
@@ -205,12 +237,23 @@ public class EventController {
             return "redirect:/events/" + id + "/payments";
         }
 
+        LocalDateTime now = LocalDateTime.now();
+
         EventParticipant participant = new EventParticipant();
         participant.setEvent(event);
         participant.setUser(details.getUser());
         participant.setOrganizer(false);
-        participant.setJoinedAt(LocalDateTime.now());
+        participant.setJoinedAt(now);
         eventParticipantService.createParticipant(participant);
+
+        // join chat room for event
+        ChatMembership chatMembership = new ChatMembership();
+        chatMembership.setChatRoom(event.getEventChatRoom());
+        chatMembership.setUser(details.getUser());
+        chatMembership.setRole(ChatMembershipRole.MEMBER);
+        chatMembership.setJoinedAt(now);
+        chatMembershipService.createChatMembership(chatMembership);
+
         redirectAttributes.addFlashAttribute(
             "success",
             "Du hast dich zum Event \"" + event.getName() + "\" angemeldet."
@@ -277,6 +320,10 @@ public class EventController {
             return "redirect:/events/" + id;
         }
         eventParticipantService.deleteParticipant(event, details.getUser());
+
+        // delete chat membership
+        chatMembershipService.deleteChatMembershipByChatRoomAndUser(event.getEventChatRoom(), details.getUser());
+
         redirectAttributes.addFlashAttribute(
             "success",
             "Du hast dich vom Event \"" + event.getName() + "\" abgemeldet."
@@ -305,6 +352,13 @@ public class EventController {
         for (EventParticipant participant : participants) {
             emailService.sendEventCancellation(participant.getUser(), event, details.getUser());
         }
+        
+        // set payment event to null
+        for (Payment payment : event.getPayments()) {
+            payment.setEvent(null);
+        }
+        event.getPayments().clear();
+
         eventParticipantService.deleteParticipants(event);
         eventService.deleteEvent(event);
         redirectAttributes.addFlashAttribute("success", "Event wurde abgesagt.");

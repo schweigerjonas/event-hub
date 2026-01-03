@@ -3,6 +3,7 @@ package de.othr.event_hub.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 
 import de.othr.event_hub.model.EventParticipant;
 import de.othr.event_hub.model.Event;
@@ -17,7 +18,9 @@ public interface EventParticipantRepository extends JpaRepository<EventParticipa
 
     long countByEvent(Event event);
 
+    @Modifying
     void deleteByEventAndUser(Event event, User user);
 
+    @Modifying
     void deleteByEvent(Event event);
 }
