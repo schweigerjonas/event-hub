@@ -197,11 +197,15 @@ public class EventController {
         // create chat room
         LocalDateTime now = LocalDateTime.now();
         ChatRoom chatRoom = new ChatRoom();
-        chatRoom.setName(createdEvent.getName());
-        chatRoom.setType(ChatRoomType.GROUP);
+        chatRoom.setType(ChatRoomType.EVENT);
         chatRoom.setOwner(details.getUser());
         chatRoom.setCreatedAt(now);
+        chatRoom.setEvent(createdEvent);
         chatRoom =chatRoomService.createChatRoom(chatRoom);
+
+        // update event
+        createdEvent.setEventChatRoom(chatRoom);
+        eventService.updateEvent(createdEvent);
 
         // configure chat membership
         ChatMembership chatMembership = new ChatMembership();
