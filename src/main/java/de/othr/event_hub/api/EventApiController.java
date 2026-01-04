@@ -26,6 +26,8 @@ import de.othr.event_hub.model.EventParticipant;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.service.EventParticipantService;
 import de.othr.event_hub.service.EventService;
+import de.othr.event_hub.service.LocationCoordinates;
+import de.othr.event_hub.service.LocationService;
 import de.othr.event_hub.service.UserService;
 
 @RestController
@@ -35,11 +37,18 @@ public class EventApiController {
     private final EventService eventService;
     private final EventParticipantService participantService;
     private final UserService userService;
+    private final LocationService locationService;
 
-    public EventApiController(EventService eventService, EventParticipantService participantService, UserService userService) {
+    public EventApiController(
+        EventService eventService,
+        EventParticipantService participantService,
+        UserService userService,
+        LocationService locationService
+    ) {
         this.eventService = eventService;
         this.participantService = participantService;
         this.userService = userService;
+        this.locationService = locationService;
     }
 
     @GetMapping
@@ -86,10 +95,16 @@ public class EventApiController {
 
     @PostMapping
     public ResponseEntity<EventApiDto> createEvent(@RequestBody EventApiDto dto) {
+        LocationCoordinates coordinates = locationService.findCoordinates(dto.getLocation()).orElse(null);
+        if (coordinates == null) {
+            return ResponseEntity.badRequest().build();
+        }
         User organizer = dto.getOrganizerId() == null ? null : userService.getUserById(dto.getOrganizerId());
         Event event = new Event();
         event.setName(dto.getName());
         event.setLocation(dto.getLocation());
+        event.setLatitude(coordinates.latitude());
+        event.setLongitude(coordinates.longitude());
         event.setDurationMinutes(dto.getDurationMinutes());
         event.setMaxParticipants(dto.getMaxParticipants());
         event.setDescription(dto.getDescription());
@@ -106,9 +121,15 @@ public class EventApiController {
         if (eventOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        LocationCoordinates coordinates = locationService.findCoordinates(dto.getLocation()).orElse(null);
+        if (coordinates == null) {
+            return ResponseEntity.badRequest().build();
+        }
         Event event = eventOpt.get();
         event.setName(dto.getName());
         event.setLocation(dto.getLocation());
+        event.setLatitude(coordinates.latitude());
+        event.setLongitude(coordinates.longitude());
         event.setDurationMinutes(dto.getDurationMinutes());
         event.setMaxParticipants(dto.getMaxParticipants());
         event.setDescription(dto.getDescription());

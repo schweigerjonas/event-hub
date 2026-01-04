@@ -34,6 +34,10 @@ public class Event { // basic event class @Martin R.
 
     private String location;
 
+    private Double latitude;
+
+    private Double longitude;
+
     private Integer durationMinutes;
 
     private Integer maxParticipants;
