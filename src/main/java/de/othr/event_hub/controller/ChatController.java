@@ -25,6 +25,7 @@ import de.othr.event_hub.config.AccountUserDetails;
 import de.othr.event_hub.dto.ChatMessageDTO;
 import de.othr.event_hub.dto.ChatUpdateDTO;
 import de.othr.event_hub.dto.SendMessageDTO;
+import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.ChatMembership;
 import de.othr.event_hub.model.ChatMessage;
 import de.othr.event_hub.model.ChatRoom;
@@ -64,7 +65,16 @@ public class ChatController {
     @GetMapping("/all")
     public String getChatsOfUser(Model model, @AuthenticationPrincipal AccountUserDetails details) {
         User user = details.getUser();
-        List<ChatMembership> chatMemberships = chatMembershipService.getChatMembershipsByUser(user);
+        List<Authority> userAuthorities = user.getAuthorities();
+        List<String> authorityDescriptions = userAuthorities.stream().map(Authority::getDescription).toList();
+
+        List<ChatMembership> chatMemberships;
+        if (authorityDescriptions.contains("ADMIN")) {
+            chatMemberships = chatMembershipService.getOneMembershipPerChatRoom();
+        } else {
+            chatMemberships = chatMembershipService.getChatMembershipsByUser(user);
+        }
+
         List<ChatMembership> groups = chatMemberships
             .stream()
             .filter(chatMembership -> chatMembership.getChatRoom().getType() == ChatRoomType.GROUP)

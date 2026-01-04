@@ -24,8 +24,19 @@
                 <span class="material-symbols-outlined fs-5">edit</span>
             </button>
 
+            <!-- global admin can see edit button -->
+            <button sec:authorize="hasAuthority('ADMIN')"
+                    type="button"
+                    class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center"
+                    style="width:48px; height:48px;"
+                    data-bs-toggle="modal"
+                    data-bs-target="#edit-chat-modal">
+                <span class="material-symbols-outlined fs-5">edit</span>
+            </button>
+
             <!-- chat users can see info button -->
             <button th:if="${chatRoom.owner.id != currentUser.id}"
+                    sec:authorize="!hasAuthority('ADMIN')"
                     type="button"
                     class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center"
                     style="width:48px; height:48px;"

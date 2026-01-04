@@ -46,7 +46,7 @@
                             <a th:href="@{'/chats/' + ${membership.chatRoom.id}}"
                             class="btn btn-success btn-sm">Öffnen</a>
                             <form th:action="@{'/chats/' + ${membership.chatRoom.id} + '/leave'}"
-                                method="post">
+                                method="post" sec:authorize="!hasAuthority('ADMIN')">
                                 <button type="submit"
                                         class="btn btn-danger btn-sm">Verlassen</button>
                             </form>

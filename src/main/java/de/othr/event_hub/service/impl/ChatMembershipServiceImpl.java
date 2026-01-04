@@ -64,4 +64,9 @@ public class ChatMembershipServiceImpl implements ChatMembershipService {
     public List<ChatMembership> getChatMembersByChatRoom(ChatRoom chatRoom) {
         return chatMembershipRepository.findByChatRoom(chatRoom);
     }
+
+    @Override
+    public List<ChatMembership> getOneMembershipPerChatRoom() {
+        return chatMembershipRepository.getOneChatMembershipPerChatRoom();
+    }
 }
