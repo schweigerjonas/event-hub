@@ -4,9 +4,56 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <main layout:fragment="main">
-    <div class="container">
-        <h1>Willkommen bei Event Hub</h1>
-        <p>Erstelle Events, nimm an Events teil und kommuniziere mit deinen Freunden.</p>
+
+    <!-- Hero Section -->
+    <div class="container my-5">
+        <div class="p-5 rounded-4 text-center text-white" style="background: linear-gradient(135deg, #6f42c1, #59339d);">
+            <h1 class="display-4 fw-bold mb-3">Willkommen bei Event Hub</h1>
+            <p class="lead mb-4">Erstelle Events, nimm an Events teil und kommuniziere mit deinen Freunden.</p>
+            <a th:href="@{/events}" class="btn btn-light btn-lg shadow-sm">
+                <i class="bi bi-calendar-event me-2"></i> Zu den Events
+            </a>
+        </div>
+    </div>
+
+    <!-- Feature Cards -->
+    <div class="container my-5">
+        <div class="row g-4">
+
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <i class="bi bi-plus-circle-fill display-4 mb-3 text-primary"></i>
+                        <h5 class="card-title fw-bold">Neue Events erstellen</h5>
+                        <p class="card-text">Plane deine eigenen Events und lade Freunde direkt ein.</p>
+                        <a th:href="@{/events/new}" class="btn btn-primary">Event erstellen</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <i class="bi bi-person-lines-fill display-4 mb-3 text-success"></i>
+                        <h5 class="card-title fw-bold">Freunde verbinden</h5>
+                        <p class="card-text">Finde Freunde, folge ihnen und bleibe über ihre Aktivitäten informiert.</p>
+                        <a th:href="@{/friends/all}" class="btn btn-success">Freunde entdecken</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <i class="bi bi-chat-dots-fill display-4 mb-3 text-warning"></i>
+                        <h5 class="card-title fw-bold">Chats & Kommunikation</h5>
+                        <p class="card-text">Unterhalte dich mit deinen Freunden in privaten oder Gruppenchats.</p>
+                        <a th:href="@{/chats/all}" class="btn btn-warning text-white">Jetzt chatten</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 </main>
 </html>

@@ -1,6 +1,8 @@
 <div th:fragment="header"
-    class="navbar navbar-expand-lg navbar-dark bg-dark d-flex justify-content-between align-items-center px-2">
-    <a class="navbar-brand" th:href="@{/}" th:text="'Event Hub'"></a>
+    class="navbar navbar-expand-lg navbar-dark d-flex justify-content-between align-items-center px-2">
+    <a class="navbar-brand fw-bold" th:href="@{/}">
+        <i class="bi bi-calendar-event me-1"></i> Event Hub
+    </a>
     <div class="d-flex align-items-center gap-2">
         <div sec:authorize="!isAuthenticated()">
             <a th:href="@{/login}" class="btn btn-light" role="button">Anmelden</a>

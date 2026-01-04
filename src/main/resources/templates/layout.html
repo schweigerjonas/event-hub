@@ -19,22 +19,22 @@
 <body class="d-flex flex-column min-vh-100">
 
     <!-- Header -->
-    <div th:insert="~{fragments/header :: header}"></div>
+    <div style="background-color: #1976D2;" th:insert="~{fragments/header :: header}"></div>
 
     <div class="container-fluid content-wrapper flex-grow-1 d-flex">
         <div class="row flex-grow-1">
             <!-- Sidebar -->
-            <nav class="col-md-2 d-none d-md-block bg-light sidebar" th:insert="~{fragments/sidebar :: sidebar}"></nav>
+            <nav class="col-md-2 d-none d-md-block sidebar" style="background-color: #1976D2;" th:insert="~{fragments/sidebar :: sidebar}"></nav>
 
             <!-- Main Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4" style="background-color: #E3F2FD;">
                 <div layout:fragment="main"></div>
             </main>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="mt-auto" th:insert="~{fragments/footer :: footer}"></footer>
+    <footer class="mt-auto" style="background-color: #1976D2;" th:insert="~{fragments/footer :: footer}"></footer>
 
     <!-- Bootstrap JS -->
     <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
