@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import de.othr.event_hub.model.Event;
@@ -25,8 +27,8 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public List<Payment> getAllPayments() {
-        return paymentRepository.findAll();
+    public Page<Payment> getAllPayments(Pageable pageable) {
+        return paymentRepository.findAll(pageable);
     }
 
     @Override
@@ -47,6 +49,16 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public void deleteAllPayments() {
         paymentRepository.deleteAll();
+    }
+
+    @Override
+    public Page<Payment> getPaymentsByUser(User user, Pageable pageable) {
+        return paymentRepository.findByUser(user, pageable);
+    }
+
+    @Override
+    public Page<Payment> getPaymentsByEvent(Event event, Pageable pageable) {
+        return paymentRepository.findByEvent(event, pageable);
     }
 
     @Override

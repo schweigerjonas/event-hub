@@ -1,5 +1,6 @@
 package de.othr.event_hub.service.impl;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,11 @@ public class EventServiceImpl implements EventService {
     @Override
     public Optional<Event> getEventById(Long id) {
         return eventRepository.findById(id);
+    }
+
+    @Override
+    public List<Event> getAllEvents() {
+        return eventRepository.findAll();
     }
 
     @Override

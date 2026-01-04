@@ -193,3 +193,12 @@ INSERT INTO event_invitations (event_id, inviter_id, invitee_id, status, created
 INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 99.99, 'COMPLETED', NOW()-1, 'PAYPAL-1234');
 INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 49.95, 'COMPLETED', NOW()-2, 'PAYPAL-4321');
 INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 10, 'FAILED', NOW()-3, 'PAYPAL-0000');
+INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 99.99, 'COMPLETED', NOW()-1, 'PAYPAL-1234');
+INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 49.95, 'COMPLETED', NOW()-2, 'PAYPAL-4321');
+INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 10, 'FAILED', NOW()-3, 'PAYPAL-0000');
+INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 99.99, 'COMPLETED', NOW()-1, 'PAYPAL-1234');
+INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 49.95, 'COMPLETED', NOW()-2, 'PAYPAL-4321');
+INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 10, 'FAILED', NOW()-3, 'PAYPAL-0000');
+INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 99.99, 'COMPLETED', NOW()-1, 'PAYPAL-1234');
+INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 49.95, 'COMPLETED', NOW()-2, 'PAYPAL-4321');
+INSERT INTO payments (user_id, event_id, amount, status, timestamp, paypal_transaction_id) VALUES (1, 1, 10, 'FAILED', NOW()-3, 'PAYPAL-0000');
