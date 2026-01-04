@@ -1,6 +1,7 @@
 package de.othr.event_hub.controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import de.othr.event_hub.config.AccountUserDetails;
+import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.Friendship;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.model.enums.FriendshipStatus;
@@ -38,10 +40,18 @@ public class FriendshipController {
     @GetMapping("/all")
     public String showFriendships(Model model, @AuthenticationPrincipal AccountUserDetails details) {
         User user = details.getUser(); 
-        model.addAttribute("activeFriendships", friendshipService.findActiveFriendshipsByUser(user));
-        model.addAttribute("pendingRequestsBy", friendshipService.findPendingFriendshipsRequestedByUser(user));
-        model.addAttribute("pendingRequestsTo", friendshipService.findPendingFriendshipsRequestedToUser(user));
-        model.addAttribute("currentUserId", user.getId());
+        List<Authority> userAuthorities = user.getAuthorities();
+        List<String> authorityDescriptions = userAuthorities.stream().map(Authority::getDescription).toList();
+
+        if (authorityDescriptions.contains("ADMIN")) {
+            model.addAttribute("activeFriendships", friendshipService.findAllActiveFriendships());
+            model.addAttribute("pendingFriendships", friendshipService.findAllPendingFriendships());
+        } else {
+            model.addAttribute("activeFriendships", friendshipService.findActiveFriendshipsByUser(user));
+            model.addAttribute("pendingRequestsBy", friendshipService.findPendingFriendshipsRequestedByUser(user));
+            model.addAttribute("pendingRequestsTo", friendshipService.findPendingFriendshipsRequestedToUser(user));
+            model.addAttribute("currentUserId", user.getId());
+        }
 
         return "friends/friends-all";
     }

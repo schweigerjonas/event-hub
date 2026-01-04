@@ -11,20 +11,26 @@ import de.othr.event_hub.model.User;
 
 public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
     
-    @Query("SELECT f FROM Friendship f WHERE f.status = 'ACCEPTED' and (f.requestor = :user OR f.addressee = :user)")
-    List<Friendship> findActiveFriendshipsByUser(User user);
+   @Query("SELECT f FROM Friendship f WHERE f.status = 'ACCEPTED' and (f.requestor = :user OR f.addressee = :user)")
+   List<Friendship> findActiveFriendshipsByUser(User user);
 
-    @Query("SELECT f FROM Friendship f WHERE f.status = 'PENDING' and f.requestor = :user")
-    List<Friendship> findPendingFriendshipsRequestedByUser(User user);
+   @Query("SELECT f FROM Friendship f WHERE f.status = 'PENDING' and f.requestor = :user")
+   List<Friendship> findPendingFriendshipsRequestedByUser(User user);
 
-    @Query("SELECT f FROM Friendship f WHERE f.status = 'PENDING' and f.addressee = :user")
-    List<Friendship> findPendingFriendshipsRequestedToUser(User user);
+   @Query("SELECT f FROM Friendship f WHERE f.status = 'PENDING' and f.addressee = :user")
+   List<Friendship> findPendingFriendshipsRequestedToUser(User user);
 
-    @Query("""
-       SELECT CASE WHEN COUNT(f) > 0 THEN TRUE ELSE FALSE END
-       FROM Friendship f
-       WHERE (f.requestor = :current AND f.addressee = :other)
-          OR (f.requestor = :other AND f.addressee = :current)
-       """)
-    boolean existsFriendshipBetween(@Param("current") User current, @Param("other") User other);
+   @Query("SELECT f FROM Friendship f WHERE f.status = 'ACCEPTED'")
+   List<Friendship> findActiveFriendships();
+
+   @Query("SELECT f FROM Friendship f WHERE f.status = 'PENDING'")
+   List<Friendship> findPendingFriendships();
+
+   @Query("""
+      SELECT CASE WHEN COUNT(f) > 0 THEN TRUE ELSE FALSE END
+      FROM Friendship f
+      WHERE (f.requestor = :current AND f.addressee = :other)
+         OR (f.requestor = :other AND f.addressee = :current)
+      """)
+   boolean existsFriendshipBetween(@Param("current") User current, @Param("other") User other);
 }

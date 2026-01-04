@@ -35,7 +35,13 @@
             </button>
         </div>
         <div class="d-flex justify-content-between align-items-center mb-4" th:if="${chatRoom.type.toString().equals('EVENT')}">
-            <h1 class="text-center" th:text="${chatRoom.event.name}"></h1>
+            <div class="d-flex align-items-center gap-3">
+                <a th:href="@{/events/{id}(id=${chatRoom.event.id})}" class="text-decoration-none text-dark">
+                    <i class="bi bi-caret-left-fill fs-1"></i>
+                </a>
+
+                <h1 class="text-center" th:text="${chatRoom.event.name}"></h1>
+            </div>
         </div>
 
         <div id="chat-box" class="chat-container d-flex flex-column gap-3 mb-5 overflow-auto" style="max-height: 60vh;" th:attr="data-chatroom-id=${chatRoom.id}, data-user-id=${currentUser.id}">

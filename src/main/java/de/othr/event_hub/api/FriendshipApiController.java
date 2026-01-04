@@ -168,6 +168,22 @@ public class FriendshipApiController {
 
         return ResponseEntity.ok(CollectionModel.of(friendshipModels));
     }
+
+    @GetMapping("/active")
+    public ResponseEntity<CollectionModel<EntityModel<FriendshipDTO>>> findActiveFriendships() {
+        List<Friendship> friendships = friendshipService.findAllActiveFriendships();
+        List<EntityModel<FriendshipDTO>> friendshipModels = toEntityModel(friendships);
+
+        return ResponseEntity.ok(CollectionModel.of(friendshipModels));
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<CollectionModel<EntityModel<FriendshipDTO>>> findPendingFriendships() {
+        List<Friendship> friendships = friendshipService.findAllPendingFriendships();
+        List<EntityModel<FriendshipDTO>> friendshipModels = toEntityModel(friendships);
+
+        return ResponseEntity.ok(CollectionModel.of(friendshipModels));
+    }
     
     // Helpers
     private FriendshipDTO toDTO(Friendship friendship) {
