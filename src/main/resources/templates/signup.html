@@ -61,6 +61,11 @@
                         <div th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"
                             class="invalid-feedback"></div>
                     </div>
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="using2FA" th:field="*{using2FA}" />
+                        <label class="form-check-label text-muted" for="using2FA">Zweistufige Authentifizierung (2FA)
+                            aktivieren</label>
+                    </div>
                     <button type="submit" class="btn btn-primary w-100">
                         <strong>Account erstellen</strong>
                     </button>

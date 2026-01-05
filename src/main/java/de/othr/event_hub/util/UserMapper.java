@@ -13,6 +13,7 @@ public class UserMapper {
         user.setUsername(userDto.getUsername());
         user.setPassword(userDto.getPassword());
         user.setActive(1);
+        user.setUsing2FA(userDto.isUsing2FA());
 
         return user;
     }

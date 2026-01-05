@@ -1,5 +1,7 @@
 package de.othr.event_hub.service.impl;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +19,8 @@ import de.othr.event_hub.service.UserService;
 
 @Service
 public class UserServiceImpl implements UserService {
+    private static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
+
     private UserRepository userRepository;
     private AuthorityRepository authorityRepository;
     private PasswordEncoder passwordEncoder;
@@ -76,7 +80,7 @@ public class UserServiceImpl implements UserService {
             return null;
         }
     }
-  
+
     public boolean usernameExists(String username) {
         return userRepository.findUserByUsername(username).isPresent();
     }
@@ -97,5 +101,20 @@ public class UserServiceImpl implements UserService {
         }
 
         return pageUsers;
+    }
+
+    @Override
+    public String generateQRUrl(User user) {
+        String APP_NAME = "EventHub";
+
+        try {
+            String urlText = String.format(
+                    "otpauth://totp/%s:%s?secret=%s&issuer=%s",
+                    APP_NAME, user.getEmail(), user.getSecret(), APP_NAME);
+
+            return QR_PREFIX + URLEncoder.encode(urlText, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating QR Url", e);
+        }
     }
 }
