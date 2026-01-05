@@ -1,9 +1,12 @@
- :root {
-    --app-bg: #f8f9fa;
+:root {
+    --app-bg: #E3F2FD;
     --app-text: #212529;
     --app-card-bg: #ffffff;
     --app-border: #dee2e6;
     --app-muted: #6c757d;
+    --app-accent: #1976D2;
+    --app-accent-contrast: #ffffff;
+    --app-surface: #E3F2FD;
 }
 
 [data-bs-theme="dark"] {
@@ -12,6 +15,9 @@
     --app-card-bg: #1a1d23;
     --app-border: #2b3038;
     --app-muted: #9aa4b2;
+    --app-accent: #0d47a1;
+    --app-accent-contrast: #f8fafc;
+    --app-surface: #111827;
 }
 
 body {
@@ -30,6 +36,29 @@ body {
 .card {
     background-color: var(--app-card-bg);
     border-color: var(--app-border);
+}
+
+.app-header,
+.app-sidebar,
+.app-footer {
+    background-color: var(--app-accent);
+    color: var(--app-accent-contrast);
+}
+
+.app-header .navbar {
+    padding-left: 2.5rem;
+    padding-right: 0.5rem;
+}
+
+.app-sidebar {
+    width: 220px;
+    flex: 0 0 220px;
+    max-width: 220px;
+}
+
+.app-main {
+    background-color: var(--app-surface);
+    min-height: 100%;
 }
 
 .logout-form {
