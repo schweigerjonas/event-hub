@@ -90,9 +90,18 @@ public class EmailService {
                 break;
         }
 
-        String text = templateEngine.process("email/account-status-update", context);
+        String htmlContent = templateEngine.process("email/account-status-update", context);
 
-        return sendEmail(user.getEmail(), subject, text);
+        return sendEmail(user.getEmail(), subject, htmlContent);
+    }
+
+    public boolean sendRegistrationConfirmation(User user) {
+        Context context = new Context();
+        context.setVariable("user", user);
+
+        String htmlContent = templateEngine.process("email/registration-confirmation", context);
+
+        return sendEmail(user.getEmail(), "Willkommen bei uns!", htmlContent);
     }
 
     private boolean sendEmail(String to, String subject, String text) {
