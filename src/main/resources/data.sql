@@ -4,10 +4,10 @@ INSERT INTO authorities (description) VALUES ('ORGANISATOR');
 INSERT INTO authorities (description) VALUES ('ADMIN');
 
 -- Test users for each role
-INSERT INTO users (email, username, password, active) VALUES ('user@gmail.com', 'user', '$2a$12$dFswRWOmIRet32bS91WWMOYXT1eyHI8FUezDks/bq67LlC6tGIzUu', 1);
-INSERT INTO users (email, username, password, active) VALUES ('organizer@gmail.com', 'organizer', '$2a$12$Xu5tpzRwH/kMc591xjxVJOwr1jCKMl57Aq0MrEau2PvyNhn.3XIre', 1);
-INSERT INTO users (email, username, password, active) VALUES ('admin@gmail.com', 'admin', '$2a$12$8MRcgh3lTl2xjHFc5X1MvO8XH2MHjTBsPQW1Sx.N4CvE1eMlEp7Mq', 1);
-INSERT INTO users (email, username, password, active) VALUES ('user2@gmail.com', 'user2', '$2b$12$Z6Gf/tv5QL0gTRjUWYtOVe4XUEOrs9O3.HWpvt9hUbVOxbmkzf/AW', 1);
+INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('user@gmail.com', 'user', '$2a$12$dFswRWOmIRet32bS91WWMOYXT1eyHI8FUezDks/bq67LlC6tGIzUu', 1, false, 'OVZWK4TTNF4HIZLFNZRWQYLSOM======');
+INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('organizer@gmail.com', 'organizer', '$2a$12$Xu5tpzRwH/kMc591xjxVJOwr1jCKMl57Aq0MrEau2PvyNhn.3XIre', 1, false, 'N5ZGOYLONF5GK4TTNF4HIZLFNY======');
+INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('admin@gmail.com', 'admin', '$2a$12$8MRcgh3lTl2xjHFc5X1MvO8XH2MHjTBsPQW1Sx.N4CvE1eMlEp7Mq', 1, false, 'MFSG22LOONUXQ5DFMVXGG2DBOI======');
+INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('user2@gmail.com', 'user2', '$2b$12$Z6Gf/tv5QL0gTRjUWYtOVe4XUEOrs9O3.HWpvt9hUbVOxbmkzf/AW', 1, false, 'OVZWK4RSONUXQ5DFMVXGG2DBOI======');
 
 -- Add user roles
 INSERT INTO user_authorities(user_id, authority_id) VALUES (1, 1);
