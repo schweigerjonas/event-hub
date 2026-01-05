@@ -81,24 +81,7 @@
         let lastRequestAt = 0;
 
         const buildLocationLabel = (item) => {
-            const addr = item && item.address ? item.address : null;
-            if (!addr) {
-                return item && item.display_name ? item.display_name : "";
-            }
-            const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || addr.state || "";
-            const road = addr.road || addr.street || addr.pedestrian || addr.footway || "";
-            const houseNumber = addr.house_number || "";
-            let label = "";
-            if (city) {
-                label = city;
-            }
-            if (road) {
-                label = label ? `${label} ${road}` : road;
-            }
-            if (houseNumber) {
-                label = `${label} ${houseNumber}`;
-            }
-            return label || (item && item.display_name ? item.display_name : "");
+            return item && item.display_name ? item.display_name : "";
         };
 
         const fetchLocationSuggestions = async () => {
