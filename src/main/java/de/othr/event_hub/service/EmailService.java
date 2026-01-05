@@ -17,7 +17,7 @@ import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class EmailService {
-    
+
     @Autowired
     private JavaMailSender javaMailSender;
 
@@ -70,6 +70,31 @@ public class EmailService {
         return sendEmail(recipient.getEmail(), "Event abgesagt: " + event.getName(), text);
     }
 
+    public boolean sendAccountStatusUpdateNotification(User user, String action) {
+        Context context = new Context();
+        context.setVariable("user", user);
+        context.setVariable("action", action);
+
+        String subject;
+
+        switch (action) {
+            case "BLOCK":
+                subject = "Dein Konto wurde deaktiviert";
+                break;
+            case "UNBLOCK":
+                subject = "Dein Konto wurde reaktiviert";
+                break;
+            case "DELETE":
+            default:
+                subject = "Dein Konto wurde gelöscht";
+                break;
+        }
+
+        String text = templateEngine.process("email/account-status-update", context);
+
+        return sendEmail(user.getEmail(), subject, text);
+    }
+
     private boolean sendEmail(String to, String subject, String text) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -87,7 +112,8 @@ public class EmailService {
         }
     }
 
-    private boolean sendEmail(String to, String subject, String text, ByteArrayResource attachment, String attachmentName) {
+    private boolean sendEmail(String to, String subject, String text, ByteArrayResource attachment,
+            String attachmentName) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
