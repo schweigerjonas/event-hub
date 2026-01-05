@@ -30,6 +30,14 @@
                             th:classappend="${param.error} ? 'is-invalid' : ''" required>
                         <label for="password" class="form-label">Passwort</label>
                     </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="code" name="code" placeholder="2FA Code"
+                            inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+                            th:classappend="${param.error} ? 'is-invalid' : ''" />
+                        <label for="code" class="form-label">2FA Code (falls aktiviert)</label>
+                        <div class="form-text text-start ms-1">Geben Sie den 6-stelligen Code aus Ihrer <strong>Google
+                                Authenticator App</strong> ein.</div>
+                    </div>
                     <button type="submit" class="btn btn-primary w-100">
                         <strong>Anmelden</strong>
                     </button>

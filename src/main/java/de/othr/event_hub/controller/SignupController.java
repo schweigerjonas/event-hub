@@ -62,6 +62,13 @@ public class SignupController {
 
         emailService.sendRegistrationConfirmation(user);
 
+        if (user.isUsing2FA()) {
+            String qrUrl = userService.generateQRUrl(user);
+
+            model.addAttribute("qrUrl", qrUrl);
+            return "fragments/qrcode";
+        }
+
         // TODO: maybe redirect directly to homepage -> would need manual
         // authentication/authorization
         // on new user

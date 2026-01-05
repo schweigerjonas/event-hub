@@ -1,6 +1,8 @@
 package de.othr.event_hub.service.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,6 +10,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.User;
@@ -76,7 +83,7 @@ public class UserServiceImpl implements UserService {
             return null;
         }
     }
-  
+
     public boolean usernameExists(String username) {
         return userRepository.findUserByUsername(username).isPresent();
     }
@@ -97,5 +104,26 @@ public class UserServiceImpl implements UserService {
         }
 
         return pageUsers;
+    }
+
+    @Override
+    public String generateQRUrl(User user) {
+        String APP_NAME = "EventHub";
+        String otpAuthUrl = String.format(
+                "otpauth://totp/%s:%s?secret=%s&issuer=%s",
+                APP_NAME, user.getEmail(), user.getSecret(), APP_NAME);
+
+        try {
+            QRCodeWriter qrCodeWriter = new QRCodeWriter();
+            BitMatrix bitMatrix = qrCodeWriter.encode(otpAuthUrl, BarcodeFormat.QR_CODE, 200, 200);
+
+            ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+            byte[] pngData = pngOutputStream.toByteArray();
+
+            return "data:image/png;base64," + Base64.getEncoder().encodeToString(pngData);
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating QR Url", e);
+        }
     }
 }

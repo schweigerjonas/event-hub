@@ -31,4 +31,6 @@ public class UserDto {
 
     @NotBlank(message = "Bitte wählen Sie eine Rolle aus")
     private String role;
+
+    private boolean using2FA;
 }
