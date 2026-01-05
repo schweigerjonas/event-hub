@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Konto-Update</title>
+    <style>
+        body {
+            background-color: #f4f6f8;
+            padding: 20px;
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.5;
+        }
+
+        .mail-container {
+            background-color: #ffffff;
+            border-radius: 6px;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+            border: 1px solid #e2e5e9;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .bg-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .bg-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .bg-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .muted {
+            color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mail-container">
+        <h2 th:if="${action == 'BLOCK'}">Dein Konto wurde deaktiviert</h2>
+        <h2 th:if="${action == 'UNBLOCK'}">Dein Konto wurde reaktiviert</h2>
+        <h2 th:if="${action == 'DELETE'}">Dein Konto wurde gelöscht</h2>
+
+        <p>Hallo <strong th:text="${user.username}">Benutzername</strong>,</p>
+
+        <div th:if="${action == 'BLOCK'}">
+            <p>Ein Administrator hat dein Konto vorübergehend <strong>deaktiviert</strong>.</p>
+            <p class="muted">Du kannst dich aktuell nicht anmelden. Wenn du glaubst, dass dies ein Fehler ist,
+                kontaktiere bitte den Support.</p>
+        </div>
+
+        <div th:if="${action == 'UNBLOCK'}">
+            <p>Gute Nachrichten! Dein Konto wurde von einem Administrator <strong>wieder freigeschaltet</strong>.</p>
+            <p>Du kannst dich ab sofort wieder wie gewohnt mit deinen Zugangsdaten anmelden.</p>
+        </div>
+
+        <div th:if="${action == 'DELETE'}">
+            <p>Dein Konto und alle damit verbundenen Daten wurden aus unserem System <strong>entfernt</strong>.</p>
+            <p class="muted">Wir bedauern, dich gehen zu sehen. Falls du unsere Dienste in Zukunft wieder nutzen
+                möchtest, musst du dich neu registrieren.</p>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #e2e5e9; margin: 20px 0;">
+
+        <p class="muted" style="font-size: 0.85em;">
+            Status-Update vom: <span th:text="${#dates.format(#dates.createNow(), 'dd.MM.yyyy HH:mm')}">Datum</span><br>
+            System-ID: <span th:text="${user.id}">123</span>
+        </p>
+    </div>
+</body>
+
+</html>
