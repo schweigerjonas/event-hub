@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.jboss.aerogear.security.otp.api.Base32;
+
 import de.othr.event_hub.model.enums.OAuthProvider;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -23,13 +25,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users")
 public class User implements Serializable {
@@ -57,6 +57,9 @@ public class User implements Serializable {
 
     private Integer active;
 
+    private boolean isUsing2FA;
+    private String secret;
+
     @OneToMany(mappedBy = "requestor")
     private Set<Friendship> sentRequests = new HashSet<>();
 
@@ -75,6 +78,11 @@ public class User implements Serializable {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "authority_id"))
     private List<Authority> authorities = new ArrayList<>();
+
+    public User() {
+        super();
+        this.secret = Base32.random();
+    }
 
     @Override
     public boolean equals(Object o) {
