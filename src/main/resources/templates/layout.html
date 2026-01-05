@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+<html lang="de" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
     xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
@@ -19,22 +19,22 @@
 <body class="d-flex flex-column min-vh-100">
 
     <!-- Header -->
-    <div style="background-color: #1976D2;" th:insert="~{fragments/header :: header}"></div>
+    <div class="app-header" th:insert="~{fragments/header :: header}"></div>
 
     <div class="container-fluid content-wrapper flex-grow-1 d-flex">
         <div class="row flex-grow-1">
             <!-- Sidebar -->
-            <nav class="col-md-2 d-none d-md-block sidebar" style="background-color: #1976D2;" th:insert="~{fragments/sidebar :: sidebar}"></nav>
+            <nav class="col-auto d-none d-md-block sidebar app-sidebar" th:insert="~{fragments/sidebar :: sidebar}"></nav>
 
             <!-- Main Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4" style="background-color: #E3F2FD;">
+            <main class="col px-md-4 app-main">
                 <div layout:fragment="main"></div>
             </main>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="mt-auto" style="background-color: #1976D2;" th:insert="~{fragments/footer :: footer}"></footer>
+    <footer class="mt-auto app-footer" th:insert="~{fragments/footer :: footer}"></footer>
 
     <!-- Bootstrap JS -->
     <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
@@ -42,6 +42,7 @@
     <script>
         (function () {
             const themeKey = "eventhub-theme";
+            const storedTheme = localStorage.getItem(themeKey);
             const initialTheme = storedTheme ? storedTheme : "light";
             document.documentElement.setAttribute("data-bs-theme", initialTheme);
 

@@ -2,10 +2,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
     xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
 <main layout:fragment="main">
-    <div class="container py-4">
-        <h1 class="mb-3">Event erstellen</h1>
-
-        <form th:action="@{/events}" th:object="${eventForm}" method="post" class="row g-3">
+    <div class="container mt-4">
+        <h1 class="mb-4">Event erstellen</h1>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form th:action="@{/events}" th:object="${eventForm}" method="post" class="row g-3">
             <div class="col-md-6">
                 <label class="form-label" for="name">Name</label>
                 <input id="name" class="form-control" type="text" th:field="*{name}" required>
@@ -30,6 +31,7 @@
             <div class="col-md-4">
                 <label class="form-label" for="eventTime">Startzeit</label>
                 <input id="eventTime" class="form-control" type="datetime-local" th:field="*{eventTime}" required>
+                <div class="form-text">24-Stunden-Format</div>
                 <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('eventTime')}" th:errors="*{eventTime}"></div>
             </div>
 
@@ -49,11 +51,13 @@
                 <textarea id="description" class="form-control" rows="4" th:field="*{description}"></textarea>
             </div>
 
-            <div class="col-12 d-flex gap-2">
-                <button class="btn btn-primary" type="submit">Event erstellen</button>
-                <a class="btn btn-outline-secondary" th:href="@{/events}">Abbrechen</a>
+                    <div class="col-12 d-flex gap-2">
+                        <button class="btn btn-primary" type="submit">Event erstellen</button>
+                        <a class="btn btn-outline-secondary" th:href="@{/events}">Abbrechen</a>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 
     <script>
@@ -81,24 +85,7 @@
         let lastRequestAt = 0;
 
         const buildLocationLabel = (item) => {
-            const addr = item && item.address ? item.address : null;
-            if (!addr) {
-                return item && item.display_name ? item.display_name : "";
-            }
-            const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || addr.state || "";
-            const road = addr.road || addr.street || addr.pedestrian || addr.footway || "";
-            const houseNumber = addr.house_number || "";
-            let label = "";
-            if (city) {
-                label = city;
-            }
-            if (road) {
-                label = label ? `${label} ${road}` : road;
-            }
-            if (houseNumber) {
-                label = `${label} ${houseNumber}`;
-            }
-            return label || (item && item.display_name ? item.display_name : "");
+            return item && item.display_name ? item.display_name : "";
         };
 
         const fetchLocationSuggestions = async () => {

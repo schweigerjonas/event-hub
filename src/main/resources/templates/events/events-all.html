@@ -38,13 +38,13 @@
                 </select>
             </div>
             <div class="col-6 col-md-1 d-grid">
-                <button class="btn btn-outline-secondary" type="submit">Go</button>
+                <button class="btn btn-outline-secondary" type="submit">Suchen</button>
             </div>
         </form>
 
         <div class="row g-3 mt-3">
             <div class="col-12" th:if="${#lists.isEmpty(events)}">
-                <div class="alert alert-light border mb-0">Keine Events gefunden.</div>
+                <div class="alert alert-secondary mb-0">Keine Events gefunden.</div>
             </div>
             <div class="col-12 col-md-6 col-lg-4" th:each="event : ${events}">
                 <div class="card h-100 shadow-sm">

@@ -3,6 +3,9 @@ package de.othr.event_hub.controller;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,6 +20,7 @@ import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.Friendship;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.model.enums.FriendshipStatus;
+import de.othr.event_hub.service.EventInvitationService;
 import de.othr.event_hub.service.FriendshipService;
 import de.othr.event_hub.service.UserService;
 
@@ -30,11 +34,17 @@ public class FriendshipController {
     
     private FriendshipService friendshipService;
     private UserService userService;
+    private EventInvitationService eventInvitationService;
 
-    public FriendshipController(FriendshipService friendshipService, UserService userService) {
+    public FriendshipController(
+        FriendshipService friendshipService,
+        UserService userService,
+        EventInvitationService eventInvitationService
+    ) {
         super();
         this.friendshipService = friendshipService;
         this.userService = userService;
+        this.eventInvitationService = eventInvitationService;
     }
 
     @GetMapping("/all")
@@ -42,6 +52,7 @@ public class FriendshipController {
         User user = details.getUser(); 
         List<Authority> userAuthorities = user.getAuthorities();
         List<String> authorityDescriptions = userAuthorities.stream().map(Authority::getDescription).toList();
+        Pageable invitePageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         if (authorityDescriptions.contains("ADMIN")) {
             model.addAttribute("activeFriendships", friendshipService.findAllActiveFriendships());
@@ -52,6 +63,11 @@ public class FriendshipController {
             model.addAttribute("pendingRequestsTo", friendshipService.findPendingFriendshipsRequestedToUser(user));
             model.addAttribute("currentUserId", user.getId());
         }
+
+        model.addAttribute("eventInvitationsSent",
+            eventInvitationService.getOutgoingInvitations(user, null, invitePageable).getContent());
+        model.addAttribute("eventInvitationsReceived",
+            eventInvitationService.getIncomingInvitations(user, null, invitePageable).getContent());
 
         return "friends/friends-all";
     }

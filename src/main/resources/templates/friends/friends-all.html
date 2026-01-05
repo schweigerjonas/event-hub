@@ -194,6 +194,62 @@
                     </ul>
                 </div>
             </div>
+
+            <!-- Gesendete Event-Einladungen -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">Gesendete Event-Einladungen</div>
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(eventInvitationsSent)}">
+                        <p class="text-muted">Du hast keine gesendeten Event-Einladungen.</p>
+                    </div>
+
+                    <ul class="list-group" th:if="${!#lists.isEmpty(eventInvitationsSent)}">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            th:each="inv : ${eventInvitationsSent}">
+                            <div>
+                                <strong th:text="${inv.event.name}">Event</strong><br>
+                                <small class="text-muted">An: <span th:text="${inv.invitee.username}">User</span></small><br>
+                                <small class="text-muted">Gesendet am:
+                                    <span th:text="${#temporals.format(inv.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+                                </small>
+                            </div>
+                            <span class="badge"
+                                th:classappend="${inv.status.name() == 'PENDING'} ? 'bg-secondary' : (${inv.status.name() == 'ACCEPTED'} ? 'bg-success' : 'bg-danger')"
+                                th:text="${inv.status.name() == 'PENDING' ? 'Ausstehend' : (inv.status.name() == 'ACCEPTED' ? 'Angenommen' : 'Abgelehnt')}">
+                                Ausstehend
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Erhaltene Event-Einladungen -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-secondary text-white">Erhaltene Event-Einladungen</div>
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(eventInvitationsReceived)}">
+                        <p class="text-muted">Du hast keine erhaltenen Event-Einladungen.</p>
+                    </div>
+
+                    <ul class="list-group" th:if="${!#lists.isEmpty(eventInvitationsReceived)}">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            th:each="inv : ${eventInvitationsReceived}">
+                            <div>
+                                <strong th:text="${inv.event.name}">Event</strong><br>
+                                <small class="text-muted">Von: <span th:text="${inv.inviter.username}">User</span></small><br>
+                                <small class="text-muted">Erhalten am:
+                                    <span th:text="${#temporals.format(inv.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+                                </small>
+                            </div>
+                            <span class="badge"
+                                th:classappend="${inv.status.name() == 'PENDING'} ? 'bg-secondary' : (${inv.status.name() == 'ACCEPTED'} ? 'bg-success' : 'bg-danger')"
+                                th:text="${inv.status.name() == 'PENDING' ? 'Ausstehend' : (inv.status.name() == 'ACCEPTED' ? 'Angenommen' : 'Abgelehnt')}">
+                                Ausstehend
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </main>
