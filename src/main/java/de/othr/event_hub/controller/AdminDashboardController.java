@@ -26,6 +26,7 @@ import de.othr.event_hub.dto.UserDto;
 import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.service.AuthorityService;
+import de.othr.event_hub.service.EmailService;
 import de.othr.event_hub.service.UserService;
 import de.othr.event_hub.util.UserMapper;
 import de.othr.event_hub.validator.SignupValidator;
@@ -35,11 +36,16 @@ import jakarta.validation.Valid;
 public class AdminDashboardController {
     private UserService userService;
     private AuthorityService authorityService;
+    private EmailService emailService;
 
-    public AdminDashboardController(UserService userService, AuthorityService authorityService) {
+    public AdminDashboardController(
+            UserService userService,
+            AuthorityService authorityService,
+            EmailService emailService) {
         super();
         this.userService = userService;
         this.authorityService = authorityService;
+        this.emailService = emailService;
     }
 
     @InitBinder
@@ -88,6 +94,8 @@ public class AdminDashboardController {
         User user = userService.getUserById(Long.valueOf(id));
         userService.deleteUser(user);
 
+        emailService.sendAccountStatusUpdateNotification(user, "DELETE");
+
         return "redirect:/admin";
     }
 
@@ -100,6 +108,9 @@ public class AdminDashboardController {
         user.setActive(active);
 
         userService.updateUser(user);
+
+        String action = user.getActive() == 0 ? "BLOCK" : "UNBLOCK";
+        emailService.sendAccountStatusUpdateNotification(user, action);
 
         return "redirect:/admin";
     }
