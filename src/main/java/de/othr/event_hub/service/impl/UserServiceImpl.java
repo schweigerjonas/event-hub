@@ -1,8 +1,8 @@
 package de.othr.event_hub.service.impl;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,6 +10,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.User;
@@ -19,8 +24,6 @@ import de.othr.event_hub.service.UserService;
 
 @Service
 public class UserServiceImpl implements UserService {
-    private static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
-
     private UserRepository userRepository;
     private AuthorityRepository authorityRepository;
     private PasswordEncoder passwordEncoder;
@@ -106,13 +109,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public String generateQRUrl(User user) {
         String APP_NAME = "EventHub";
+        String otpAuthUrl = String.format(
+                "otpauth://totp/%s:%s?secret=%s&issuer=%s",
+                APP_NAME, user.getEmail(), user.getSecret(), APP_NAME);
 
         try {
-            String urlText = String.format(
-                    "otpauth://totp/%s:%s?secret=%s&issuer=%s",
-                    APP_NAME, user.getEmail(), user.getSecret(), APP_NAME);
+            QRCodeWriter qrCodeWriter = new QRCodeWriter();
+            BitMatrix bitMatrix = qrCodeWriter.encode(otpAuthUrl, BarcodeFormat.QR_CODE, 200, 200);
 
-            return QR_PREFIX + URLEncoder.encode(urlText, StandardCharsets.UTF_8);
+            ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+            byte[] pngData = pngOutputStream.toByteArray();
+
+            return "data:image/png;base64," + Base64.getEncoder().encodeToString(pngData);
         } catch (Exception e) {
             throw new RuntimeException("Error generating QR Url", e);
         }
