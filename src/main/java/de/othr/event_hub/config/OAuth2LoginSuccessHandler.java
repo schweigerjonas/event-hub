@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import de.othr.event_hub.dto.OAuthCreationDTO;
 import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.model.enums.OAuthProvider;
@@ -37,8 +38,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+        OAuthCreationDTO user = createUserFromAuthentication(authentication);
 
-        AccountUserDetails userDetails = new AccountUserDetails(createUserFromAuthentication(authentication));
+        AccountUserDetails userDetails = new AccountUserDetails(user.getUser());
 
         UsernamePasswordAuthenticationToken newAuth =
             new UsernamePasswordAuthenticationToken(
@@ -49,10 +51,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         SecurityContextHolder.getContext().setAuthentication(newAuth);
 
-        response.sendRedirect("/");
+        if (user.isHasAlreadyExisted()) {
+            response.sendRedirect("/");
+        } else {
+            response.sendRedirect("/oauth/role");
+        }
     }
 
-    private User createUserFromAuthentication(Authentication authentication) {
+    private OAuthCreationDTO createUserFromAuthentication(Authentication authentication) {
         Object principal = authentication.getPrincipal();
 
         if (principal instanceof OAuth2User oAuth2User && authentication instanceof OAuth2AuthenticationToken oauthToken) {
@@ -81,7 +87,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 }
                 existingUser.setProviderId(providerId);
                 userRepository.save(existingUser);
-                return existingUser;
+                return new OAuthCreationDTO(existingUser, true);
             }
             User user = new User();
             user.setEmail(email);
@@ -97,7 +103,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             Authority authority = authorityRepository.findAuthorityByDescription("BENUTZER").get();
             user.setAuthorities(new ArrayList<>(List.of(authority)));
             userRepository.save(user);
-            return user;
+            return new OAuthCreationDTO(user, false);
         }
 
         return null;
