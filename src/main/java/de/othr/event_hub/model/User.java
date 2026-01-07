@@ -115,4 +115,14 @@ public class User implements Serializable {
             return id.hashCode();
         }
     }
+
+    public void anonymize() {
+        this.active = 0;
+        this.email = "deleted_" + this.id + "@event-hub.com";
+        this.username = "[deleted" + this.id + "]";
+        this.password = "DELETED_ACCOUNT_PASSWORD";
+        this.isUsing2FA = false;
+        this.secret = null;
+        this.authorities.clear();
+    }
 }

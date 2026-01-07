@@ -5,6 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -12,6 +13,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import de.othr.event_hub.dto.UserDto;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class ProfileController {
@@ -49,6 +52,26 @@ public class ProfileController {
         }
 
         return "redirect:/profile";
+    }
+
+    @DeleteMapping("profile")
+    public String deleteProfile(HttpServletRequest request, RedirectAttributes redirAttr) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        try {
+            userService.softDeleteUserByUsername(auth.getName());
+            SecurityContextHolder.clearContext();
+            HttpSession session = request.getSession(false);
+
+            if (session != null) {
+                session.invalidate();
+            }
+
+            return "redirect:/login?deleted=true";
+        } catch (Exception e) {
+            System.err.println(e);
+            return "redirect:/profile";
+        }
     }
 
 }

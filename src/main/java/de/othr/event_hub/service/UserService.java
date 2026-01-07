@@ -27,4 +27,6 @@ public interface UserService {
     Page<User> getAllUsers(String username, Pageable pageable);
 
     String generateQRUrl(User user);
+
+    User softDeleteUserByUsername(String username);
 }

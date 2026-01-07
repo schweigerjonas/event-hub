@@ -95,8 +95,10 @@
             <h3 class="text-danger">Konto löschen</h3>
             <hr />
             <p>Sobald Sie ihr Konto gelöscht haben, gibt es kein Zurück mehr.</p>
-            <form th:action="@{/profile}" th:object="${userDto}" th:method="DELETE">
-                <button type="submit" class="btn btn-danger">Konto löschen</button>
+            <form th:action="@{/profile}" th:method="DELETE">
+                <button type="submit" class="btn btn-danger">
+                    Konto löschen
+                </button>
             </form>
         </div>
     </div>

@@ -8,8 +8,10 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
@@ -125,5 +127,15 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             throw new RuntimeException("Error generating QR Url", e);
         }
+    }
+
+    @Override
+    @Transactional
+    public User softDeleteUserByUsername(String username) {
+        User user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        user.anonymize();
+        return userRepository.save(user);
     }
 }
