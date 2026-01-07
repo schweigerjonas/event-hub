@@ -5,7 +5,7 @@
 <main layout:fragment="main">
     <div class="container d-flex flex-column gap-3">
         <div class="card shadow-sm p-3 mt-3">
-            <h1>Persönliche Informationen</h1>
+            <h3>Persönliche Informationen</h3>
             <hr />
             <form th:action="@{/profile}" th:object="${userDto}" th:method="PUT">
                 <div class="mb-3 w-50">
@@ -24,7 +24,7 @@
             </form>
         </div>
         <div class="card shadow-sm p-3">
-            <h1>Rolle</h1>
+            <h3>Rolle</h3>
             <hr />
             <form th:object="${userDto}" th:action="@{/register}" method="POST">
                 <div class="flex gap-2">
@@ -43,7 +43,7 @@
             </form>
         </div>
         <div class="card shadow-sm p-3">
-            <h1>Sicherheit</h1>
+            <h3>Sicherheit</h3>
             <hr />
             <form th:action="@{/profile}" th:object="${userDto}" th:method="PUT">
                 <div class="mb-3 w-50">
@@ -63,24 +63,27 @@
                 <div>
                     <strong>Zweistufige Authentifizierung</strong>
                     <p class="small text-muted mb-0">
-                        Status:
-                        <!-- <span th:text="${#authentication.principal.using2FA ? 'AKTIV' : 'INAKTIV'}"
+                        <span>Status:</span>
+                        <span th:text="${#authentication.principal.using2FA ? 'AKTIV' : 'INAKTIV'}"
                             th:class="${#authentication.principal.using2FA ? 'text-success' : 'text-danger'}">
-                        </span> -->
+                        </span>
                     </p>
                 </div>
 
                 <form th:action="@{/profile/2fa}" th:method="PUT">
-                    <button type="submit">
-                        <i class="bi"></i>
-                        <span>Aktivieren</span>
+                    <button type="submit"
+                        th:class="${#authentication.principal.using2FA ? 'btn btn-danger' : 'btn btn-primary'}">
+                        <i class="bi"
+                            th:classappend="${#authentication.principal.using2FA ? 'bi-shield-x' : 'bi-shield-check'}"></i>
+                        <span th:text="${#authentication.principal.using2FA ? 'Deaktivieren' : 'Aktivieren'}"></span>
                     </button>
                 </form>
             </div>
 
             <div th:if="${qrCode}" class="mt-4 p-3 border rounded bg-light text-center">
                 <h6><i class="bi bi-qr-code-scan me-2"></i>QR-Code scannen</h6>
-                <p class="small text-muted">Verknüpfen Sie Ihre App jetzt mit diesem Code:</p>
+                <p class="small text-muted">Verknüpfen Sie Ihre <strong>Google Authenticator-App</strong> jetzt mit
+                    diesem Code:</p>
                 <img th:src="${qrCode}" alt="QR Code" class="img-fluid mb-3" style="border: 1px solid #ddd;" />
                 <div class="alert alert-warning small">
                     <strong>Achtung:</strong> Wenn Sie diese Seite verlassen, wird der Code aus Sicherheitsgründen
@@ -89,7 +92,7 @@
             </div>
         </div>
         <div class="card shadow-sm p-3 mb-3">
-            <h1 class="text-danger">Konto löschen</h1>
+            <h3 class="text-danger">Konto löschen</h3>
             <hr />
             <p>Sobald Sie ihr Konto gelöscht haben, gibt es kein Zurück mehr.</p>
             <form th:action="@{/profile}" th:object="${userDto}" th:method="DELETE">

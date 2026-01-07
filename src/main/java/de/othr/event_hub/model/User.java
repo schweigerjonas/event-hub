@@ -85,6 +85,11 @@ public class User implements Serializable {
     }
 
     @Override
+    public String toString() {
+        return this.username;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o == null) {
             return false;
