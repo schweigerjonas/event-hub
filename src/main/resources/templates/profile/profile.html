@@ -45,15 +45,23 @@
         <div class="card shadow-sm p-3">
             <h3>Sicherheit</h3>
             <hr />
-            <form th:action="@{/profile}" th:object="${userDto}" th:method="PUT">
+            <div th:if="${#fields.hasErrors('updatePasswordDto.*')}" class="alert alert-danger" role="alert">
+                Passwort update fehlgeschlagen. Bitte überprüfe die Eingaben und versuche es erneut.
+            </div>
+            <form th:action="@{/profile/password}" th:object="${updatePasswordDto}" th:method="PUT">
                 <div class="mb-3 w-50">
-                    <label class="form-label" for="password"><strong>Neues Passwort</strong></label>
-                    <input type="password" class="form-control" id="password" name="password"
-                        th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''" required />
+                    <label class="form-label" for="currentPassword"><strong>Aktuelles Passwort</strong></label>
+                    <input type="password" class="form-control" id="currentPassword" name="currentPassword"
+                        th:classappend="${#fields.hasErrors('currentPassword')} ? 'is-invalid' : ''" required />
                 </div>
                 <div class="mb-3 w-50">
-                    <label class="form-label" for="email"><strong>Neues Password bestätigen</strong></label>
-                    <input type="password" class="form-control" id="email" name="email"
+                    <label class="form-label" for="newPassword"><strong>Neues Passwort</strong></label>
+                    <input type="password" class="form-control" id="newPassword" name="newPassword"
+                        th:classappend="${#fields.hasErrors('newPassword')} ? 'is-invalid' : ''" required />
+                </div>
+                <div class="mb-3 w-50">
+                    <label class="form-label" for="confirmPassword"><strong>Neues Password bestätigen</strong></label>
+                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword"
                         th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''" required />
                 </div>
                 <button type="submit" class="btn btn-outline-success">Password ändern</button>

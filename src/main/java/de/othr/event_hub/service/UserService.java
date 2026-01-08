@@ -29,4 +29,6 @@ public interface UserService {
     String generateQRUrl(User user);
 
     User softDeleteUserByUsername(String username);
+
+    void updatePassword(String username, String newPassword);
 }

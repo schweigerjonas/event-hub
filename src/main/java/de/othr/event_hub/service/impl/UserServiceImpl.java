@@ -138,4 +138,13 @@ public class UserServiceImpl implements UserService {
         user.anonymize();
         return userRepository.save(user);
     }
+
+    @Override
+    public void updatePassword(String username, String newPassword) {
+        User user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }
