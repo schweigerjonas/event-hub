@@ -31,4 +31,6 @@ public interface UserService {
     User softDeleteUserByUsername(String username);
 
     void updatePassword(String username, String newPassword);
+
+    void updateUserAuthority(String username, String authorityDescription);
 }

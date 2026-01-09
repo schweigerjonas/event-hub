@@ -147,4 +147,18 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
+
+    @Override
+    public void updateUserAuthority(String username, String authorityDescription) {
+        User user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Authority authority = authorityRepository.findAuthorityByDescription(authorityDescription)
+                .orElseThrow(() -> new RuntimeException("Authority not found: " + authorityDescription));
+
+        if (authority != null) {
+            user.setAuthorities(new ArrayList<>(List.of(authority)));
+            userRepository.save(user);
+        }
+    }
 }

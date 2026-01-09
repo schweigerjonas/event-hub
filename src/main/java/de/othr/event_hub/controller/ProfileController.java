@@ -1,7 +1,11 @@
 package de.othr.event_hub.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -42,13 +46,37 @@ public class ProfileController {
 
     @GetMapping("/profile")
     public String getProfile(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.getUserByUsername(auth.getName());
         UserDto userDto = new UserDto();
         UpdatePasswordDto updatePasswordDto = new UpdatePasswordDto();
+
+        userDto.setRole(user.getAuthorities().get(0).getDescription());
 
         model.addAttribute("userDto", userDto);
         model.addAttribute("updatePasswordDto", updatePasswordDto);
 
         return "profile/profile";
+    }
+
+    @PutMapping("profile/role")
+    public String updateRole(@ModelAttribute UserDto userDto, RedirectAttributes attr) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.getUserByUsername(auth.getName());
+
+        String newRole = userDto.getRole();
+
+        try {
+            userService.updateUserAuthority(user.getUsername(), newRole);
+
+            refreshAuthentication(user.getUsername());
+
+        } catch (Exception e) {
+            System.err.println(e);
+            return "profile/profile";
+        }
+
+        return "redirect:/profile";
     }
 
     @PutMapping("profile/password")
@@ -116,4 +144,16 @@ public class ProfileController {
         }
     }
 
+    public void refreshAuthentication(String username) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.getUserByUsername(username);
+
+        List<SimpleGrantedAuthority> grantedAuthorities = user.getAuthorities().stream()
+                .map(authority -> new SimpleGrantedAuthority(authority.getDescription())).collect(Collectors.toList());
+
+        Authentication newAuth = new UsernamePasswordAuthenticationToken(user, auth.getCredentials(),
+                grantedAuthorities);
+
+        SecurityContextHolder.getContext().setAuthentication(newAuth);
+    }
 }

@@ -26,7 +26,7 @@
         <div class="card shadow-sm p-3">
             <h3>Rolle</h3>
             <hr />
-            <form th:object="${userDto}" th:action="@{/register}" method="POST">
+            <form th:object="${userDto}" th:action="@{/profile/role}" th:method="PUT">
                 <div class="flex gap-2">
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" id="radio_user" value="BENUTZER" th:name="role"
