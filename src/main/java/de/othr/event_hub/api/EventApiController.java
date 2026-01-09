@@ -8,7 +8,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -95,11 +98,17 @@ public class EventApiController {
 
     @PostMapping
     public ResponseEntity<EventApiDto> createEvent(@RequestBody EventApiDto dto) {
+        if (!canCreateEvents()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         LocationCoordinates coordinates = locationService.findCoordinates(dto.getLocation()).orElse(null);
         if (coordinates == null) {
             return ResponseEntity.badRequest().build();
         }
-        User organizer = dto.getOrganizerId() == null ? null : userService.getUserById(dto.getOrganizerId());
+        User organizer = resolveOrganizer(dto.getOrganizerId());
+        if (organizer == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         Event event = new Event();
         event.setName(dto.getName());
         event.setLocation(dto.getLocation());
@@ -121,11 +130,14 @@ public class EventApiController {
         if (eventOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        Event event = eventOpt.get();
+        if (!canModifyEvent(event)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         LocationCoordinates coordinates = locationService.findCoordinates(dto.getLocation()).orElse(null);
         if (coordinates == null) {
             return ResponseEntity.badRequest().build();
         }
-        Event event = eventOpt.get();
         event.setName(dto.getName());
         event.setLocation(dto.getLocation());
         event.setLatitude(coordinates.latitude());
@@ -135,7 +147,7 @@ public class EventApiController {
         event.setDescription(dto.getDescription());
         event.setEventTime(dto.getEventTime());
         event.setCosts(dto.getCosts());
-        if (dto.getOrganizerId() != null) {
+        if (dto.getOrganizerId() != null && isAdmin()) {
             event.setOrganizer(userService.getUserById(dto.getOrganizerId()));
         }
         Event updated = eventService.updateEvent(event);
@@ -148,7 +160,11 @@ public class EventApiController {
         if (eventOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        eventService.deleteEvent(eventOpt.get());
+        Event event = eventOpt.get();
+        if (!canModifyEvent(event)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        eventService.deleteEvent(event);
         return ResponseEntity.noContent().build();
     }
 
@@ -237,5 +253,59 @@ public class EventApiController {
             participant.isOrganizer(),
             participant.getJoinedAt()
         );
+    }
+
+    private User resolveOrganizer(Long organizerId) {
+        if (isAdmin() && organizerId != null) {
+            return userService.getUserById(organizerId);
+        }
+        return getCurrentUser();
+    }
+
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
+        return userService.getUserByUsername(auth.getName());
+    }
+
+    private boolean isAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream().anyMatch(a -> "ADMIN".equals(a.getAuthority()));
+    }
+
+    private boolean canCreateEvents() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+            .anyMatch(a -> "ADMIN".equals(a.getAuthority()) || "ORGANISATOR".equals(a.getAuthority()));
+    }
+
+    private boolean canModifyEvent(Event event) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        boolean isAdmin = auth.getAuthorities().stream()
+            .anyMatch(a -> "ADMIN".equals(a.getAuthority()));
+        if (isAdmin) {
+            return true;
+        }
+        boolean isOrganizerRole = auth.getAuthorities().stream()
+            .anyMatch(a -> "ORGANISATOR".equals(a.getAuthority()));
+        if (!isOrganizerRole) {
+            return false;
+        }
+        if (event.getOrganizer() == null || event.getOrganizer().getUsername() == null) {
+            return false;
+        }
+        User currentUser = userService.getUserByUsername(auth.getName());
+        return currentUser != null && event.getOrganizer().equals(currentUser);
     }
 }
