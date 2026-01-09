@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+
+<main layout:fragment="main">
+    <div class="container d-flex flex-column gap-3">
+        <div class="card shadow-sm p-3 mt-3">
+            <h3>Persönliche Informationen</h3>
+            <hr />
+            <form th:action="@{/profile}" th:object="${userInfoDto}" th:method="PUT">
+                <div class="mb-3 w-50">
+                    <label class="form-label" for="username"><strong>Benutzername</strong></label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Benutzername"
+                        th:classappend="${#fields.hasErrors('username')} ? 'is-invalid' : ''" th:field="*{username}"
+                        required />
+                </div>
+                <div class="mb-3 w-50">
+                    <label class="form-label" for="email"><strong>Email-Adresse</strong></label>
+                    <input type="text" class="form-control" id="email" name="email" placeholder="Email-Adresse"
+                        th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''" th:field="*{email}"
+                        required />
+                </div>
+                <button type="submit" class="btn btn-success"> Änderungen speichern </button>
+            </form>
+        </div>
+        <div class="card shadow-sm p-3">
+            <h3>Rolle</h3>
+            <hr />
+            <form th:object="${userDto}" th:action="@{/profile/role}" th:method="PUT">
+                <div class="flex gap-2">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="radio_user" value="BENUTZER" th:name="role"
+                            th:field="*{role}" checked>
+                        <label class="form-check-label" for="radio_user">Benutzer</label>
+                    </div>
+                    <div class="form-check form-check-inline mb-3">
+                        <input class="form-check-input" type="radio" id="radio_organizer" value="ORGANISATOR"
+                            th:name="role" th:field="*{role}">
+                        <label class="form-check-label" for="radio_organizer">Organisator</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-outline-success">Rolle ändern</button>
+            </form>
+        </div>
+        <div class="card shadow-sm p-3">
+            <h3>Sicherheit</h3>
+            <hr />
+            <div th:if="${#fields.hasErrors('updatePasswordDto.*')}" class="alert alert-danger" role="alert">
+                Passwort update fehlgeschlagen. Bitte überprüfe die Eingaben und versuche es erneut.
+            </div>
+            <form th:action="@{/profile/password}" th:object="${updatePasswordDto}" th:method="PUT">
+                <div class="mb-3 w-50">
+                    <label class="form-label" for="currentPassword"><strong>Aktuelles Passwort</strong></label>
+                    <input type="password" class="form-control" id="currentPassword" name="currentPassword"
+                        th:classappend="${#fields.hasErrors('currentPassword')} ? 'is-invalid' : ''" required />
+                </div>
+                <div class="mb-3 w-50">
+                    <label class="form-label" for="newPassword"><strong>Neues Passwort</strong></label>
+                    <input type="password" class="form-control" id="newPassword" name="newPassword"
+                        th:classappend="${#fields.hasErrors('newPassword')} ? 'is-invalid' : ''" required />
+                </div>
+                <div class="mb-3 w-50">
+                    <label class="form-label" for="confirmPassword"><strong>Neues Password bestätigen</strong></label>
+                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword"
+                        th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''" required />
+                </div>
+                <button type="submit" class="btn btn-outline-success">Password ändern</button>
+            </form>
+            <hr />
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <strong>Zweistufige Authentifizierung</strong>
+                    <p class="small text-muted mb-0">
+                        <span>Status:</span>
+                        <span th:text="${#authentication.principal.using2FA ? 'AKTIV' : 'INAKTIV'}"
+                            th:class="${#authentication.principal.using2FA ? 'text-success' : 'text-danger'}">
+                        </span>
+                    </p>
+                </div>
+
+                <form th:action="@{/profile/2fa}" th:method="PUT">
+                    <button type="submit"
+                        th:class="${#authentication.principal.using2FA ? 'btn btn-danger' : 'btn btn-primary'}">
+                        <i class="bi"
+                            th:classappend="${#authentication.principal.using2FA ? 'bi-shield-x' : 'bi-shield-check'}"></i>
+                        <span th:text="${#authentication.principal.using2FA ? 'Deaktivieren' : 'Aktivieren'}"></span>
+                    </button>
+                </form>
+            </div>
+
+            <div th:if="${qrCode}" class="mt-4 p-3 border rounded bg-light text-center">
+                <h6><i class="bi bi-qr-code-scan me-2"></i>QR-Code scannen</h6>
+                <p class="small text-muted">Verknüpfen Sie Ihre <strong>Google Authenticator-App</strong> jetzt mit
+                    diesem Code:</p>
+                <img th:src="${qrCode}" alt="QR Code" class="img-fluid mb-3" style="border: 1px solid #ddd;" />
+                <div class="alert alert-warning small">
+                    <strong>Achtung:</strong> Wenn Sie diese Seite verlassen, wird der Code aus Sicherheitsgründen
+                    ausgeblendet.
+                </div>
+            </div>
+        </div>
+        <div class="card shadow-sm p-3 mb-3">
+            <h3 class="text-danger">Konto löschen</h3>
+            <hr />
+            <p>Sobald Sie ihr Konto gelöscht haben, gibt es kein Zurück mehr.</p>
+            <form th:action="@{/profile}" th:method="DELETE">
+                <button type="submit" class="btn btn-danger">
+                    Konto löschen
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+
+</html>

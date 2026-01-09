@@ -18,6 +18,7 @@ public class AccountUserDetails implements UserDetails {
     private boolean active;
     private List<GrantedAuthority> authorities;
     private User user;
+    private boolean using2FA;
 
     public AccountUserDetails(User user) {
         this.user = user;
@@ -25,6 +26,7 @@ public class AccountUserDetails implements UserDetails {
         this.username = user.getUsername();
         this.password = user.getPassword();
         this.active = (user.getActive() > 0) ? true : false;
+        this.using2FA = user.isUsing2FA();
         List<Authority> userAuthorities = (List<Authority>) user.getAuthorities();
 
         authorities = new ArrayList<>();
@@ -87,5 +89,13 @@ public class AccountUserDetails implements UserDetails {
 
     public String getEmail() {
         return email;
+    }
+
+    public boolean isUsing2FA() {
+        return using2FA;
+    }
+
+    public void setUsing2FA(boolean using2fa) {
+        using2FA = using2fa;
     }
 }

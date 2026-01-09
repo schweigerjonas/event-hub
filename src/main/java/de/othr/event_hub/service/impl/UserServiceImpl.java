@@ -8,14 +8,17 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import de.othr.event_hub.dto.UpdateUserInfoDto;
 import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.repository.AuthorityRepository;
@@ -125,5 +128,49 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             throw new RuntimeException("Error generating QR Url", e);
         }
+    }
+
+    @Override
+    @Transactional
+    public User softDeleteUserByUsername(String username) {
+        User user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        user.anonymize();
+        return userRepository.save(user);
+    }
+
+    @Override
+    public void updatePassword(String username, String newPassword) {
+        User user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    @Override
+    public void updateUserAuthority(String username, String authorityDescription) {
+        User user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Authority authority = authorityRepository.findAuthorityByDescription(authorityDescription)
+                .orElseThrow(() -> new RuntimeException("Authority not found: " + authorityDescription));
+
+        if (authority != null) {
+            user.setAuthorities(new ArrayList<>(List.of(authority)));
+            userRepository.save(user);
+        }
+    }
+
+    @Override
+    public void updateUserInfo(String username, UpdateUserInfoDto userInfoDto) {
+        User user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        user.setUsername(userInfoDto.getUsername());
+        user.setEmail(userInfoDto.getEmail());
+
+        userRepository.save(user);
     }
 }
