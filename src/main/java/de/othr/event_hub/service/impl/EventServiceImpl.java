@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import de.othr.event_hub.model.Event;
+import de.othr.event_hub.model.User;
 import de.othr.event_hub.repository.EventRepository;
 import de.othr.event_hub.service.EventService;
 
@@ -39,6 +40,14 @@ public class EventServiceImpl implements EventService {
             return eventRepository.findAll(pageable);
         }
         return eventRepository.findByNameContainingIgnoreCaseOrLocationContainingIgnoreCase(keyword, keyword, pageable);
+    }
+
+    @Override
+    public Page<Event> getFavouriteEvents(String keyword, User user, Pageable pageable) {
+        if (keyword == null || keyword.isBlank()) {
+            return eventRepository.findAllFavouritesOfUser(user, pageable);
+        }
+        return eventRepository.findFavouritesByNameContainingIgnoreCaseOrLocationContainingIgnoreCase(keyword, keyword, user, pageable);
     }
 
     @Override

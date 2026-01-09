@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import de.othr.event_hub.model.Event;
+import de.othr.event_hub.model.User;
 
 public interface EventService {
 
@@ -17,6 +18,8 @@ public interface EventService {
     Event createEvent(Event event);
 
     Page<Event> getEvents(String keyword, Pageable pageable);
+
+    Page<Event> getFavouriteEvents(String keyword, User user, Pageable pageable);
 
     void deleteEvent(Event event);
 

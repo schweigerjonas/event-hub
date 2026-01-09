@@ -10,6 +10,7 @@ import java.util.Set;
 import org.jboss.aerogear.security.otp.api.Base32;
 
 import de.othr.event_hub.model.enums.OAuthProvider;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -74,6 +75,9 @@ public class User implements Serializable {
 
     @OneToMany(mappedBy = "user")
     private Set<ChatMembership> chatMemberships = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EventFavourite> favourites = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "authority_id"))

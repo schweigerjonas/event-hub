@@ -58,4 +58,7 @@ public class Event { // basic event class @Martin R.
 
     @OneToMany(mappedBy = "event")
     private Set<Payment> payments = new HashSet<>();
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EventFavourite> favourites = new HashSet<>();
 }

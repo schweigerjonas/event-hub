@@ -45,6 +45,7 @@ import de.othr.event_hub.model.enums.ChatRoomType;
 import de.othr.event_hub.service.ChatMembershipService;
 import de.othr.event_hub.service.ChatRoomService;
 import de.othr.event_hub.service.EmailService;
+import de.othr.event_hub.service.EventFavouriteService;
 import de.othr.event_hub.service.EventInvitationService;
 import de.othr.event_hub.service.EventService;
 import de.othr.event_hub.service.EventParticipantService;
@@ -63,6 +64,7 @@ public class EventController {
     private final ChatMembershipService chatMembershipService;
     private final ChatRoomService chatRoomService;
     private final EventService eventService;
+    private final EventFavouriteService eventFavouriteService;
     private final EventParticipantService eventParticipantService;
     private final FriendshipService friendshipService;
     private final EmailService emailService;
@@ -76,6 +78,7 @@ public class EventController {
         ChatMembershipService chatMembershipService,
         ChatRoomService chatRoomService,
         EventService eventService,
+        EventFavouriteService eventFavouriteService,
         EventParticipantService eventParticipantService,
         FriendshipService friendshipService,
         EmailService emailService,
@@ -89,6 +92,7 @@ public class EventController {
         this.chatMembershipService = chatMembershipService;
         this.chatRoomService = chatRoomService;
         this.eventService = eventService;
+        this.eventFavouriteService = eventFavouriteService;
         this.eventParticipantService = eventParticipantService;
         this.friendshipService = friendshipService;
         this.emailService = emailService;
@@ -105,8 +109,10 @@ public class EventController {
         @RequestParam(required = false) String keyword,
         @RequestParam(required = false, defaultValue = "time") String sort,
         @RequestParam(required = false, defaultValue = "asc") String direction,
+        @RequestParam(required = false, defaultValue = "false") boolean onlyFavourites,
         @RequestParam(required = false, defaultValue = "1") int page,
-        @RequestParam(required = false, defaultValue = "9") int size
+        @RequestParam(required = false, defaultValue = "9") int size,
+        @AuthenticationPrincipal AccountUserDetails user
     ) {
         int safePage = Math.max(page, 1);
         int safeSize = size < 1 ? 9 : size;
@@ -129,7 +135,13 @@ public class EventController {
             ? Sort.Direction.DESC
             : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(safePage - 1, safeSize, Sort.by(sortDirection, sortField));
-        Page<Event> eventsPage = eventService.getEvents(keyword, pageable);
+        Page<Event> eventsPage;
+
+        if (onlyFavourites) {
+            eventsPage = eventService.getFavouriteEvents(keyword, user.getUser(), pageable);
+        } else {
+            eventsPage = eventService.getEvents(keyword, pageable);
+        }
 
         model.addAttribute("events", eventsPage.getContent());
         model.addAttribute("currentPage", eventsPage.getNumber() + 1);
@@ -137,6 +149,7 @@ public class EventController {
         model.addAttribute("totalItems", eventsPage.getTotalElements());
         model.addAttribute("pageSize", safeSize);
         model.addAttribute("keyword", keyword == null ? "" : keyword);
+        model.addAttribute("onlyFavourites", onlyFavourites);
         model.addAttribute("sort", sortValue);
         model.addAttribute("direction", sortDirection.name().toLowerCase());
 
@@ -358,6 +371,10 @@ public class EventController {
                 ratingService.getRatingByEventAndUser(event, details.getUser())
                     .ifPresent(rating -> model.addAttribute("userRating", rating));
             }
+
+            // check if event is favourited by user
+            boolean isFavourite = eventFavouriteService.isEventFavourite(event, details.getUser());
+            model.addAttribute("isFavourite", isFavourite);
         }
         model.addAttribute("isParticipant", isParticipant);
         model.addAttribute("isOrganizer", isOrganizer);
@@ -657,6 +674,22 @@ public class EventController {
         redirectAttributes.addFlashAttribute("success", "Event wurde abgesagt.");
         return "redirect:/events";
     }
+
+    @PostMapping("/{id}/toggleFavourite")
+    public String toggleFavouriteStatus(@PathVariable("id") Long id, @AuthenticationPrincipal AccountUserDetails details) {
+        User user = details.getUser();
+        Event event = eventService.getEventById(id).get();
+
+        boolean isFavourite = eventFavouriteService.isEventFavourite(event, user);
+        if (isFavourite) {
+            eventFavouriteService.deleteEventFavourite(event, user);
+        } else {
+            eventFavouriteService.addEventFavourite(event, user);
+        }
+        
+        return "redirect:/events/" + id;
+    }
+    
 
     private String cleanDescription(String description) {
         if (description == null) {
