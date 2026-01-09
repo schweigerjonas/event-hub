@@ -89,13 +89,13 @@
 
             <div th:each="msg : ${messages}">
                 <div th:if="${msg.sender.id == currentUser.id}" class="d-flex justify-content-end">
-                    <div class="p-3 rounded" style="background-color: #f1f1f1; max-width: 70%;">
+                    <div class="chat-bubble own">
                         <p class="mb-1" th:text="${msg.message}">Nachrichttext</p>
                         <small class="text-muted d-block text-end" th:text="${#temporals.format(msg.sentAt, 'dd.MM.yyyy, HH:mm')}"></small>
                     </div>
                 </div>
                 <div th:if="${msg.sender.id != currentUser.id}" class="d-flex justify-content-start">
-                    <div class="p-3 rounded" style="background-color: #d0e7ff; max-width: 70%;">
+                    <div class="chat-bubble other">
                         <strong th:text="${msg.sender.username}">Username</strong>
                         <p class="mb-1 mt-1" th:text="${msg.message}">Nachrichttext</p>
                         <small class="text-muted d-block" th:text="${#temporals.format(msg.sentAt, 'dd.MM.yyyy, HH:mm')}"></small>
@@ -160,16 +160,15 @@
             wrapper.classList.add('d-flex');
 
             const bubble = document.createElement('div');
-            bubble.classList.add('p-3', 'rounded');
-            bubble.style.maxWidth = '70%';
+            bubble.classList.add('chat-bubble');
 
             const currentUserId = Number(userId);
             if (message.senderId === currentUserId) {
                 wrapper.classList.add('justify-content-end');
-                bubble.style.backgroundColor = '#f1f1f1';
+                bubble.classList.add('own');
             } else {
                 wrapper.classList.add('justify-content-start');
-                bubble.style.backgroundColor = '#d0e7ff';
+                bubble.classList.add('other');
 
                 const sender = document.createElement('strong');
                 sender.textContent = message.senderName;

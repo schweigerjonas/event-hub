@@ -7,6 +7,8 @@
     --app-accent: #1976D2;
     --app-accent-contrast: #ffffff;
     --app-surface: #E3F2FD;
+    --chat-own-bg: #f1f1f1;
+    --chat-other-bg: #d0e7ff;
 }
 
 [data-bs-theme="dark"] {
@@ -18,6 +20,8 @@
     --app-accent: #0d47a1;
     --app-accent-contrast: #f8fafc;
     --app-surface: #111827;
+    --chat-own-bg: #2a2f36;
+    --chat-other-bg: #1e3a5f;
 }
 
 body {
@@ -31,6 +35,20 @@ body {
 
 [data-bs-theme="dark"] .text-muted {
     color: var(--app-muted) !important;
+}
+
+.chat-bubble {
+    max-width: 70%;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.chat-bubble.own {
+    background-color: var(--chat-own-bg);
+}
+
+.chat-bubble.other {
+    background-color: var(--chat-other-bg);
 }
 
 .card {
