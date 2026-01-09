@@ -11,6 +11,8 @@ import de.othr.event_hub.model.User;
 public interface UserService {
     User saveUser(User user, String authorityDescription);
 
+    User saveUser(User user);
+
     List<User> getAllUsers();
 
     User getUserById(Long id);
@@ -36,4 +38,6 @@ public interface UserService {
     void updateUserAuthority(String username, String authorityDescription);
 
     void updateUserInfo(String username, UpdateUserInfoDto userDto);
+
+    void deleteAllUsers();
 }

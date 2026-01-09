@@ -13,6 +13,7 @@ public class UserApiDto {
     private Long id;
     private String email;
     private String username;
+    private String password;
     private String role;
     private Integer active;
     private boolean using2FA;
