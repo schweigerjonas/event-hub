@@ -18,6 +18,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import de.othr.event_hub.dto.UpdateUserInfoDto;
 import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.repository.AuthorityRepository;
@@ -160,5 +161,16 @@ public class UserServiceImpl implements UserService {
             user.setAuthorities(new ArrayList<>(List.of(authority)));
             userRepository.save(user);
         }
+    }
+
+    @Override
+    public void updateUserInfo(String username, UpdateUserInfoDto userInfoDto) {
+        User user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        user.setUsername(userInfoDto.getUsername());
+        user.setEmail(userInfoDto.getEmail());
+
+        userRepository.save(user);
     }
 }

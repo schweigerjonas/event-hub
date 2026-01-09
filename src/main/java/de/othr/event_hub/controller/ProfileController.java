@@ -20,11 +20,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import de.othr.event_hub.dto.UpdatePasswordDto;
+import de.othr.event_hub.dto.UpdateUserInfoDto;
 import de.othr.event_hub.dto.UserDto;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.service.UserService;
 import de.othr.event_hub.util.UserMapper;
 import de.othr.event_hub.validator.PasswordUpdateValidator;
+import de.othr.event_hub.validator.ProfileUpdateValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -39,8 +41,13 @@ public class ProfileController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @InitBinder("userInfoDto")
+    public void initProfileBinder(WebDataBinder binder) {
+        binder.addValidators(new ProfileUpdateValidator(userService));
+    }
+
     @InitBinder("updatePasswordDto")
-    public void InitBinder(WebDataBinder binder) {
+    public void initPasswordBinder(WebDataBinder binder) {
         binder.addValidators(new PasswordUpdateValidator(userService, passwordEncoder));
     }
 
@@ -49,18 +56,50 @@ public class ProfileController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserByUsername(auth.getName());
         UserDto userDto = new UserDto();
+        UpdateUserInfoDto userInfoDto = new UpdateUserInfoDto();
         UpdatePasswordDto updatePasswordDto = new UpdatePasswordDto();
 
         userDto.setRole(user.getAuthorities().get(0).getDescription());
+        userInfoDto.setUsername(user.getUsername());
+        userInfoDto.setEmail(user.getEmail());
 
         model.addAttribute("userDto", userDto);
+        model.addAttribute("userInfoDto", userInfoDto);
         model.addAttribute("updatePasswordDto", updatePasswordDto);
 
         return "profile/profile";
     }
 
+    @PutMapping("profile")
+    public String updateUser(@ModelAttribute @Valid UpdateUserInfoDto userInfoDto, BindingResult result, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.getUserByUsername(auth.getName());
+
+        if (result.hasErrors()) {
+            System.out.println("Errors: " + result.getAllErrors().toString());
+
+            UserDto userDto = new UserDto();
+            userDto.setRole(user.getAuthorities().get(0).getDescription());
+
+            model.addAttribute("userDto", userDto);
+            model.addAttribute("updatePasswordDto", new UpdatePasswordDto());
+
+            return "profile/profile";
+        }
+
+        try {
+            userService.updateUserInfo(auth.getName(), userInfoDto);
+
+            refreshAuthentication(userInfoDto.getUsername());
+        } catch (Exception e) {
+            System.err.println(e);
+        }
+
+        return "redirect:/profile";
+    }
+
     @PutMapping("profile/role")
-    public String updateRole(@ModelAttribute UserDto userDto, RedirectAttributes attr) {
+    public String updateRole(@ModelAttribute UserDto userDto, Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserByUsername(auth.getName());
 
@@ -76,35 +115,57 @@ public class ProfileController {
             return "profile/profile";
         }
 
+        UpdateUserInfoDto userInfoDto = new UpdateUserInfoDto();
+        userInfoDto.setUsername(user.getUsername());
+        userInfoDto.setEmail(user.getEmail());
+
+        model.addAttribute("userInfoDto", userInfoDto);
+        model.addAttribute("updatePasswordDto", new UpdatePasswordDto());
+
         return "redirect:/profile";
     }
 
     @PutMapping("profile/password")
     public String updatePassword(@ModelAttribute @Valid UpdatePasswordDto updatePasswordDto, BindingResult result,
-            RedirectAttributes attr, Model model) {
+            Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserByUsername(auth.getName());
 
         if (result.hasErrors()) {
             System.out.println("Errors: " + result.getAllErrors().toString());
 
+            UpdateUserInfoDto userInfoDto = new UpdateUserInfoDto();
+            userInfoDto.setUsername(user.getUsername());
+            userInfoDto.setEmail(user.getEmail());
+
             model.addAttribute("userDto", new UserMapper().toDto(user));
+            model.addAttribute("userInfoDto", userInfoDto);
 
             return "profile/profile";
         }
 
+        String redirectRoute = "redirect:/profile";
+
         try {
             userService.updatePassword(user.getUsername(), updatePasswordDto.getNewPassword());
 
-            return "redirect:/profile?success";
+            redirectRoute = "redirect:/profile?success";
         } catch (Exception e) {
-            return "redirect:/profile";
+            System.err.println(e);
         }
 
+        UpdateUserInfoDto userInfoDto = new UpdateUserInfoDto();
+        userInfoDto.setUsername(user.getUsername());
+        userInfoDto.setEmail(user.getEmail());
+
+        model.addAttribute("userDto", new UserMapper().toDto(user));
+        model.addAttribute("userInfoDto", userInfoDto);
+
+        return redirectRoute;
     }
 
     @PutMapping("profile/2fa")
-    public String toggle2FA(RedirectAttributes attr) {
+    public String toggle2FA(RedirectAttributes attr, Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.getUserByUsername(auth.getName());
 
@@ -120,6 +181,18 @@ public class ProfileController {
             String qrCode = userService.generateQRUrl(user);
             attr.addFlashAttribute("qrCode", qrCode);
         }
+
+        UserDto userDto = new UserDto();
+        UpdateUserInfoDto userInfoDto = new UpdateUserInfoDto();
+        UpdatePasswordDto updatePasswordDto = new UpdatePasswordDto();
+
+        userDto.setRole(user.getAuthorities().get(0).getDescription());
+        userInfoDto.setUsername(user.getUsername());
+        userInfoDto.setEmail(user.getEmail());
+
+        model.addAttribute("userDto", userDto);
+        model.addAttribute("userInfoDto", userInfoDto);
+        model.addAttribute("updatePasswordDto", updatePasswordDto);
 
         return "redirect:/profile";
     }

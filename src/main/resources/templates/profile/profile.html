@@ -7,18 +7,18 @@
         <div class="card shadow-sm p-3 mt-3">
             <h3>Persönliche Informationen</h3>
             <hr />
-            <form th:action="@{/profile}" th:object="${userDto}" th:method="PUT">
+            <form th:action="@{/profile}" th:object="${userInfoDto}" th:method="PUT">
                 <div class="mb-3 w-50">
                     <label class="form-label" for="username"><strong>Benutzername</strong></label>
                     <input type="text" class="form-control" id="username" name="username" placeholder="Benutzername"
-                        th:classappend="${#fields.hasErrors('username')} ? 'is-invalid' : ''"
-                        th:value="${userDto.username} ?: ''" required />
+                        th:classappend="${#fields.hasErrors('username')} ? 'is-invalid' : ''" th:field="*{username}"
+                        required />
                 </div>
                 <div class="mb-3 w-50">
                     <label class="form-label" for="email"><strong>Email-Adresse</strong></label>
                     <input type="text" class="form-control" id="email" name="email" placeholder="Email-Adresse"
-                        th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"
-                        th:value="${userDto.email} ?: ''" required />
+                        th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''" th:field="*{email}"
+                        required />
                 </div>
                 <button type="submit" class="btn btn-success"> Änderungen speichern </button>
             </form>

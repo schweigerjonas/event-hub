@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import de.othr.event_hub.dto.UpdateUserInfoDto;
 import de.othr.event_hub.model.User;
 
 public interface UserService {
@@ -33,4 +34,6 @@ public interface UserService {
     void updatePassword(String username, String newPassword);
 
     void updateUserAuthority(String username, String authorityDescription);
+
+    void updateUserInfo(String username, UpdateUserInfoDto userDto);
 }
