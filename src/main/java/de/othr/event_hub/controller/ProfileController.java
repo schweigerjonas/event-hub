@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import de.othr.event_hub.config.AccountUserDetails;
 import de.othr.event_hub.dto.UpdatePasswordDto;
 import de.othr.event_hub.dto.UpdateUserInfoDto;
 import de.othr.event_hub.dto.UserDto;
@@ -224,7 +225,9 @@ public class ProfileController {
         List<SimpleGrantedAuthority> grantedAuthorities = user.getAuthorities().stream()
                 .map(authority -> new SimpleGrantedAuthority(authority.getDescription())).collect(Collectors.toList());
 
-        Authentication newAuth = new UsernamePasswordAuthenticationToken(user, auth.getCredentials(),
+        AccountUserDetails userDetails = new AccountUserDetails(user);
+
+        Authentication newAuth = new UsernamePasswordAuthenticationToken(userDetails, auth.getCredentials(),
                 grantedAuthorities);
 
         SecurityContextHolder.getContext().setAuthentication(newAuth);
