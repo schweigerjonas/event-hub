@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
-    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    layout:decorate="~{layout}">
 <main layout:fragment="main">
     <div class="container py-4">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
             <h1 class="mb-0">Events in deiner Nähe</h1>
-            <a class="btn btn-primary d-flex align-items-center gap-1" th:href="@{/events/new}">
+            <a class="btn btn-primary d-flex align-items-center gap-1" th:href="@{/events/new}"
+               sec:authorize="hasAnyAuthority('ADMIN','ORGANISATOR')">
                 <span class="material-symbols-outlined">add</span>
                 Event erstellen
             </a>

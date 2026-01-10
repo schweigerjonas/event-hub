@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -68,6 +69,8 @@ public class WebSecurityConfig {
                 .requestMatchers("/images/**", "/css/**", "/js/**", "/webjars/**", "/script/**").permitAll()
                 .requestMatchers("/", "/home").permitAll()
                 .requestMatchers("/events", "/events/", "/events/{id:[0-9]+}", "/events/*/join").permitAll()
+                .requestMatchers(HttpMethod.GET, "/events/new").hasAnyAuthority("ADMIN", "ORGANISATOR")
+                .requestMatchers(HttpMethod.POST, "/events").hasAnyAuthority("ADMIN", "ORGANISATOR")
                 .requestMatchers("/organizer").hasAnyAuthority("ADMIN", "ORGANISATOR")
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated())
