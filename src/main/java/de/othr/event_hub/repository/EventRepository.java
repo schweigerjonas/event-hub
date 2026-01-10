@@ -22,4 +22,18 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         AND LOWER(e.location) LIKE LOWER(CONCAT('%', :location, '%'))
     """)
     Page<Event> findFavouritesByNameContainingIgnoreCaseOrLocationContainingIgnoreCase(String name, String location, User user, Pageable pageable);
+
+    @Query("SELECT DISTINCT e FROM Event e JOIN EventParticipant p ON p.event = e WHERE p.user = :user")
+    Page<Event> findByParticipant(User user, Pageable pageable);
+
+    @Query("""
+        SELECT DISTINCT e FROM Event e
+        JOIN EventParticipant p ON p.event = e
+        WHERE p.user = :user
+        AND (
+            LOWER(e.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(e.location) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        )
+    """)
+    Page<Event> searchByParticipant(User user, String keyword, Pageable pageable);
 }
