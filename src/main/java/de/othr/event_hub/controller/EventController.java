@@ -157,7 +157,21 @@ public class EventController {
     }
 
     @GetMapping("/new")
-    public String showCreateForm(Model model) {
+    public String showCreateForm(
+        Model model,
+        @AuthenticationPrincipal AccountUserDetails details,
+        RedirectAttributes redirectAttributes,
+        HttpServletRequest request
+    ) {
+        if (details == null || details.getUser() == null) {
+            request.getSession(true).setAttribute("loginRedirect", "/events/new");
+            return "redirect:/login?redirect=/events/new";
+        }
+        boolean canCreate = hasAuthority(details, "ADMIN") || hasAuthority(details, "ORGANISATOR");
+        if (!canCreate) {
+            redirectAttributes.addFlashAttribute("error", "Nur Organisatoren oder Admins können Events erstellen.");
+            return "redirect:/events";
+        }
         if (!model.containsAttribute("eventForm")) {
             model.addAttribute("eventForm", new EventFormDto());
         }
@@ -168,8 +182,19 @@ public class EventController {
     public String createEvent(
         @Valid @ModelAttribute("eventForm") EventFormDto eventForm,
         BindingResult result,
-        @AuthenticationPrincipal AccountUserDetails details
+        @AuthenticationPrincipal AccountUserDetails details,
+        RedirectAttributes redirectAttributes,
+        HttpServletRequest request
     ) {
+        if (details == null || details.getUser() == null) {
+            request.getSession(true).setAttribute("loginRedirect", "/events/new");
+            return "redirect:/login?redirect=/events/new";
+        }
+        boolean canCreate = hasAuthority(details, "ADMIN") || hasAuthority(details, "ORGANISATOR");
+        if (!canCreate) {
+            redirectAttributes.addFlashAttribute("error", "Nur Organisatoren oder Admins können Events erstellen.");
+            return "redirect:/events";
+        }
         if (eventForm.isPaid() && (eventForm.getCosts() == null || eventForm.getCosts() <= 0)) {
             result.rejectValue("costs", "event.costs.required", "Bitte geben Sie einen Preis an.");
         }

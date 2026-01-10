@@ -2,6 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       layout:decorate="~{layout}">
 <main layout:fragment="main">
 
@@ -20,7 +21,7 @@
     <div class="container my-5">
         <div class="row g-4">
 
-            <div class="col-md-4">
+            <div class="col-md-4" sec:authorize="hasAnyAuthority('ADMIN','ORGANISATOR')">
                 <div class="card h-100 shadow-sm border-0">
                     <div class="card-body text-center">
                         <i class="bi bi-plus-circle-fill display-4 mb-3 text-primary"></i>

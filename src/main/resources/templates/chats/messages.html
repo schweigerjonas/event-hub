@@ -55,7 +55,15 @@
             </div>
         </div>
 
-        <div id="chat-box" class="chat-container d-flex flex-column gap-3 mb-5 overflow-auto" style="max-height: 60vh;" th:attr="data-chatroom-id=${chatRoom.id}, data-user-id=${currentUser.id}">
+        <div id="chat-box" 
+            class="chat-container d-flex flex-column gap-3 mb-5 overflow-auto" 
+            style="max-height: 60vh;" 
+            th:attr="
+                data-chatroom-id=${chatRoom.id}, 
+                data-user-id=${currentUser.id}, 
+                data-is-chat-owner=${chatRoom.owner.id == currentUser.id},
+                data-is-global-admin=${#authorization.expression('hasAuthority(''ADMIN'')')}
+            ">
             <!-- Pagination -->
             <!-- <nav aria-label="Pagination" th:if="${totalPages > 0}">
                 <ul class="pagination">
@@ -87,18 +95,38 @@
                 <a th:replace="~{fragments/messagePaging :: loadMore(${currentPage + 1})}"></a>
             </div>
 
-            <div th:each="msg : ${messages}">
-                <div th:if="${msg.sender.id == currentUser.id}" class="d-flex justify-content-end">
-                    <div class="chat-bubble own">
-                        <p class="mb-1" th:text="${msg.message}">Nachrichttext</p>
-                        <small class="text-muted d-block text-end" th:text="${#temporals.format(msg.sentAt, 'dd.MM.yyyy, HH:mm')}"></small>
+            <div th:each="msg : ${messages}"
+                class="d-flex"
+                th:id="'message-' + ${msg.id}"
+                th:classappend="${msg.sender.id == currentUser.id} ? 'justify-content-end' : 'justify-content-start'"
+                th:attr="data-sender-id=${msg.sender.id}, data-deleted=${msg.isDeleted}">
+
+                <div class="chat-bubble"
+                    th:classappend="${msg.sender.id == currentUser.id} ? 'own' : 'other'">
+
+                    <strong th:if="${msg.sender.id != currentUser.id}"
+                            th:text="${msg.sender.username}"></strong>
+
+                    <div class="message-content">
+                        <div th:if="${msg.isDeleted}" class="d-flex align-items-start">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <p class="fst-italic mb-0">Diese Nachricht wurde gelöscht</p>
+                        </div>
+
+                        <p th:if="${!msg.isDeleted}"
+                        class="mb-1 mt-1"
+                        th:text="${msg.message}"></p>
                     </div>
-                </div>
-                <div th:if="${msg.sender.id != currentUser.id}" class="d-flex justify-content-start">
-                    <div class="chat-bubble other">
-                        <strong th:text="${msg.sender.username}">Username</strong>
-                        <p class="mb-1 mt-1" th:text="${msg.message}">Nachrichttext</p>
-                        <small class="text-muted d-block" th:text="${#temporals.format(msg.sentAt, 'dd.MM.yyyy, HH:mm')}"></small>
+
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <small class="text-muted"
+                            th:text="${#temporals.format(msg.sentAt, 'dd.MM.yyyy, HH:mm')}"></small>
+
+                        <button th:if="${!msg.isDeleted} and (${chatRoom.owner.id == currentUser.id} or ${#authorization.expression('hasAuthority(''ADMIN'')')} or ${msg.sender.id == currentUser.id})"
+                                class="btn btn-link p-0 text-danger delete-btn"
+                                th:attr="data-message-id=${msg.id}">
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -124,75 +152,137 @@
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <script>
         const chatBox = document.getElementById('chat-box');
-        const chatId = chatBox.getAttribute('data-chatroom-id');
-        const userId = chatBox.getAttribute('data-user-id');
+        const chatId = chatBox.dataset.chatroomId;
+        const userId = Number(chatBox.dataset.userId);
+        const isChatOwner = chatBox.dataset.isChatOwner === 'true';
+        const isGlobalAdmin = chatBox.dataset.isGlobalAdmin === 'true';
+
         const socket = new SockJS('/ws-chat');
         const stompClient = Stomp.over(socket);
 
         stompClient.connect({}, () => {
-            console.log("WebSocket connected");
-            stompClient.subscribe('/topic/chats/' + chatId, (payload) => {
-                const message = JSON.parse(payload.body);
-                console.log(message);
-                appendMessage(message);
+            stompClient.subscribe('/topic/chats/' + chatId, payload => {
+                const msg = JSON.parse(payload.body);
+                appendOrUpdateMessage(msg);
             });
         });
 
-        // send message
+        // SEND MESSAGE
         document.getElementById('chat-form').addEventListener('submit', e => {
             e.preventDefault();
-
             const input = document.getElementById('message-input');
             const text = input.value.trim();
             if (!text) return;
 
             stompClient.send(
-                '/app/chat/' + chatId + '/send',
+                `/app/chat/${chatId}/send`,
                 {},
-                JSON.stringify({ userId: userId, message: text })
+                JSON.stringify({ userId, message: text })
             );
-
             input.value = '';
         });
 
-        function appendMessage(message) {
-            const wrapper = document.createElement('div');
+        // DELETE MESSAGE (event delegation)
+        chatBox.addEventListener('click', e => {
+            const btn = e.target.closest('.delete-btn');
+            if (!btn) return;
+
+            const messageId = btn.dataset.messageId;
+            stompClient.send(
+                `/app/chat/${chatId}/deleteMessage/${messageId}`,
+                {},
+                {}
+            );
+        });
+
+        // RENDER / UPDATE MESSAGE
+        function appendOrUpdateMessage(message) {
+            let wrapper = document.getElementById(`message-${message.id}`);
+
+            // ===== UPDATE EXISTING =====
+            if (wrapper) {
+                wrapper.dataset.deleted = message.deleted;
+
+                const content = wrapper.querySelector('.message-content');
+                content.innerHTML = `
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <p class="fst-italic mb-0">Diese Nachricht wurde gelöscht</p>
+                    </div>
+                `;
+
+                const deleteBtn = wrapper.querySelector('.delete-btn');
+                if (deleteBtn) deleteBtn.remove();
+                return;
+            }
+
+            // ===== CREATE NEW =====
+            wrapper = document.createElement('div');
+            wrapper.id = `message-${message.id}`;
             wrapper.classList.add('d-flex');
+            wrapper.dataset.senderId = message.senderId;
+            wrapper.dataset.deleted = message.deleted;
 
             const bubble = document.createElement('div');
             bubble.classList.add('chat-bubble');
 
-            const currentUserId = Number(userId);
-            if (message.senderId === currentUserId) {
-                wrapper.classList.add('justify-content-end');
-                bubble.classList.add('own');
-            } else {
-                wrapper.classList.add('justify-content-start');
-                bubble.classList.add('other');
+            const isOwn = message.senderId === userId;
+            wrapper.classList.add(isOwn ? 'justify-content-end' : 'justify-content-start');
+            bubble.classList.add(isOwn ? 'own' : 'other');
 
+            if (!isOwn) {
                 const sender = document.createElement('strong');
                 sender.textContent = message.senderName;
                 bubble.appendChild(sender);
             }
 
-            const text = document.createElement('p');
-            text.classList.add('mb-1', 'mt-1');
-            text.textContent = message.message;
+            const content = document.createElement('div');
+            content.classList.add('message-content');
+
+            if (message.deleted) {
+                content.innerHTML = `
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <p class="fst-italic mb-0">Diese Nachricht wurde gelöscht</p>
+                    </div>
+                `;
+            } else {
+                const p = document.createElement('p');
+                p.classList.add('mb-1', 'mt-1');
+                p.textContent = message.message;
+                content.appendChild(p);
+            }
+
+            const footer = document.createElement('div');
+            footer.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'mt-1');
 
             const time = document.createElement('small');
-            time.classList.add('text-muted', 'd-block');
-            time.textContent = new Date(message.sentAt).toLocaleString('de-DE', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            time.classList.add('text-muted');
+            time.textContent = new Date(message.sentAt).toLocaleString('de-DE');
 
-            bubble.append(text, time);
+            footer.appendChild(time);
+
+            const canDelete =
+                !message.deleted &&
+                (
+                    message.senderId === userId ||
+                    isChatOwner ||
+                    isGlobalAdmin
+                );
+
+            console.log(canDelete);
+
+            if (canDelete) {
+                const delBtn = document.createElement('button');
+                delBtn.classList.add('btn', 'btn-link', 'p-0', 'text-danger', 'delete-btn');
+                delBtn.dataset.messageId = message.id;
+                delBtn.innerHTML = '<i class="bi bi-trash"></i>';
+                footer.appendChild(delBtn);
+            }
+
+            bubble.append(content, footer);
             wrapper.appendChild(bubble);
             chatBox.appendChild(wrapper);
-
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 

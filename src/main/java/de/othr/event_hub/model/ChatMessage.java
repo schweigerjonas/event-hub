@@ -29,6 +29,10 @@ public class ChatMessage {
 
     private LocalDateTime sentAt = LocalDateTime.now();
 
+    // sender, chat admin and global admin can delete messages
+    // like WhatsApp: in the chat you can only see "Nachricht wurde gelöscht"
+    private boolean isDeleted = false;
+
     @ManyToOne
     @JoinColumn(name = "chatroom_id", referencedColumnName = "id")
     private ChatRoom chatRoom;

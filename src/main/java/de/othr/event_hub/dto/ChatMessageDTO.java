@@ -10,8 +10,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ChatMessageDTO {
+    private Long id;
     private String message;
     private String senderName;
     private Long senderId;
     private LocalDateTime sentAt;
+    private boolean isDeleted = false;
 }

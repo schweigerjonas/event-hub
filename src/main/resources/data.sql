@@ -29,8 +29,9 @@ INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (1, 
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (1, 2, NOW(), 'MEMBER');
 
 -- Add chat messages
-INSERT INTO chat_messages (chatroom_id, sender_id, message, sent_at) VALUES (1, 1, 'Hallo. Wie geht es dir?', NOW());
-INSERT INTO chat_messages (chatroom_id, sender_id, message, sent_at) VALUES (1, 2, 'Servus. Mir geht es gut. Dir?', NOW());
+INSERT INTO chat_messages (chatroom_id, sender_id, message, sent_at, is_deleted) VALUES (1, 1, 'Hallo. Wie geht es dir?', NOW(), false);
+INSERT INTO chat_messages (chatroom_id, sender_id, message, sent_at, is_deleted) VALUES (1, 2, 'Servus. Mir geht es gut. Dir?', NOW(), false);
+INSERT INTO chat_messages (chatroom_id, sender_id, message, sent_at, is_deleted) VALUES (1, 1, 'asdfgjweuirgwe', NOW(), true);
 
 -- Add events and their chatrooms
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)

@@ -226,6 +226,26 @@ public class ChatController {
         return "chats/messages";
     }
 
+    @MessageMapping("/chat/{id}/deleteMessage/{messageId}")
+    public void deleteChatMessage(@DestinationVariable Long id, @DestinationVariable Long messageId) {
+
+        // update message
+        ChatMessage message = chatMessageService.getChatMessageById(messageId).get();
+        message.setDeleted(true);
+        chatMessageService.updateChatMessage(message);
+        
+        // notify everyone in the chatroom
+        ChatMessageDTO dto = new ChatMessageDTO();
+        dto.setId(messageId);
+        dto.setMessage(message.getMessage());
+        dto.setSenderName(message.getSender().getUsername());
+        dto.setSenderId(message.getSender().getId());
+        dto.setSentAt(message.getSentAt());
+        dto.setDeleted(true);
+        messagingTemplate.convertAndSend("/topic/chats/" + id, dto);
+    }
+    
+
     @MessageMapping("/chat/{id}/send")
     public void sendChatMessage(@DestinationVariable long id, SendMessageDTO message) {
         User user = userService.getUserById(message.getUserId());
@@ -237,10 +257,11 @@ public class ChatController {
         chatMessage.setSender(user);
         chatMessage.setMessage(message.getMessage());
         chatMessage.setSentAt(java.time.LocalDateTime.now());
-        chatMessageService.createChatMessage(chatMessage);
+        ChatMessage newMessage = chatMessageService.createChatMessage(chatMessage);
 
         // notify everyone in the chatroom
         ChatMessageDTO dto = new ChatMessageDTO();
+        dto.setId(newMessage.getId());
         dto.setMessage(message.getMessage());
         dto.setSenderName(user.getUsername());
         dto.setSenderId(user.getId());

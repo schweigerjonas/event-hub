@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import de.othr.event_hub.dto.FriendshipDTO;
+import de.othr.event_hub.dto.UserFriendshipsDTO;
 import de.othr.event_hub.model.Friendship;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.service.FriendshipService;
@@ -184,6 +185,29 @@ public class FriendshipApiController {
 
         return ResponseEntity.ok(CollectionModel.of(friendshipModels));
     }
+
+    @GetMapping("/user/{id}/friendships")
+    public ResponseEntity<UserFriendshipsDTO> getfriendshipsByUser(@PathVariable("id") Long id) {
+        User user;
+        try {
+            user = userService.getUserById(id);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+        List<Friendship> activeFriendships = friendshipService.findActiveFriendshipsByUser(user);
+        List<Friendship> friendshipsRequestedTo = friendshipService.findPendingFriendshipsRequestedToUser(user);
+        List<Friendship> friendshipsRequestedBy = friendshipService.findPendingFriendshipsRequestedByUser(user);
+
+        UserFriendshipsDTO dto = new UserFriendshipsDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setActiveFriendships(toEntityModel(activeFriendships));
+        dto.setFriendshipsRequestedTo(toEntityModel(friendshipsRequestedTo));
+        dto.setFriendshipsRequestedBy(toEntityModel(friendshipsRequestedBy));
+
+        return ResponseEntity.ok(dto);
+    }
+    
     
     // Helpers
     private FriendshipDTO toDTO(Friendship friendship) {
