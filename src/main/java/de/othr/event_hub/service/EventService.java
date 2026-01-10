@@ -21,6 +21,8 @@ public interface EventService {
 
     Page<Event> getFavouriteEvents(String keyword, User user, Pageable pageable);
 
+    Page<Event> getParticipatingEvents(String keyword, User user, Pageable pageable);
+
     void deleteEvent(Event event);
 
     Event updateEvent(Event event);

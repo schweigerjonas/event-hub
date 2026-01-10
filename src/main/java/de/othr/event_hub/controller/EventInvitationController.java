@@ -1,6 +1,7 @@
 package de.othr.event_hub.controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,12 +24,15 @@ import de.othr.event_hub.model.ChatMembership;
 import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.EventInvitation;
 import de.othr.event_hub.model.EventParticipant;
+import de.othr.event_hub.model.Friendship;
+import de.othr.event_hub.model.User;
 import de.othr.event_hub.model.enums.ChatMembershipRole;
 import de.othr.event_hub.model.enums.EventInvitationStatus;
 import de.othr.event_hub.service.ChatMembershipService;
 import de.othr.event_hub.service.EventInvitationService;
 import de.othr.event_hub.service.EventParticipantService;
 import de.othr.event_hub.service.EventService;
+import de.othr.event_hub.service.FriendshipService;
 
 @Controller
 @RequestMapping("/invitations")
@@ -38,18 +42,21 @@ public class EventInvitationController {
     private final EventInvitationService invitationService;
     private final EventService eventService;
     private final EventParticipantService participantService;
+    private final FriendshipService friendshipService;
 
     public EventInvitationController(
         ChatMembershipService chatMembershipService,
         EventInvitationService invitationService,
         EventService eventService,
-        EventParticipantService participantService
+        EventParticipantService participantService,
+        FriendshipService friendshipService
     ) {
         super();
         this.chatMembershipService = chatMembershipService;
         this.invitationService = invitationService;
         this.eventService = eventService;
         this.participantService = participantService;
+        this.friendshipService = friendshipService;
     }
 
     @GetMapping
@@ -81,6 +88,10 @@ public class EventInvitationController {
         model.addAttribute("totalItems", invitations.getTotalElements());
         model.addAttribute("pageSize", safeSize);
         model.addAttribute("keyword", keyword == null ? "" : keyword);
+        Pageable eventPageable = PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "eventTime"));
+        model.addAttribute("participatingEvents",
+            eventService.getParticipatingEvents(null, details.getUser(), eventPageable).getContent());
+        model.addAttribute("friends", getFriends(details.getUser()));
         return "invitations/invitations-all";
     }
 
@@ -159,5 +170,14 @@ public class EventInvitationController {
         }
         return details.getAuthorities().stream()
             .anyMatch(granted -> granted.getAuthority().equalsIgnoreCase(authority));
+    }
+
+    private List<User> getFriends(User currentUser) {
+        List<Friendship> friendships = friendshipService.findActiveFriendshipsByUser(currentUser);
+        return friendships.stream()
+            .map(friendship -> friendship.getRequestor().equals(currentUser)
+                ? friendship.getAddressee()
+                : friendship.getRequestor())
+            .toList();
     }
 }

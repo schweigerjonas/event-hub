@@ -3,7 +3,45 @@
     xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
 <main layout:fragment="main">
     <div class="container py-4">
-        <h1 class="mb-3">Einladungen</h1>
+        <h1 class="mb-3">Einladungen für Events</h1>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">Freunde zu Events einladen</div>
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(participatingEvents)}" class="text-muted">
+                    Du nimmst aktuell an keinem Event teil.
+                </div>
+                <div th:if="${!#lists.isEmpty(participatingEvents)}">
+                    <form id="invite-form" method="post" class="row g-3">
+                        <input type="hidden" name="redirect" value="/invitations">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="invite-event">Event auswählen</label>
+                            <select id="invite-event" class="form-select" required>
+                                <option value="" selected disabled>Bitte wählen...</option>
+                                <option th:each="event : ${participatingEvents}"
+                                        th:value="${event.id}"
+                                        th:text="${event.name}"></option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Freunde auswählen</label>
+                            <div th:if="${#lists.isEmpty(friends)}" class="text-muted">Keine Freunde verfügbar.</div>
+                            <div class="list-group" th:if="${!#lists.isEmpty(friends)}">
+                                <label class="list-group-item d-flex align-items-center gap-2"
+                                    th:each="friend : ${friends}">
+                                    <input class="form-check-input m-0" type="checkbox" name="friendIds"
+                                        th:value="${friend.id}">
+                                    <span th:text="${friend.username}">Freund</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12 d-grid">
+                            <button class="btn btn-outline-success" type="submit" th:disabled="${#lists.isEmpty(friends)}">Einladung senden</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
         <ul class="nav nav-tabs mb-3">
             <li class="nav-item">
@@ -42,7 +80,8 @@
             <div class="list-group-item" th:each="inv : ${invitations}">
                 <div class="d-flex flex-wrap justify-content-between align-items-start">
                     <div>
-                        <strong th:text="${inv.event.name}">Event</strong>
+                        <a th:href="@{'/events/' + ${inv.event.id}}" class="fw-bold event-link"
+                           th:text="${inv.event.name}">Event</a>
                         <div class="text-muted small">
                             <span th:if="${tab == 'incoming'}">Von </span>
                             <span th:if="${tab == 'sent'}">An </span>
@@ -95,5 +134,19 @@
             </ul>
         </nav>
     </div>
+
+    <script>
+        const inviteForm = document.getElementById("invite-form");
+        const inviteEvent = document.getElementById("invite-event");
+        if (inviteForm && inviteEvent) {
+            inviteForm.addEventListener("submit", (event) => {
+                if (!inviteEvent.value) {
+                    event.preventDefault();
+                    return;
+                }
+                inviteForm.action = `/events/${inviteEvent.value}/invite`;
+            });
+        }
+    </script>
 </main>
 </html>

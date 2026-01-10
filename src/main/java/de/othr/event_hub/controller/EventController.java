@@ -11,8 +11,10 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -110,9 +112,11 @@ public class EventController {
         @RequestParam(required = false, defaultValue = "time") String sort,
         @RequestParam(required = false, defaultValue = "asc") String direction,
         @RequestParam(required = false, defaultValue = "false") boolean onlyFavourites,
+        @RequestParam(required = false, defaultValue = "discover") String tab,
         @RequestParam(required = false, defaultValue = "1") int page,
         @RequestParam(required = false, defaultValue = "9") int size,
-        @AuthenticationPrincipal AccountUserDetails user
+        @AuthenticationPrincipal AccountUserDetails user,
+        HttpServletRequest request
     ) {
         int safePage = Math.max(page, 1);
         int safeSize = size < 1 ? 9 : size;
@@ -136,22 +140,47 @@ public class EventController {
             : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(safePage - 1, safeSize, Sort.by(sortDirection, sortField));
         Page<Event> eventsPage;
-
-        if (onlyFavourites) {
+        String tabValue = tab == null ? "discover" : tab;
+        boolean mineTab = "mine".equalsIgnoreCase(tabValue);
+        if (mineTab) {
+            if (user == null || user.getUser() == null) {
+                request.getSession(true).setAttribute("loginRedirect", "/events?tab=mine");
+                return "redirect:/login?redirect=/events?tab=mine";
+            }
+            eventsPage = eventService.getParticipatingEvents(keyword, user.getUser(), pageable);
+        } else if (onlyFavourites && user != null) {
             eventsPage = eventService.getFavouriteEvents(keyword, user.getUser(), pageable);
         } else {
             eventsPage = eventService.getEvents(keyword, pageable);
+            tabValue = "discover";
+            mineTab = false;
         }
 
-        model.addAttribute("events", eventsPage.getContent());
+        List<Event> events = eventsPage.getContent();
+        model.addAttribute("events", events);
         model.addAttribute("currentPage", eventsPage.getNumber() + 1);
         model.addAttribute("totalPages", eventsPage.getTotalPages());
         model.addAttribute("totalItems", eventsPage.getTotalElements());
         model.addAttribute("pageSize", safeSize);
         model.addAttribute("keyword", keyword == null ? "" : keyword);
-        model.addAttribute("onlyFavourites", onlyFavourites);
+        model.addAttribute("onlyFavourites", !mineTab && onlyFavourites);
+        model.addAttribute("tab", tabValue);
         model.addAttribute("sort", sortValue);
         model.addAttribute("direction", sortDirection.name().toLowerCase());
+        if (user != null && user.getUser() != null) {
+            Set<Long> favouriteIds = new HashSet<>();
+            Set<Long> participantIds = new HashSet<>();
+            for (Event event : events) {
+                if (eventFavouriteService.isEventFavourite(event, user.getUser())) {
+                    favouriteIds.add(event.getId());
+                }
+                if (eventParticipantService.existsParticipant(event, user.getUser())) {
+                    participantIds.add(event.getId());
+                }
+            }
+            model.addAttribute("favouriteEventIds", favouriteIds);
+            model.addAttribute("participantEventIds", participantIds);
+        }
 
         return "events/events-all";
     }
@@ -542,6 +571,7 @@ public class EventController {
     public String inviteFriend(
         @PathVariable("id") Long id,
         @RequestParam(name = "friendIds", required = false) List<Long> friendIds,
+        @RequestParam(name = "redirect", required = false) String redirect,
         @AuthenticationPrincipal AccountUserDetails details,
         RedirectAttributes redirectAttributes,
         HttpServletRequest request
@@ -555,7 +585,7 @@ public class EventController {
         List<User> friends = getFriends(details.getUser());
         if (friendIds == null || friendIds.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Bitte mindestens einen Freund auswählen.");
-            return "redirect:/events/" + id;
+            return buildSafeRedirect(redirect, id);
         }
         int sentCount = 0;
         for (Long friendId : friendIds) {
@@ -589,7 +619,7 @@ public class EventController {
         } else {
             redirectAttributes.addFlashAttribute("error", "Einladung konnte nicht versendet werden.");
         }
-        return "redirect:/events/" + id;
+        return buildSafeRedirect(redirect, id);
     }
 
     @PostMapping("/{id}/leave")
@@ -716,6 +746,13 @@ public class EventController {
     }
     
 
+    private String buildSafeRedirect(String redirect, Long eventId) {
+        if (redirect != null && redirect.startsWith("/")) {
+            return "redirect:" + redirect;
+        }
+        return "redirect:/events/" + eventId;
+    }
+
     private String cleanDescription(String description) {
         if (description == null) {
             return null;
@@ -742,3 +779,4 @@ public class EventController {
             .anyMatch(granted -> granted.getAuthority().equalsIgnoreCase(authority));
     }
 }
+
