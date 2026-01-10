@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import de.othr.event_hub.dto.ChatMessageDTO;
 import de.othr.event_hub.dto.UserApiDto;
 import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.User;
@@ -124,6 +125,27 @@ public class UserApiController {
         userService.saveUser(user);
 
         return ResponseEntity.noContent().build();
+    }
+
+    // Custom queries
+    @GetMapping("/{id}/messages")
+    public ResponseEntity<List<ChatMessageDTO>> getUserSentMessages(@PathVariable("id") Long id) {
+        User user = userService.getUserById(id);
+
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<ChatMessageDTO> messageDtos = user.getSentMessages().stream().map(message -> new ChatMessageDTO(
+                message.getId(),
+                message.getMessage(),
+                message.getSender().getUsername(),
+                user.getId(),
+                message.getSentAt(),
+                message.isDeleted()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(messageDtos);
     }
 
     // Helpers
