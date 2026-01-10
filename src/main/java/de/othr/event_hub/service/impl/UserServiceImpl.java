@@ -52,6 +52,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+
+    @Override
     public List<User> getAllUsers() {
         // TODO Auto-generated method stub
         return (List<User>) userRepository.findAll();
@@ -172,5 +177,10 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userInfoDto.getEmail());
 
         userRepository.save(user);
+    }
+
+    @Override
+    public void deleteAllUsers() {
+        userRepository.deleteAll();
     }
 }

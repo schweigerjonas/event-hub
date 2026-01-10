@@ -1,7 +1,5 @@
 package de.othr.event_hub.dto;
 
-import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,11 +9,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatMessageDTO {
+public class UserApiDto {
     private Long id;
-    private String message;
-    private String senderName;
-    private Long senderId;
-    private LocalDateTime sentAt;
-    private boolean isDeleted = false;
+    private String email;
+    private String username;
+    private String password;
+    private String role;
+    private Integer active;
+    private boolean using2FA;
 }
