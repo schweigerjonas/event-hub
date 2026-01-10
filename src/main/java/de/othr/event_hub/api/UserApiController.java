@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import de.othr.event_hub.dto.ChatMessageDTO;
+import de.othr.event_hub.dto.EventApiDto;
 import de.othr.event_hub.dto.UserApiDto;
 import de.othr.event_hub.model.Authority;
+import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.service.AuthorityService;
 import de.othr.event_hub.service.UserService;
@@ -142,10 +144,34 @@ public class UserApiController {
                 message.getSender().getUsername(),
                 user.getId(),
                 message.getSentAt(),
-                message.isDeleted()))
-                .collect(Collectors.toList());
+                message.isDeleted())).collect(Collectors.toList());
 
         return ResponseEntity.ok(messageDtos);
+    }
+
+    @GetMapping("/{id}/favourites")
+    public ResponseEntity<List<EventApiDto>> getUserEventFavourites(@PathVariable("id") Long id) {
+        User user = userService.getUserById(id);
+
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<EventApiDto> favouriteEventsDtos = user.getFavourites().stream().map(favourite -> {
+            Event event = favourite.getEvent();
+            return new EventApiDto(
+                    event.getId(),
+                    event.getName(),
+                    event.getLocation(),
+                    event.getDurationMinutes(),
+                    event.getMaxParticipants(),
+                    event.getDescription(),
+                    event.getEventTime(),
+                    event.getCosts(),
+                    event.getOrganizer().getId());
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(favouriteEventsDtos);
     }
 
     // Helpers
