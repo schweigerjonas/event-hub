@@ -51,6 +51,14 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public Page<Event> getParticipatingEvents(String keyword, User user, Pageable pageable) {
+        if (keyword == null || keyword.isBlank()) {
+            return eventRepository.findByParticipant(user, pageable);
+        }
+        return eventRepository.searchByParticipant(user, keyword, pageable);
+    }
+
+    @Override
     public void deleteEvent(Event event) {
         eventRepository.delete(event);
     }

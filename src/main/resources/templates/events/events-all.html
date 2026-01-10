@@ -6,7 +6,7 @@
 <main layout:fragment="main">
     <div class="container py-4">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-            <h1 class="mb-0">Events in deiner Nähe</h1>
+            <h1 class="mb-0" th:text="${tab == 'mine'} ? 'Meine Events' : 'Events in deiner Nähe'">Events in deiner Nähe</h1>
             <a class="btn btn-primary d-flex align-items-center gap-1" th:href="@{/events/new}"
                sec:authorize="hasAnyAuthority('ADMIN','ORGANISATOR')">
                 <span class="material-symbols-outlined">add</span>
@@ -14,7 +14,17 @@
             </a>
         </div>
 
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${tab == 'discover'} ? 'active'" th:href="@{/events(tab='discover')}">Events finden</a>
+            </li>
+            <li class="nav-item" sec:authorize="isAuthenticated()">
+                <a class="nav-link" th:classappend="${tab == 'mine'} ? 'active'" th:href="@{/events(tab='mine')}">Meine Events</a>
+            </li>
+        </ul>
+
         <form th:action="@{/events}" method="get" class="row g-2 align-items-end">
+            <input type="hidden" name="tab" th:value="${tab}">
             <div class="col-12 col-md-5">
                 <label class="form-label" for="keyword">Suche</label>
                 <input id="keyword" type="search" name="keyword" class="form-control" placeholder="Name oder Ort" th:value="${keyword}">
@@ -43,7 +53,7 @@
             <div class="col-6 col-md-1 d-grid">
                 <button class="btn btn-outline-secondary" type="submit">Suchen</button>
             </div>
-            <div class="align-items-center" sec:authorize="isAuthenticated()">
+            <div class="align-items-center" sec:authorize="isAuthenticated()" th:if="${tab == 'discover'}">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="onlyFavourites" name="onlyFavourites" th:checked="${onlyFavourites}">
                     <label class="form-check-label" for="onlyFavourites">
@@ -60,9 +70,23 @@
             <div class="col-12 col-md-6 col-lg-4" th:each="event : ${events}">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body d-flex flex-column">
-                        <div class="mb-2">
-                            <h5 class="card-title mb-1" th:text="${event.name}">Event</h5>
-                            <div class="text-muted" th:text="${event.location}">Ort</div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <a class="card-title mb-1 fw-semibold d-block event-link"
+                                   th:href="@{'/events/' + ${event.id}}"
+                                   th:text="${event.name}">Event</a>
+                                <div class="text-muted" th:text="${event.location}">Ort</div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <span th:if="${favouriteEventIds != null and favouriteEventIds.contains(event.id)}">
+                                    <i class="bi bi-star-fill text-warning" title="Favorit"></i>
+                                    <span class="visually-hidden">Favorit</span>
+                                </span>
+                                <span th:if="${participantEventIds != null and participantEventIds.contains(event.id)}">
+                                    <i class="bi bi-person-check-fill text-success" title="Teilnahme"></i>
+                                    <span class="visually-hidden">Teilnahme</span>
+                                </span>
+                            </div>
                         </div>
                         <div class="small text-muted mb-2" th:if="${event.eventTime != null}">
                             <span th:text="${#temporals.format(event.eventTime, 'dd.MM.yyyy HH:mm')}"></span>
@@ -88,11 +112,11 @@
             <ul class="pagination">
                 <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
                     <a class="page-link"
-                       th:href="@{/events(page=1, size=${pageSize}, keyword=${keyword}, sort=${sort}, direction=${direction})}"><<</a>
+                       th:href="@{/events(tab=${tab}, page=1, size=${pageSize}, keyword=${keyword}, sort=${sort}, direction=${direction}, onlyFavourites=${onlyFavourites})}"><<</a>
                 </li>
                 <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
                     <a class="page-link"
-                       th:href="@{/events(page=${currentPage - 1}, size=${pageSize}, keyword=${keyword}, sort=${sort}, direction=${direction})}">Zurück</a>
+                       th:href="@{/events(tab=${tab}, page=${currentPage - 1}, size=${pageSize}, keyword=${keyword}, sort=${sort}, direction=${direction}, onlyFavourites=${onlyFavourites})}">Zurück</a>
                 </li>
                 <li class="page-item disabled" th:if="${currentPage - 2 > 1}">
                     <span class="page-link">...</span>
@@ -100,7 +124,7 @@
                 <li class="page-item" th:each="page : ${#numbers.sequence(currentPage > 2 ? currentPage - 2 : 1, currentPage + 2 < totalPages ? currentPage + 2 : totalPages)}"
                     th:classappend="${page == currentPage} ? 'active'">
                     <a class="page-link"
-                       th:href="@{/events(page=${page}, size=${pageSize}, keyword=${keyword}, sort=${sort}, direction=${direction})}"
+                       th:href="@{/events(tab=${tab}, page=${page}, size=${pageSize}, keyword=${keyword}, sort=${sort}, direction=${direction}, onlyFavourites=${onlyFavourites})}"
                        th:text="${page}">1</a>
                 </li>
                 <li class="page-item disabled" th:if="${currentPage + 2 < totalPages}">
@@ -108,11 +132,11 @@
                 </li>
                 <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
                     <a class="page-link"
-                       th:href="@{/events(page=${currentPage + 1}, size=${pageSize}, keyword=${keyword}, sort=${sort}, direction=${direction})}">Weiter</a>
+                       th:href="@{/events(tab=${tab}, page=${currentPage + 1}, size=${pageSize}, keyword=${keyword}, sort=${sort}, direction=${direction}, onlyFavourites=${onlyFavourites})}">Weiter</a>
                 </li>
                 <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
                     <a class="page-link"
-                       th:href="@{/events(page=${totalPages}, size=${pageSize}, keyword=${keyword}, sort=${sort}, direction=${direction})}">>></a>
+                       th:href="@{/events(tab=${tab}, page=${totalPages}, size=${pageSize}, keyword=${keyword}, sort=${sort}, direction=${direction}, onlyFavourites=${onlyFavourites})}">>></a>
                 </li>
             </ul>
         </nav>
