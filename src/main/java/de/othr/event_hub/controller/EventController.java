@@ -1,5 +1,12 @@
 package de.othr.event_hub.controller;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -8,14 +15,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,35 +27,38 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import jakarta.servlet.http.HttpServletRequest;
 
 import de.othr.event_hub.config.AccountUserDetails;
 import de.othr.event_hub.dto.EventFormDto;
+import de.othr.event_hub.dto.WeatherDto;
+import de.othr.event_hub.dto.WeatherResponse;
 import de.othr.event_hub.model.ChatMembership;
 import de.othr.event_hub.model.ChatRoom;
 import de.othr.event_hub.model.Event;
+import de.othr.event_hub.model.EventInvitation;
 import de.othr.event_hub.model.EventParticipant;
 import de.othr.event_hub.model.Friendship;
-import de.othr.event_hub.model.Rating;
 import de.othr.event_hub.model.Payment;
+import de.othr.event_hub.model.Rating;
 import de.othr.event_hub.model.User;
-import de.othr.event_hub.model.EventInvitation;
-import de.othr.event_hub.model.enums.EventInvitationStatus;
 import de.othr.event_hub.model.enums.ChatMembershipRole;
 import de.othr.event_hub.model.enums.ChatRoomType;
+import de.othr.event_hub.model.enums.EventInvitationStatus;
 import de.othr.event_hub.service.ChatMembershipService;
 import de.othr.event_hub.service.ChatRoomService;
 import de.othr.event_hub.service.EmailService;
 import de.othr.event_hub.service.EventFavouriteService;
 import de.othr.event_hub.service.EventInvitationService;
-import de.othr.event_hub.service.EventService;
 import de.othr.event_hub.service.EventParticipantService;
+import de.othr.event_hub.service.EventService;
 import de.othr.event_hub.service.FriendshipService;
 import de.othr.event_hub.service.LocationCoordinates;
 import de.othr.event_hub.service.LocationService;
 import de.othr.event_hub.service.PaymentService;
 import de.othr.event_hub.service.PdfService;
 import de.othr.event_hub.service.RatingService;
+import de.othr.event_hub.service.WeatherService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @Controller
@@ -75,21 +77,22 @@ public class EventController {
     private final PdfService pdfService;
     private final PaymentService paymentService;
     private final LocationService locationService;
+    private final WeatherService weatherService;
 
     public EventController(
-        ChatMembershipService chatMembershipService,
-        ChatRoomService chatRoomService,
-        EventService eventService,
-        EventFavouriteService eventFavouriteService,
-        EventParticipantService eventParticipantService,
-        FriendshipService friendshipService,
-        EmailService emailService,
-        RatingService ratingService,
-        EventInvitationService eventInvitationService,
-        PdfService pdfService,
-        PaymentService paymentService,
-        LocationService locationService
-    ) {
+            ChatMembershipService chatMembershipService,
+            ChatRoomService chatRoomService,
+            EventService eventService,
+            EventFavouriteService eventFavouriteService,
+            EventParticipantService eventParticipantService,
+            FriendshipService friendshipService,
+            EmailService emailService,
+            RatingService ratingService,
+            EventInvitationService eventInvitationService,
+            PdfService pdfService,
+            PaymentService paymentService,
+            LocationService locationService,
+            WeatherService weatherService) {
         super();
         this.chatMembershipService = chatMembershipService;
         this.chatRoomService = chatRoomService;
@@ -103,21 +106,21 @@ public class EventController {
         this.pdfService = pdfService;
         this.paymentService = paymentService;
         this.locationService = locationService;
+        this.weatherService = weatherService;
     }
 
     @GetMapping
     public String listEvents(
-        Model model,
-        @RequestParam(required = false) String keyword,
-        @RequestParam(required = false, defaultValue = "time") String sort,
-        @RequestParam(required = false, defaultValue = "asc") String direction,
-        @RequestParam(required = false, defaultValue = "false") boolean onlyFavourites,
-        @RequestParam(required = false, defaultValue = "discover") String tab,
-        @RequestParam(required = false, defaultValue = "1") int page,
-        @RequestParam(required = false, defaultValue = "9") int size,
-        @AuthenticationPrincipal AccountUserDetails user,
-        HttpServletRequest request
-    ) {
+            Model model,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "time") String sort,
+            @RequestParam(required = false, defaultValue = "asc") String direction,
+            @RequestParam(required = false, defaultValue = "false") boolean onlyFavourites,
+            @RequestParam(required = false, defaultValue = "discover") String tab,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "9") int size,
+            @AuthenticationPrincipal AccountUserDetails user,
+            HttpServletRequest request) {
         int safePage = Math.max(page, 1);
         int safeSize = size < 1 ? 9 : size;
         String sortValue = sort == null ? "time" : sort;
@@ -136,8 +139,8 @@ public class EventController {
         }
 
         Sort.Direction sortDirection = "desc".equalsIgnoreCase(direction)
-            ? Sort.Direction.DESC
-            : Sort.Direction.ASC;
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(safePage - 1, safeSize, Sort.by(sortDirection, sortField));
         Page<Event> eventsPage;
         String tabValue = tab == null ? "discover" : tab;
@@ -187,11 +190,10 @@ public class EventController {
 
     @GetMapping("/new")
     public String showCreateForm(
-        Model model,
-        @AuthenticationPrincipal AccountUserDetails details,
-        RedirectAttributes redirectAttributes,
-        HttpServletRequest request
-    ) {
+            Model model,
+            @AuthenticationPrincipal AccountUserDetails details,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/new");
             return "redirect:/login?redirect=/events/new";
@@ -209,12 +211,11 @@ public class EventController {
 
     @PostMapping
     public String createEvent(
-        @Valid @ModelAttribute("eventForm") EventFormDto eventForm,
-        BindingResult result,
-        @AuthenticationPrincipal AccountUserDetails details,
-        RedirectAttributes redirectAttributes,
-        HttpServletRequest request
-    ) {
+            @Valid @ModelAttribute("eventForm") EventFormDto eventForm,
+            BindingResult result,
+            @AuthenticationPrincipal AccountUserDetails details,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/new");
             return "redirect:/login?redirect=/events/new";
@@ -268,7 +269,7 @@ public class EventController {
         chatRoom.setOwner(details.getUser());
         chatRoom.setCreatedAt(now);
         chatRoom.setEvent(createdEvent);
-        chatRoom =chatRoomService.createChatRoom(chatRoom);
+        chatRoom = chatRoomService.createChatRoom(chatRoom);
 
         // update event
         createdEvent.setEventChatRoom(chatRoom);
@@ -287,14 +288,13 @@ public class EventController {
 
     @GetMapping("/{id}/edit")
     public String showEditForm(
-        @PathVariable("id") Long id,
-        @AuthenticationPrincipal AccountUserDetails details,
-        Model model,
-        RedirectAttributes redirectAttributes,
-        HttpServletRequest request
-    ) {
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal AccountUserDetails details,
+            Model model,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
         Event event = eventService.getEventById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id + "/edit");
             return "redirect:/login?redirect=/events/" + id + "/edit";
@@ -321,16 +321,15 @@ public class EventController {
 
     @PostMapping("/{id}/edit")
     public String updateEvent(
-        @PathVariable("id") Long id,
-        @Valid @ModelAttribute("eventForm") EventFormDto eventForm,
-        BindingResult result,
-        @AuthenticationPrincipal AccountUserDetails details,
-        RedirectAttributes redirectAttributes,
-        HttpServletRequest request,
-        Model model
-    ) {
+            @PathVariable("id") Long id,
+            @Valid @ModelAttribute("eventForm") EventFormDto eventForm,
+            BindingResult result,
+            @AuthenticationPrincipal AccountUserDetails details,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request,
+            Model model) {
         Event event = eventService.getEventById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id + "/edit");
             return "redirect:/login?redirect=/events/" + id + "/edit";
@@ -373,17 +372,16 @@ public class EventController {
 
     @GetMapping("/{id}")
     public String showEventDetails(
-        @PathVariable("id") Long id,
-        @RequestParam(required = false, defaultValue = "1") int participantsPage,
-        @RequestParam(required = false, defaultValue = "10") int participantsSize,
-        @RequestParam(required = false, defaultValue = "1") int ratingPage,
-        @RequestParam(required = false, defaultValue = "5") int ratingSize,
-        @RequestParam(required = false) String ratingKeyword,
-        @AuthenticationPrincipal AccountUserDetails details,
-        Model model
-    ) {
+            @PathVariable("id") Long id,
+            @RequestParam(required = false, defaultValue = "1") int participantsPage,
+            @RequestParam(required = false, defaultValue = "10") int participantsSize,
+            @RequestParam(required = false, defaultValue = "1") int ratingPage,
+            @RequestParam(required = false, defaultValue = "5") int ratingSize,
+            @RequestParam(required = false) String ratingKeyword,
+            @AuthenticationPrincipal AccountUserDetails details,
+            Model model) {
         Event event = eventService.getEventById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         model.addAttribute("event", event);
         boolean isParticipant = false;
         boolean isOrganizer = false;
@@ -398,10 +396,9 @@ public class EventController {
             int safePage = Math.max(participantsPage, 1);
             int safeSize = participantsSize < 1 ? 10 : participantsSize;
             Pageable pageable = PageRequest.of(
-                safePage - 1,
-                safeSize,
-                Sort.by(Sort.Direction.DESC, "organizer").and(Sort.by(Sort.Direction.DESC, "joinedAt"))
-            );
+                    safePage - 1,
+                    safeSize,
+                    Sort.by(Sort.Direction.DESC, "organizer").and(Sort.by(Sort.Direction.DESC, "joinedAt")));
             Page<EventParticipant> participants = eventParticipantService.getParticipants(event, pageable);
             model.addAttribute("participants", participants.getContent());
             model.addAttribute("participantsPage", participants.getNumber() + 1);
@@ -413,9 +410,8 @@ public class EventController {
                 for (EventParticipant participant : participants.getContent()) {
                     if (participant.getUser() != null) {
                         paidAmounts.put(
-                            participant.getUser().getId(),
-                            paymentService.getTotalPaidAmountForEventAndUser(event, participant.getUser())
-                        );
+                                participant.getUser().getId(),
+                                paymentService.getTotalPaidAmountForEventAndUser(event, participant.getUser()));
                     }
                 }
                 model.addAttribute("participantPaidAmounts", paidAmounts);
@@ -423,7 +419,7 @@ public class EventController {
             if (isParticipant) {
                 model.addAttribute("friends", getFriends(details.getUser()));
                 ratingService.getRatingByEventAndUser(event, details.getUser())
-                    .ifPresent(rating -> model.addAttribute("userRating", rating));
+                        .ifPresent(rating -> model.addAttribute("userRating", rating));
             }
 
             // check if event is favourited by user
@@ -438,10 +434,9 @@ public class EventController {
         int safeRatingPage = Math.max(ratingPage, 1);
         int safeRatingSize = ratingSize < 1 ? 5 : ratingSize;
         Pageable ratingPageable = PageRequest.of(
-            safeRatingPage - 1,
-            safeRatingSize,
-            Sort.by(Sort.Direction.DESC, "createdAt")
-        );
+                safeRatingPage - 1,
+                safeRatingSize,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Rating> ratingsPage = ratingService.getRatings(event, ratingKeyword, ratingPageable);
         model.addAttribute("ratings", ratingsPage.getContent());
         model.addAttribute("ratingPage", ratingsPage.getNumber() + 1);
@@ -451,18 +446,32 @@ public class EventController {
         model.addAttribute("ratingKeyword", ratingKeyword == null ? "" : ratingKeyword);
         model.addAttribute("ratingAverage", ratingService.getAverageRating(event));
         model.addAttribute("ratingCount", ratingService.countRatings(event));
+
+        boolean forecastAvailable = weatherService.isForecastAvailable(event.getEventTime());
+        if (forecastAvailable) {
+            try {
+                WeatherResponse weatherResponse = weatherService.getEventWeather(
+                        event.getLatitude(),
+                        event.getLongitude(),
+                        event.getEventTime());
+                WeatherDto weatherDto = weatherService.mapToDto(weatherResponse, event.getEventTime());
+                model.addAttribute("weatherDto", weatherDto);
+            } catch (Exception e) {
+                System.err.println("Weather API failed: " + e.getMessage());
+            }
+        }
+
         return "events/event-detail";
     }
 
     @PostMapping("/{id}/join")
     public String joinEvent(
-        @PathVariable("id") Long id,
-        @AuthenticationPrincipal AccountUserDetails details,
-        RedirectAttributes redirectAttributes,
-        HttpServletRequest request
-    ) {
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal AccountUserDetails details,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
         Event event = eventService.getEventById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id);
             return "redirect:/login?redirect=/events/" + id;
@@ -476,7 +485,8 @@ public class EventController {
             redirectAttributes.addFlashAttribute("info", "Du nimmst bereits teil.");
             return "redirect:/events/" + id;
         }
-        if (event.getMaxParticipants() != null && eventParticipantService.countParticipants(event) >= event.getMaxParticipants()) {
+        if (event.getMaxParticipants() != null
+                && eventParticipantService.countParticipants(event) >= event.getMaxParticipants()) {
             redirectAttributes.addFlashAttribute("error", "Dieses Event ist bereits ausgebucht.");
             return "redirect:/events/" + id;
         }
@@ -502,23 +512,21 @@ public class EventController {
         chatMembershipService.createChatMembership(chatMembership);
 
         redirectAttributes.addFlashAttribute(
-            "success",
-            "Du hast dich zum Event \"" + event.getName() + "\" angemeldet."
-        );
+                "success",
+                "Du hast dich zum Event \"" + event.getName() + "\" angemeldet.");
         return "redirect:/events/" + id;
     }
 
     @PostMapping("/{id}/ratings")
     public String saveRating(
-        @PathVariable("id") Long id,
-        @RequestParam("stars") int stars,
-        @RequestParam(name = "comment", required = false) String comment,
-        @AuthenticationPrincipal AccountUserDetails details,
-        RedirectAttributes redirectAttributes,
-        HttpServletRequest request
-    ) {
+            @PathVariable("id") Long id,
+            @RequestParam("stars") int stars,
+            @RequestParam(name = "comment", required = false) String comment,
+            @AuthenticationPrincipal AccountUserDetails details,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
         Event event = eventService.getEventById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id);
             return "redirect:/login?redirect=/events/" + id;
@@ -532,7 +540,7 @@ public class EventController {
             return "redirect:/events/" + id;
         }
         Rating rating = ratingService.getRatingByEventAndUser(event, details.getUser())
-            .orElseGet(Rating::new);
+                .orElseGet(Rating::new);
         rating.setEvent(event);
         rating.setUser(details.getUser());
         rating.setStars(stars);
@@ -548,13 +556,12 @@ public class EventController {
 
     @PostMapping("/{id}/ratings/delete")
     public String deleteRating(
-        @PathVariable("id") Long id,
-        @AuthenticationPrincipal AccountUserDetails details,
-        RedirectAttributes redirectAttributes,
-        HttpServletRequest request
-    ) {
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal AccountUserDetails details,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
         Event event = eventService.getEventById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id);
             return "redirect:/login?redirect=/events/" + id;
@@ -569,19 +576,18 @@ public class EventController {
 
     @PostMapping("/{id}/invite")
     public String inviteFriend(
-        @PathVariable("id") Long id,
-        @RequestParam(name = "friendIds", required = false) List<Long> friendIds,
-        @RequestParam(name = "redirect", required = false) String redirect,
-        @AuthenticationPrincipal AccountUserDetails details,
-        RedirectAttributes redirectAttributes,
-        HttpServletRequest request
-    ) {
+            @PathVariable("id") Long id,
+            @RequestParam(name = "friendIds", required = false) List<Long> friendIds,
+            @RequestParam(name = "redirect", required = false) String redirect,
+            @AuthenticationPrincipal AccountUserDetails details,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id);
             return "redirect:/login?redirect=/events/" + id;
         }
         Event event = eventService.getEventById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         List<User> friends = getFriends(details.getUser());
         if (friendIds == null || friendIds.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Bitte mindestens einen Freund auswählen.");
@@ -590,13 +596,13 @@ public class EventController {
         int sentCount = 0;
         for (Long friendId : friendIds) {
             User friend = friends.stream()
-                .filter(user -> user.getId().equals(friendId))
-                .findFirst()
-                .orElse(null);
+                    .filter(user -> user.getId().equals(friendId))
+                    .findFirst()
+                    .orElse(null);
             if (friend != null) {
                 EventInvitation invitation = eventInvitationService
-                    .getInvitationByEventAndInvitee(event, friend)
-                    .orElse(null);
+                        .getInvitationByEventAndInvitee(event, friend)
+                        .orElse(null);
                 if (invitation == null) {
                     invitation = new EventInvitation();
                     invitation.setEvent(event);
@@ -624,13 +630,12 @@ public class EventController {
 
     @PostMapping("/{id}/leave")
     public String leaveEvent(
-        @PathVariable("id") Long id,
-        @AuthenticationPrincipal AccountUserDetails details,
-        RedirectAttributes redirectAttributes,
-        HttpServletRequest request
-    ) {
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal AccountUserDetails details,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
         Event event = eventService.getEventById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id);
             return "redirect:/login?redirect=/events/" + id;
@@ -649,25 +654,23 @@ public class EventController {
         chatMembershipService.deleteChatMembershipByChatRoomAndUser(event.getEventChatRoom(), details.getUser());
 
         redirectAttributes.addFlashAttribute(
-            "success",
-            "Du hast dich vom Event \"" + event.getName() + "\" abgemeldet."
-        );
+                "success",
+                "Du hast dich vom Event \"" + event.getName() + "\" abgemeldet.");
         return "redirect:/events/" + id;
     }
 
     @GetMapping("/{id}/participants/pdf")
     public ResponseEntity<byte[]> downloadParticipantsPdf(
-        @PathVariable("id") Long id,
-        @AuthenticationPrincipal AccountUserDetails details,
-        HttpServletRequest request
-    ) {
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal AccountUserDetails details,
+            HttpServletRequest request) {
         Event event = eventService.getEventById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id);
             return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, "/login?redirect=/events/" + id)
-                .build();
+                    .header(HttpHeaders.LOCATION, "/login?redirect=/events/" + id)
+                    .build();
         }
         boolean isOrganizer = event.getOrganizer() != null && event.getOrganizer().equals(details.getUser());
         boolean isAdmin = hasAuthority(details, "ADMIN");
@@ -688,20 +691,19 @@ public class EventController {
         byte[] pdfBytes = pdfService.generateEventParticipantsPdf(event, participants);
         String filename = "participants-event-" + id + ".pdf";
         return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-            .contentType(MediaType.APPLICATION_PDF)
-            .body(pdfBytes);
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
     }
 
     @PostMapping("/{id}/cancel")
     public String cancelEvent(
-        @PathVariable("id") Long id,
-        @AuthenticationPrincipal AccountUserDetails details,
-        RedirectAttributes redirectAttributes,
-        HttpServletRequest request
-    ) {
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal AccountUserDetails details,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
         Event event = eventService.getEventById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id);
             return "redirect:/login?redirect=/events/" + id;
@@ -717,7 +719,7 @@ public class EventController {
         for (EventParticipant participant : participants) {
             emailService.sendEventCancellation(participant.getUser(), event, details.getUser());
         }
-        
+
         // set payment event to null
         for (Payment payment : event.getPayments()) {
             payment.setEvent(null);
@@ -731,7 +733,8 @@ public class EventController {
     }
 
     @PostMapping("/{id}/toggleFavourite")
-    public String toggleFavouriteStatus(@PathVariable("id") Long id, @AuthenticationPrincipal AccountUserDetails details) {
+    public String toggleFavouriteStatus(@PathVariable("id") Long id,
+            @AuthenticationPrincipal AccountUserDetails details) {
         User user = details.getUser();
         Event event = eventService.getEventById(id).get();
 
@@ -741,10 +744,9 @@ public class EventController {
         } else {
             eventFavouriteService.addEventFavourite(event, user);
         }
-        
+
         return "redirect:/events/" + id;
     }
-    
 
     private String buildSafeRedirect(String redirect, Long eventId) {
         if (redirect != null && redirect.startsWith("/")) {
@@ -764,11 +766,11 @@ public class EventController {
     private List<User> getFriends(User currentUser) {
         List<Friendship> friendships = friendshipService.findActiveFriendshipsByUser(currentUser);
         return friendships.stream()
-            .map(friendship -> friendship.getRequestor().equals(currentUser)
-                ? friendship.getAddressee()
-                : friendship.getRequestor())
-            .sorted((a, b) -> a.getUsername().compareToIgnoreCase(b.getUsername()))
-            .toList();
+                .map(friendship -> friendship.getRequestor().equals(currentUser)
+                        ? friendship.getAddressee()
+                        : friendship.getRequestor())
+                .sorted((a, b) -> a.getUsername().compareToIgnoreCase(b.getUsername()))
+                .toList();
     }
 
     private boolean hasAuthority(AccountUserDetails details, String authority) {
@@ -776,7 +778,6 @@ public class EventController {
             return false;
         }
         return details.getAuthorities().stream()
-            .anyMatch(granted -> granted.getAuthority().equalsIgnoreCase(authority));
+                .anyMatch(granted -> granted.getAuthority().equalsIgnoreCase(authority));
     }
 }
-
