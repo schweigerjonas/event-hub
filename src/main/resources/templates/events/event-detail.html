@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
-    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-    xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
     layout:decorate="~{layout}">
 <main layout:fragment="main">
     <div class="container mt-4">
@@ -10,7 +9,8 @@
             <div>
                 <div class="d-flex gap-2 align-items-center">
                     <h1 class="mb-1" th:text="${event.name}">Event</h1>
-                    <form th:if="${isFavourite != null}" th:action="@{'/events/' + ${event.id} + '/toggleFavourite'}" method="post">
+                    <form th:if="${isFavourite != null}" th:action="@{'/events/' + ${event.id} + '/toggleFavourite'}"
+                        method="post">
                         <button type="submit" class="btn btn-link p-2" style="height: 100%">
                             <div th:if="${isFavourite}"><i class="bi bi-star-fill"></i></div>
                             <div th:if="${!isFavourite}"><i class="bi bi-star"></i></div>
@@ -34,52 +34,79 @@
                         <div class="row mb-2">
                             <div class="col-sm-4 text-muted">Datum</div>
                             <div class="col-sm-8">
-                                <span th:if="${event.eventTime != null}" th:text="${#temporals.format(event.eventTime, 'dd.MM.yyyy HH:mm')}"></span>
+                                <span th:if="${event.eventTime != null}"
+                                    th:text="${#temporals.format(event.eventTime, 'dd.MM.yyyy HH:mm')}"></span>
                                 <span th:if="${event.eventTime == null}">Nicht angegeben</span>
                             </div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-sm-4 text-muted">Dauer</div>
                             <div class="col-sm-8">
-                                <span th:if="${event.durationMinutes != null}" th:text="${event.durationMinutes} + ' min'"></span>
+                                <span th:if="${event.durationMinutes != null}"
+                                    th:text="${event.durationMinutes} + ' min'"></span>
                                 <span th:if="${event.durationMinutes == null}">Nicht angegeben</span>
                             </div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-sm-4 text-muted">Max. Teilnehmer</div>
                             <div class="col-sm-8">
-                                <span th:if="${event.maxParticipants != null}" th:text="${event.maxParticipants}"></span>
+                                <span th:if="${event.maxParticipants != null}"
+                                    th:text="${event.maxParticipants}"></span>
                                 <span th:if="${event.maxParticipants == null}">Nicht angegeben</span>
                             </div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-sm-4 text-muted">Kosten</div>
                             <div class="col-sm-8">
-                                <span th:if="${event.costs > 0}" th:text="${#numbers.formatDecimal(event.costs, 1, 2)} + ' EUR'"></span>
+                                <span th:if="${event.costs > 0}"
+                                    th:text="${#numbers.formatDecimal(event.costs, 1, 2)} + ' EUR'"></span>
                                 <span th:if="${event.costs <= 0}">Kostenlos</span>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-sm-4 text-muted">Organisator</div>
-                            <div class="col-sm-8" th:text="${event.organizer != null ? event.organizer.username : 'Unbekannt'}"></div>
+                            <div class="col-sm-8"
+                                th:text="${event.organizer != null ? event.organizer.username : 'Unbekannt'}"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 text-muted">Wettervorhersage</div>
+                            <div class="col-sm-8">
+                                <div th:if="${weatherDto != null}" class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="material-symbols-outlined"
+                                            th:text="${weatherDto.getWeatherIconName}"></span>
+                                        <span th:text="${weatherDto.getTemperature} + ' °C'"></span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1 text-primary">
+                                        <span class="material-symbols-outlined">water_drop</span>
+                                        <span th:text="${weatherDto.precipitationProbability} + '%'"></span>
+                                    </div>
+                                </div>
+
+                                <div th:unless="${weatherDto != null}" class="text-muted italic">
+                                    <small>Vorhersage erst 7 Tage vor Beginn</small>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
                             <h5>Beschreibung</h5>
-                            <p th:if="${event.description != null && !event.description.isBlank()}" th:text="${event.description}"></p>
-                            <p class="text-muted" th:if="${event.description == null || event.description.isBlank()}">Keine Beschreibung vorhanden.</p>
+                            <p th:if="${event.description != null && !event.description.isBlank()}"
+                                th:text="${event.description}"></p>
+                            <p class="text-muted" th:if="${event.description == null || event.description.isBlank()}">
+                                Keine Beschreibung vorhanden.</p>
                         </div>
 
                         <div class="mt-4">
                             <h5>Karte</h5>
                             <div id="event-map" class="rounded border" style="min-height: 320px;"
-                                 th:if="${event.location != null && !event.location.isBlank()}"
-                                 th:data-location="${event.location}"
-                                 th:data-lat="${event.latitude}"
-                                 th:data-lon="${event.longitude}">
+                                th:if="${event.location != null && !event.location.isBlank()}"
+                                th:data-location="${event.location}" th:data-lat="${event.latitude}"
+                                th:data-lon="${event.longitude}">
                             </div>
                             <div id="map-message" class="text-muted small mt-2"></div>
-                            <div class="text-muted small mt-2" th:if="${event.location == null || event.location.isBlank()}">
+                            <div class="text-muted small mt-2"
+                                th:if="${event.location == null || event.location.isBlank()}">
                                 Keine Location vorhanden.
                             </div>
                         </div>
@@ -95,7 +122,8 @@
                             </div>
 
                             <div sec:authorize="isAuthenticated()" th:if="${isParticipant}">
-                                <form class="row g-2 align-items-end" th:action="@{'/events/' + ${event.id} + '/ratings'}" method="post">
+                                <form class="row g-2 align-items-end"
+                                    th:action="@{'/events/' + ${event.id} + '/ratings'}" method="post">
                                     <div class="col-12 col-md-3">
                                         <label class="form-label" for="stars">Sterne</label>
                                         <select id="stars" name="stars" class="form-select" required>
@@ -113,13 +141,16 @@
                                         <button class="btn btn-outline-primary" type="submit">Speichern</button>
                                     </div>
                                 </form>
-                                <form th:if="${userRating != null}" th:action="@{'/events/' + ${event.id} + '/ratings/delete'}" method="post" class="mt-2">
-                                    <button class="btn btn-outline-danger btn-sm" type="submit">Bewertung löschen</button>
+                                <form th:if="${userRating != null}"
+                                    th:action="@{'/events/' + ${event.id} + '/ratings/delete'}" method="post"
+                                    class="mt-2">
+                                    <button class="btn btn-outline-danger btn-sm" type="submit">Bewertung
+                                        löschen</button>
                                 </form>
                             </div>
 
                             <form class="row g-2 align-items-end mt-3" th:action="@{'/events/' + ${event.id}}"
-                                  method="get">
+                                method="get">
                                 <input type="hidden" name="ratingPage" value="1">
                                 <input type="hidden" name="ratingSize" th:value="${ratingSize}">
                                 <div class="col-12 col-md-6">
@@ -150,7 +181,8 @@
                                     </div>
                                     <div class="text-muted small" th:if="${rating.createdAt != null}"
                                         th:text="${#temporals.format(rating.createdAt, 'dd.MM.yyyy HH:mm')}"></div>
-                                    <div th:if="${rating.comment != null && !rating.comment.isBlank()}" th:text="${rating.comment}"></div>
+                                    <div th:if="${rating.comment != null && !rating.comment.isBlank()}"
+                                        th:text="${rating.comment}"></div>
                                 </li>
                             </ul>
 
@@ -158,25 +190,29 @@
                                 <ul class="pagination mb-0">
                                     <li class="page-item" th:classappend="${ratingPage == 1} ? 'disabled'">
                                         <a class="page-link"
-                                           th:href="@{/events/{id}(id=${event.id}, ratingPage=1, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}"><<</a>
+                                            th:href="@{/events/{id}(id=${event.id}, ratingPage=1, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}">
+                                            <<< /a>
                                     </li>
                                     <li class="page-item" th:classappend="${ratingPage == 1} ? 'disabled'">
                                         <a class="page-link"
-                                           th:href="@{/events/{id}(id=${event.id}, ratingPage=${ratingPage - 1}, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}">Zurück</a>
+                                            th:href="@{/events/{id}(id=${event.id}, ratingPage=${ratingPage - 1}, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}">Zurück</a>
                                     </li>
-                                    <li class="page-item" th:each="page : ${#numbers.sequence(ratingPage > 2 ? ratingPage - 2 : 1, ratingPage + 2 < ratingTotalPages ? ratingPage + 2 : ratingTotalPages)}"
+                                    <li class="page-item"
+                                        th:each="page : ${#numbers.sequence(ratingPage > 2 ? ratingPage - 2 : 1, ratingPage + 2 < ratingTotalPages ? ratingPage + 2 : ratingTotalPages)}"
                                         th:classappend="${page == ratingPage} ? 'active'">
                                         <a class="page-link"
-                                           th:href="@{/events/{id}(id=${event.id}, ratingPage=${page}, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}"
-                                           th:text="${page}">1</a>
+                                            th:href="@{/events/{id}(id=${event.id}, ratingPage=${page}, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}"
+                                            th:text="${page}">1</a>
                                     </li>
-                                    <li class="page-item" th:classappend="${ratingPage == ratingTotalPages} ? 'disabled'">
+                                    <li class="page-item"
+                                        th:classappend="${ratingPage == ratingTotalPages} ? 'disabled'">
                                         <a class="page-link"
-                                           th:href="@{/events/{id}(id=${event.id}, ratingPage=${ratingPage + 1}, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}">Weiter</a>
+                                            th:href="@{/events/{id}(id=${event.id}, ratingPage=${ratingPage + 1}, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}">Weiter</a>
                                     </li>
-                                    <li class="page-item" th:classappend="${ratingPage == ratingTotalPages} ? 'disabled'">
+                                    <li class="page-item"
+                                        th:classappend="${ratingPage == ratingTotalPages} ? 'disabled'">
                                         <a class="page-link"
-                                           th:href="@{/events/{id}(id=${event.id}, ratingPage=${ratingTotalPages}, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}">>></a>
+                                            th:href="@{/events/{id}(id=${event.id}, ratingPage=${ratingTotalPages}, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}">>></a>
                                     </li>
                                 </ul>
                             </nav>
@@ -193,35 +229,43 @@
                                 <form th:action="@{'/events/' + ${event.id} + '/cancel'}" method="post">
                                     <button class="btn btn-outline-danger w-100" type="submit">Event absagen</button>
                                 </form>
-                                <a class="btn btn-outline-warning w-100 mt-2" th:href="@{'/events/' + ${event.id} + '/edit'}">Event bearbeiten</a>
-                                <a class="btn btn-outline-info w-100 mt-2" th:href="@{'/events/' + ${event.id} + '/participants/pdf'}">Teilnehmerliste PDF</a>
+                                <a class="btn btn-outline-warning w-100 mt-2"
+                                    th:href="@{'/events/' + ${event.id} + '/edit'}">Event bearbeiten</a>
+                                <a class="btn btn-outline-info w-100 mt-2"
+                                    th:href="@{'/events/' + ${event.id} + '/participants/pdf'}">Teilnehmerliste PDF</a>
                             </div>
                             <div th:if="${!isOrganizer && !isAdmin}">
-                                <form th:if="${isParticipant}" th:action="@{'/events/' + ${event.id} + '/leave'}" method="post">
+                                <form th:if="${isParticipant}" th:action="@{'/events/' + ${event.id} + '/leave'}"
+                                    method="post">
                                     <button class="btn btn-outline-danger w-100" type="submit">Abmelden</button>
                                 </form>
-                                <form th:if="${!isParticipant}" th:action="@{'/events/' + ${event.id} + '/join'}" method="post">
+                                <form th:if="${!isParticipant}" th:action="@{'/events/' + ${event.id} + '/join'}"
+                                    method="post">
                                     <button class="btn btn-primary w-100" type="submit">Teilnehmen</button>
                                 </form>
                             </div>
                             <div th:if="${isAdmin && !isOrganizer}">
                                 <form th:action="@{'/events/' + ${event.id} + '/cancel'}" method="post">
-                                    <button class="btn btn-outline-danger w-100 mt-2" type="submit">Event absagen</button>
+                                    <button class="btn btn-outline-danger w-100 mt-2" type="submit">Event
+                                        absagen</button>
                                 </form>
-                                <a class="btn btn-outline-warning w-100 mt-2" th:href="@{'/events/' + ${event.id} + '/edit'}">Event bearbeiten</a>
-                                <a class="btn btn-outline-info w-100 mt-2" th:href="@{'/events/' + ${event.id} + '/participants/pdf'}">Teilnehmerliste PDF</a>
+                                <a class="btn btn-outline-warning w-100 mt-2"
+                                    th:href="@{'/events/' + ${event.id} + '/edit'}">Event bearbeiten</a>
+                                <a class="btn btn-outline-info w-100 mt-2"
+                                    th:href="@{'/events/' + ${event.id} + '/participants/pdf'}">Teilnehmerliste PDF</a>
                             </div>
                             <div th:if="${isParticipant}">
-                                <button class="btn btn-outline-success w-100 mt-2" type="button"
-                                    data-bs-toggle="modal" data-bs-target="#invite-modal"
-                                    th:disabled="${#lists.isEmpty(friends)}">
+                                <button class="btn btn-outline-success w-100 mt-2" type="button" data-bs-toggle="modal"
+                                    data-bs-target="#invite-modal" th:disabled="${#lists.isEmpty(friends)}">
                                     Freunde einladen
                                 </button>
-                                <div class="text-muted small mt-1" th:if="${#lists.isEmpty(friends)}">Keine Freunde verfügbar.</div>
+                                <div class="text-muted small mt-1" th:if="${#lists.isEmpty(friends)}">Keine Freunde
+                                    verfügbar.</div>
                             </div>
                             <div th:if="${isParticipant}">
                                 <form th:action="@{'/chats/' + ${event.eventChatRoom.id}}" method="get">
-                                    <button class="btn btn-outline-secondary w-100 mt-2" type="submit">Eventchat öffnen</button>
+                                    <button class="btn btn-outline-secondary w-100 mt-2" type="submit">Eventchat
+                                        öffnen</button>
                                 </form>
                             </div>
                         </div>
@@ -243,7 +287,8 @@
                         <span class="fw-semibold">Teilnehmer</span>
                         <div class="text-muted small" th:text="${participantsTotalItems} + ' Teilnehmer'"></div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center text-muted small mb-2" th:if="${canViewPayments}">
+                    <div class="d-flex justify-content-between align-items-center text-muted small mb-2"
+                        th:if="${canViewPayments}">
                         <span>Teilnehmer</span>
                         <span>Bezahlt</span>
                     </div>
@@ -265,25 +310,29 @@
                         <ul class="pagination mb-0">
                             <li class="page-item" th:classappend="${participantsPage == 1} ? 'disabled'">
                                 <a class="page-link"
-                                   th:href="@{/events/{id}(id=${event.id}, participantsPage=1, participantsSize=${participantsSize})}"><<</a>
+                                    th:href="@{/events/{id}(id=${event.id}, participantsPage=1, participantsSize=${participantsSize})}">
+                                    <<< /a>
                             </li>
                             <li class="page-item" th:classappend="${participantsPage == 1} ? 'disabled'">
                                 <a class="page-link"
-                                   th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsPage - 1}, participantsSize=${participantsSize})}">Zurück</a>
+                                    th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsPage - 1}, participantsSize=${participantsSize})}">Zurück</a>
                             </li>
-                            <li class="page-item" th:each="page : ${#numbers.sequence(participantsPage > 2 ? participantsPage - 2 : 1, participantsPage + 2 < participantsTotalPages ? participantsPage + 2 : participantsTotalPages)}"
+                            <li class="page-item"
+                                th:each="page : ${#numbers.sequence(participantsPage > 2 ? participantsPage - 2 : 1, participantsPage + 2 < participantsTotalPages ? participantsPage + 2 : participantsTotalPages)}"
                                 th:classappend="${page == participantsPage} ? 'active'">
                                 <a class="page-link"
-                                   th:href="@{/events/{id}(id=${event.id}, participantsPage=${page}, participantsSize=${participantsSize})}"
-                                   th:text="${page}">1</a>
+                                    th:href="@{/events/{id}(id=${event.id}, participantsPage=${page}, participantsSize=${participantsSize})}"
+                                    th:text="${page}">1</a>
                             </li>
-                            <li class="page-item" th:classappend="${participantsPage == participantsTotalPages} ? 'disabled'">
+                            <li class="page-item"
+                                th:classappend="${participantsPage == participantsTotalPages} ? 'disabled'">
                                 <a class="page-link"
-                                   th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsPage + 1}, participantsSize=${participantsSize})}">Weiter</a>
+                                    th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsPage + 1}, participantsSize=${participantsSize})}">Weiter</a>
                             </li>
-                            <li class="page-item" th:classappend="${participantsPage == participantsTotalPages} ? 'disabled'">
+                            <li class="page-item"
+                                th:classappend="${participantsPage == participantsTotalPages} ? 'disabled'">
                                 <a class="page-link"
-                                   th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsTotalPages}, participantsSize=${participantsSize})}">>></a>
+                                    th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsTotalPages}, participantsSize=${participantsSize})}">>></a>
                             </li>
                         </ul>
                     </nav>
@@ -292,7 +341,8 @@
         </div>
     </div>
 
-    <div class="modal fade" id="invite-modal" tabindex="-1" aria-hidden="true" sec:authorize="isAuthenticated()" th:if="${isParticipant}">
+    <div class="modal fade" id="invite-modal" tabindex="-1" aria-hidden="true" sec:authorize="isAuthenticated()"
+        th:if="${isParticipant}">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -312,8 +362,10 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                        <button type="submit" class="btn btn-primary" th:disabled="${#lists.isEmpty(friends)}">Einladung absenden</button>
+                        <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Abbrechen</button>
+                        <button type="submit" class="btn btn-primary" th:disabled="${#lists.isEmpty(friends)}">Einladung
+                            absenden</button>
                     </div>
                 </form>
             </div>
@@ -368,4 +420,5 @@
         }
     </script>
 </main>
+
 </html>
