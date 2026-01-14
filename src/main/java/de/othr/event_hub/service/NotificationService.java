@@ -10,4 +10,9 @@ public interface NotificationService {
 
     List<Notification> getUnreadNotifications(Long userId);
 
+    Long getUnreadNotificationsCount(Long userId);
+
+    void markAsRead(Long notificationId);
+
+    void deleteNotification(Long notificationId);
 }

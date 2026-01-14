@@ -19,6 +19,7 @@ public class NotificationServiceImpl implements NotificationService {
         this.notificationRepository = notificationRepository;
     }
 
+    @Override
     public void createNotification(Long recipientId, NotificationType type, String message, String link) {
         Notification notification = new Notification();
 
@@ -30,7 +31,26 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.save(notification);
     }
 
+    @Override
     public List<Notification> getUnreadNotifications(Long userId) {
         return notificationRepository.findByRecipientIdAndIsReadFalseOrderByCreatedAtDesc(userId);
+    }
+
+    @Override
+    public Long getUnreadNotificationsCount(Long userId) {
+        return notificationRepository.countByRecipientIdAndIsReadFalse(userId);
+    }
+
+    @Override
+    public void markAsRead(Long notificationId) {
+        notificationRepository.findById(notificationId).ifPresent(notification -> {
+            notification.setRead(true);
+            notificationRepository.save(notification);
+        });
+    }
+
+    @Override
+    public void deleteNotification(Long notificationId) {
+        notificationRepository.deleteById(notificationId);
     }
 }

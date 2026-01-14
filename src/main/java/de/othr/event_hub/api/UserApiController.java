@@ -22,8 +22,10 @@ import de.othr.event_hub.dto.EventApiDto;
 import de.othr.event_hub.dto.UserApiDto;
 import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.Event;
+import de.othr.event_hub.model.Notification;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.service.AuthorityService;
+import de.othr.event_hub.service.NotificationService;
 import de.othr.event_hub.service.UserService;
 
 @RestController
@@ -34,6 +36,9 @@ public class UserApiController {
 
     @Autowired
     private AuthorityService authorityService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     private BCryptPasswordEncoder encoder;
@@ -172,6 +177,36 @@ public class UserApiController {
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(favouriteEventsDtos);
+    }
+
+    @GetMapping("/{id}/notifications/unread")
+    public ResponseEntity<List<Notification>> getUnreadNotifications(@PathVariable("id") Long id) {
+        List<Notification> unreadNotifications = notificationService.getUnreadNotifications(id);
+
+        return ResponseEntity.ok(unreadNotifications);
+    }
+
+    @GetMapping("/{id}/notifications/unread/count")
+    public ResponseEntity<Long> getUnreadNotificationsCount(@PathVariable("id") Long id) {
+        Long count = notificationService.getUnreadNotificationsCount(id);
+
+        return ResponseEntity.ok(count);
+    }
+
+    @PutMapping("/{id}/notifications/{notificationId}")
+    public ResponseEntity<Void> markNotificationAsRead(@PathVariable("id") Long id,
+            @PathVariable("notificationId") Long notificationId) {
+        notificationService.markAsRead(notificationId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}/notifications/{notificationId}")
+    public ResponseEntity<Void> deleteNotification(@PathVariable("id") Long id,
+            @PathVariable("notificationId") Long notificationId) {
+        notificationService.deleteNotification(notificationId);
+
+        return ResponseEntity.ok().build();
     }
 
     // Helpers
