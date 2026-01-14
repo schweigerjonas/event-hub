@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -17,29 +18,30 @@ import de.othr.event_hub.model.Authority;
 import de.othr.event_hub.model.Friendship;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.model.enums.FriendshipStatus;
+import de.othr.event_hub.model.enums.NotificationType;
 import de.othr.event_hub.service.FriendshipService;
+import de.othr.event_hub.service.NotificationService;
 import de.othr.event_hub.service.UserService;
-
-import org.springframework.web.bind.annotation.PostMapping;
-
-
 
 @Controller
 @RequestMapping("/friends")
 public class FriendshipController {
-    
+
     private FriendshipService friendshipService;
     private UserService userService;
+    private NotificationService notificationService;
 
-    public FriendshipController(FriendshipService friendshipService, UserService userService) {
+    public FriendshipController(FriendshipService friendshipService, UserService userService,
+            NotificationService notificationService) {
         super();
         this.friendshipService = friendshipService;
         this.userService = userService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/all")
     public String showFriendships(Model model, @AuthenticationPrincipal AccountUserDetails details) {
-        User user = details.getUser(); 
+        User user = details.getUser();
         List<Authority> userAuthorities = user.getAuthorities();
         List<String> authorityDescriptions = userAuthorities.stream().map(Authority::getDescription).toList();
         if (authorityDescriptions.contains("ADMIN")) {
@@ -56,7 +58,8 @@ public class FriendshipController {
     }
 
     @PostMapping("/request")
-    public String sendFriendRequest(@RequestParam String name, @AuthenticationPrincipal AccountUserDetails details, RedirectAttributes redirectAttributes) {
+    public String sendFriendRequest(@RequestParam String name, @AuthenticationPrincipal AccountUserDetails details,
+            RedirectAttributes redirectAttributes) {
         User currentUser = details.getUser();
         User otherUser = userService.getUserByUsername(name);
         if (otherUser == null) {
@@ -69,7 +72,8 @@ public class FriendshipController {
         }
         // check if request is allowed (no current active friendship or pending request)
         if (friendshipService.existsFriendshipBetween(currentUser, otherUser)) {
-            redirectAttributes.addFlashAttribute("error", "Du bist bereits mit diesem Benutzer befreundet oder es wurde bereits eine Freundschaftsanfrage gesendet.");
+            redirectAttributes.addFlashAttribute("error",
+                    "Du bist bereits mit diesem Benutzer befreundet oder es wurde bereits eine Freundschaftsanfrage gesendet.");
             return "redirect:/friends/all";
         }
 
@@ -79,9 +83,15 @@ public class FriendshipController {
         friendship.setStatus(FriendshipStatus.PENDING);
         friendship.setCreatedAt(LocalDateTime.now());
         friendshipService.createFriendship(friendship);
+
+        String message = currentUser.getUsername() + " hat dir eine Freundschaftsanfrage gesendet.";
+        String link = "friends/all";
+
+        notificationService.createNotification(otherUser.getId(), NotificationType.FRIEND_REQUEST, message, link);
+
         return "redirect:/friends/all";
     }
-    
+
     @GetMapping("/remove/{id}")
     public String removeFriendship(@PathVariable("id") Long id) {
         Friendship friendship = friendshipService.getFriendshipById(id).get();
@@ -95,6 +105,13 @@ public class FriendshipController {
         friendship.setStatus(FriendshipStatus.ACCEPTED);
         friendship.setAcceptedAt(LocalDateTime.now());
         friendshipService.updateFriendship(friendship);
+
+        String message = friendship.getAddressee().getUsername() + " hat deine Freundschaftsanfrage angenommen.";
+        String link = "friends/all";
+
+        notificationService.createNotification(friendship.getRequestor().getId(),
+                NotificationType.FRIEND_REQUEST_ACCEPTED,
+                message, link);
         return "redirect:/friends/all";
     }
 }
