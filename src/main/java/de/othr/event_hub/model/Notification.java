@@ -1,5 +1,8 @@
 package de.othr.event_hub.model;
 
+import java.time.LocalDateTime;
+
+import de.othr.event_hub.model.enums.NotificationType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,8 +17,15 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Notification { // in-app notifications @Jonas
+public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private Long recipientId;
+    private NotificationType type;
+    private String message;
+    private String link; // redirect URL
+    private boolean isRead = false;
+    private LocalDateTime createdAd = LocalDateTime.now();
 }
