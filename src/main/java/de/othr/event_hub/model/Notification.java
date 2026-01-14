@@ -27,5 +27,5 @@ public class Notification {
     private String message;
     private String link; // redirect URL
     private boolean isRead = false;
-    private LocalDateTime createdAd = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now();
 }
