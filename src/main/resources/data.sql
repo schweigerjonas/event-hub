@@ -8,12 +8,14 @@ INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUE
 INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('organizer@gmail.com', 'organizer', '$2a$12$Xu5tpzRwH/kMc591xjxVJOwr1jCKMl57Aq0MrEau2PvyNhn.3XIre', 1, false, 'N5ZGOYLONF5GK4TTNF4HIZLFNY======');
 INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('admin@gmail.com', 'admin', '$2a$12$8MRcgh3lTl2xjHFc5X1MvO8XH2MHjTBsPQW1Sx.N4CvE1eMlEp7Mq', 1, false, 'MFSG22LOONUXQ5DFMVXGG2DBOI======');
 INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('user2@gmail.com', 'user2', '$2b$12$Z6Gf/tv5QL0gTRjUWYtOVe4XUEOrs9O3.HWpvt9hUbVOxbmkzf/AW', 1, false, 'OVZWK4RSONUXQ5DFMVXGG2DBOI======');
+INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('user3@gmail.com', 'user3', '$2a$12$dFswRWOmIRet32bS91WWMOYXT1eyHI8FUezDks/bq67LlC6tGIzUu', 1, false, 'OVZWK4RSONUXQ5DFMVXGG2DBOI======');
 
 -- Add user roles
 INSERT INTO user_authorities(user_id, authority_id) VALUES (1, 1);
 INSERT INTO user_authorities(user_id, authority_id) VALUES (2, 2);
 INSERT INTO user_authorities(user_id, authority_id) VALUES (3, 3);
 INSERT INTO user_authorities(user_id, authority_id) VALUES (4, 1);
+INSERT INTO user_authorities(user_id, authority_id) VALUES (5, 1);
 
 -- Add friendships
 INSERT INTO friendships (requestor_id, addressee_id, status, created_at, accepted_at) VALUES (1, 2, 'ACCEPTED', NOW() - 20, NOW() - 10);

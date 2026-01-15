@@ -24,4 +24,6 @@ public interface RatingService {
     long countRatings(Event event);
 
     Double getAverageRating(Event event);
+
+    void deleteRatingsByEvent(Event event);
 }

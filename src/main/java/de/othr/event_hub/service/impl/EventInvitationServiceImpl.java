@@ -54,4 +54,9 @@ public class EventInvitationServiceImpl implements EventInvitationService {
         }
         return eventInvitationRepository.searchOutgoing(user, keyword, pageable);
     }
+
+    @Override
+    public void deleteInvitationsByEvent(Event event) {
+        eventInvitationRepository.deleteByEvent(event);
+    }
 }

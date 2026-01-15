@@ -24,7 +24,8 @@
     <div class="container-fluid content-wrapper flex-grow-1 d-flex">
         <div class="row flex-grow-1">
             <!-- Sidebar -->
-            <nav class="col-auto d-none d-md-block sidebar app-sidebar" th:insert="~{fragments/sidebar :: sidebar}"></nav>
+            <nav class="col-auto d-none d-md-block sidebar app-sidebar" th:insert="~{fragments/sidebar :: sidebar}">
+            </nav>
 
             <!-- Main Content -->
             <main class="col px-md-4 app-main">
@@ -68,6 +69,9 @@
             }
         })();
     </script>
+
+    <!-- Notifications -->
+    <script th:src="@{/js/notifications.js}"></script>
 </body>
 
 </html>
