@@ -608,6 +608,9 @@ public class EventController {
                 EventInvitation invitation = eventInvitationService
                         .getInvitationByEventAndInvitee(event, friend)
                         .orElse(null);
+
+                boolean isNewInvitation = false;
+
                 if (invitation == null) {
                     invitation = new EventInvitation();
                     invitation.setEvent(event);
@@ -615,11 +618,24 @@ public class EventController {
                     invitation.setInvitee(friend);
                     invitation.setStatus(EventInvitationStatus.PENDING);
                     eventInvitationService.createInvitation(invitation);
+                    isNewInvitation = true;
                 } else if (invitation.getStatus() == EventInvitationStatus.DECLINED) {
                     invitation.setStatus(EventInvitationStatus.PENDING);
                     invitation.setRespondedAt(null);
                     eventInvitationService.updateInvitation(invitation);
+                    isNewInvitation = true;
                 }
+
+                if (isNewInvitation) {
+                    User currentUser = details.getUser();
+                    String message = currentUser.getUsername() + " hat dich zum Event '" + event.getName()
+                            + "' eingeladen.";
+                    String link = "/invitations";
+
+                    notificationService.createNotification(friend.getId(), NotificationType.EVENT_INVITATION, message,
+                            link);
+                }
+
                 if (emailService.sendEventInvitation(friend, event, details.getUser())) {
                     sentCount++;
                 }
