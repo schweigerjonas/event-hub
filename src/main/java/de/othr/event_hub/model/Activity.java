@@ -1,9 +1,13 @@
 package de.othr.event_hub.model;
 
+import java.time.LocalDateTime;
+
+import de.othr.event_hub.model.enums.ActivityType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,8 +18,16 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ActivityFeed { // activity feed / timeline @Jonas
+@Table(name = "activities")
+public class Activity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private Long actorId;
+    private String actorName;
+    private ActivityType type;
+    private Long eventId;
+    private String eventName;
+    private LocalDateTime timestamp;
 }
