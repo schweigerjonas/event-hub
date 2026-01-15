@@ -6,6 +6,7 @@
         <div sec:authorize="!isAuthenticated()">
             <a th:href="@{/login}" class="btn btn-light" role="button">Anmelden</a>
         </div>
+        <div sec:authorize="isAuthenticated()" th:replace="~{fragments/notification-bell :: notification-bell}"></div>
         <div sec:authorize="isAuthenticated()" class="dropdown">
             <button class="f-flex align-items-center btn btn-outline-light" data-bs-toggle="dropdown"
                 aria-expanded="false">
