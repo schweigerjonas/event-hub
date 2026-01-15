@@ -56,4 +56,9 @@ public class RatingServiceImpl implements RatingService {
     public Double getAverageRating(Event event) {
         return ratingRepository.getAverageByEvent(event);
     }
+
+    @Override
+    public void deleteRatingsByEvent(Event event) {
+        ratingRepository.deleteByEvent(event);
+    }
 }

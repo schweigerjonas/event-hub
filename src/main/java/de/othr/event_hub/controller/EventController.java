@@ -44,6 +44,7 @@ import de.othr.event_hub.model.User;
 import de.othr.event_hub.model.enums.ChatMembershipRole;
 import de.othr.event_hub.model.enums.ChatRoomType;
 import de.othr.event_hub.model.enums.EventInvitationStatus;
+import de.othr.event_hub.model.enums.NotificationType;
 import de.othr.event_hub.service.ChatMembershipService;
 import de.othr.event_hub.service.ChatRoomService;
 import de.othr.event_hub.service.EmailService;
@@ -54,6 +55,7 @@ import de.othr.event_hub.service.EventService;
 import de.othr.event_hub.service.FriendshipService;
 import de.othr.event_hub.service.LocationCoordinates;
 import de.othr.event_hub.service.LocationService;
+import de.othr.event_hub.service.NotificationService;
 import de.othr.event_hub.service.PaymentService;
 import de.othr.event_hub.service.PdfService;
 import de.othr.event_hub.service.RatingService;
@@ -78,6 +80,7 @@ public class EventController {
     private final PaymentService paymentService;
     private final LocationService locationService;
     private final WeatherService weatherService;
+    private final NotificationService notificationService;
 
     public EventController(
             ChatMembershipService chatMembershipService,
@@ -92,7 +95,8 @@ public class EventController {
             PdfService pdfService,
             PaymentService paymentService,
             LocationService locationService,
-            WeatherService weatherService) {
+            WeatherService weatherService,
+            NotificationService notificationService) {
         super();
         this.chatMembershipService = chatMembershipService;
         this.chatRoomService = chatRoomService;
@@ -107,6 +111,7 @@ public class EventController {
         this.paymentService = paymentService;
         this.locationService = locationService;
         this.weatherService = weatherService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping
@@ -715,9 +720,15 @@ public class EventController {
             return "redirect:/events/" + id;
         }
         User organizer = event.getOrganizer() != null ? event.getOrganizer() : details.getUser();
+
         List<EventParticipant> participants = eventParticipantService.getAllParticipants(event);
+        String message = "Das Event '" + event.getName() + "' wurde leider abgesagt.";
+        String link = "/events";
+        // send email and in app notification for event cancellation
         for (EventParticipant participant : participants) {
             emailService.sendEventCancellation(participant.getUser(), event, details.getUser());
+            notificationService.createNotification(participant.getId(), NotificationType.EVENT_CANCELLATION, message,
+                    link);
         }
 
         // set payment event to null
@@ -725,6 +736,9 @@ public class EventController {
             payment.setEvent(null);
         }
         event.getPayments().clear();
+
+        eventInvitationService.deleteInvitationsByEvent(event);
+        ratingService.deleteRatingsByEvent(event);
 
         eventParticipantService.deleteParticipants(event);
         eventService.deleteEvent(event);

@@ -22,4 +22,6 @@ public interface EventInvitationService {
     Page<EventInvitation> getIncomingInvitations(User user, String keyword, Pageable pageable);
 
     Page<EventInvitation> getOutgoingInvitations(User user, String keyword, Pageable pageable);
+
+    void deleteInvitationsByEvent(Event event);
 }
