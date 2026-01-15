@@ -522,6 +522,13 @@ public class EventController {
         participant.setJoinedAt(now);
         eventParticipantService.createParticipant(participant);
 
+        // create activity feed log entry
+        String message = details.getUsername() + " hat sich für ein Event angemeldet: " + event.getName();
+        String link = "/events/" + event.getId();
+        activityService.logActivity(details.getUser().getId(), event.getId(),
+                ActivityType.EVENT_JOINED,
+                message, link);
+
         // join chat room for event
         ChatMembership chatMembership = new ChatMembership();
         chatMembership.setChatRoom(event.getEventChatRoom());
@@ -569,6 +576,15 @@ public class EventController {
         } else {
             ratingService.updateRating(rating);
         }
+
+        // create activity feed log entry
+        String message = details.getUsername() + " hat das Event '" + event.getName() + "' mit " + stars
+                + " Sternen bewertet";
+        String link = "/events/" + event.getId();
+        activityService.logActivity(details.getUser().getId(), event.getId(),
+                ActivityType.EVENT_RATED,
+                message, link);
+
         redirectAttributes.addFlashAttribute("success", "Bewertung gespeichert.");
         return "redirect:/events/" + id;
     }
@@ -685,6 +701,13 @@ public class EventController {
         }
         eventParticipantService.deleteParticipant(event, details.getUser());
 
+        // create activity feed log entry
+        String message = details.getUsername() + " hat sich von einem Event abgemeldet: " + event.getName();
+        String link = "";
+        activityService.logActivity(details.getUser().getId(), event.getId(),
+                ActivityType.EVENT_LEFT,
+                message, link);
+
         // delete chat membership
         chatMembershipService.deleteChatMembershipByChatRoomAndUser(event.getEventChatRoom(), details.getUser());
 
@@ -760,6 +783,13 @@ public class EventController {
             notificationService.createNotification(participant.getId(), NotificationType.EVENT_CANCELLATION, message,
                     link);
         }
+
+        // create activity feed log entry
+        String activityMessage = event.getOrganizer().getUsername() + " hat sein Event abgesagt: " + event.getName();
+        String activityLink = "/events/" + event.getId();
+        activityService.logActivity(event.getOrganizer().getId(), event.getId(),
+                ActivityType.EVENT_CANCELLED,
+                activityMessage, activityLink);
 
         // set payment event to null
         for (Payment payment : event.getPayments()) {
