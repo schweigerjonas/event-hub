@@ -29,5 +29,5 @@ public class Activity {
     private ActivityType type;
     private Long eventId;
     private String eventName;
-    private LocalDateTime timestamp;
+    private LocalDateTime timestamp = LocalDateTime.now();
 }
