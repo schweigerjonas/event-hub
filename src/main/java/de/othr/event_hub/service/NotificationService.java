@@ -8,6 +8,8 @@ import de.othr.event_hub.model.enums.NotificationType;
 public interface NotificationService {
     void createNotification(Long recipientId, NotificationType type, String message, String link);
 
+    List<Notification> getNotifications(Long userId);
+
     List<Notification> getUnreadNotifications(Long userId);
 
     Long getUnreadNotificationsCount(Long userId);

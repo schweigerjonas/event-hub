@@ -179,6 +179,13 @@ public class UserApiController {
         return ResponseEntity.ok(favouriteEventsDtos);
     }
 
+    @GetMapping("/{id}/notifications")
+    public ResponseEntity<List<Notification>> getNotifications(@PathVariable("id") Long id) {
+        List<Notification> notifications = notificationService.getNotifications(id);
+
+        return ResponseEntity.ok(notifications);
+    }
+
     @GetMapping("/{id}/notifications/unread")
     public ResponseEntity<List<Notification>> getUnreadNotifications(@PathVariable("id") Long id) {
         List<Notification> unreadNotifications = notificationService.getUnreadNotifications(id);
