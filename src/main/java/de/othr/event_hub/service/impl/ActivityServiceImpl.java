@@ -3,12 +3,14 @@ package de.othr.event_hub.service.impl;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import de.othr.event_hub.model.Activity;
 import de.othr.event_hub.model.enums.ActivityType;
 import de.othr.event_hub.repository.ActivityRepository;
 import de.othr.event_hub.service.ActivityService;
 
+@Service
 public class ActivityServiceImpl implements ActivityService {
     @Autowired
     private ActivityRepository activityRepository;
@@ -18,14 +20,14 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
-    public void logActivity(Long actorId, String actorName, ActivityType type, Long eventId, String eventName) {
+    public void logActivity(Long actorId, Long eventId, ActivityType type, String message, String link) {
         Activity activity = new Activity();
 
         activity.setActorId(actorId);
-        activity.setActorName(actorName);
-        activity.setType(type);
         activity.setEventId(eventId);
-        activity.setEventName(eventName);
+        activity.setType(type);
+        activity.setMessage(message);
+        activity.setLink(link);
 
         activityRepository.save(activity);
     }

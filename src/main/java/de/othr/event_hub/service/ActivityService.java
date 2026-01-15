@@ -6,7 +6,7 @@ import de.othr.event_hub.model.Activity;
 import de.othr.event_hub.model.enums.ActivityType;
 
 public interface ActivityService {
-    void logActivity(Long actorId, String actorName, ActivityType type, Long eventId, String eventName);
+    void logActivity(Long actorId, Long eventId, ActivityType type, String message, String link);
 
     List<Activity> getActivityFeed(Long userId);
 }

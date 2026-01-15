@@ -25,9 +25,9 @@ public class Activity {
     private Long id;
 
     private Long actorId;
-    private String actorName;
-    private ActivityType type;
     private Long eventId;
-    private String eventName;
+    private ActivityType type;
+    private String message;
+    private String link;
     private LocalDateTime timestamp = LocalDateTime.now();
 }
