@@ -30,10 +30,7 @@ public class Activity {
     @JoinColumn(name = "actor_id", referencedColumnName = "id")
     private User actor;
 
-    @ManyToOne
-    @JoinColumn(name = "event_id", referencedColumnName = "id")
-    private Event event;
-
+    private Long eventId;
     private ActivityType type;
     private String message;
     private String link;
