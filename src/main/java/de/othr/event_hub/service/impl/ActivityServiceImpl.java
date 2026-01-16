@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import de.othr.event_hub.model.Activity;
+import de.othr.event_hub.model.Event;
+import de.othr.event_hub.model.User;
 import de.othr.event_hub.model.enums.ActivityType;
 import de.othr.event_hub.repository.ActivityRepository;
 import de.othr.event_hub.service.ActivityService;
@@ -20,11 +22,11 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
-    public void logActivity(Long actorId, Long eventId, ActivityType type, String message, String link) {
+    public void logActivity(User actor, Event event, ActivityType type, String message, String link) {
         Activity activity = new Activity();
 
-        activity.setActorId(actorId);
-        activity.setEventId(eventId);
+        activity.setActor(actor);
+        activity.setEvent(event);
         activity.setType(type);
         activity.setMessage(message);
         activity.setLink(link);

@@ -12,7 +12,7 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
 
     @Query("""
             SELECT a FROM Activity a
-            WHERE a.actorId IN (
+            WHERE a.actor.id IN (
                 SELECT CASE
                     WHEN f.requestor.id = :userId THEN f.addressee.id
                     ELSE f.requestor.id

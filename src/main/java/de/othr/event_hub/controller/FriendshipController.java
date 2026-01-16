@@ -87,7 +87,7 @@ public class FriendshipController {
         String message = currentUser.getUsername() + " hat dir eine Freundschaftsanfrage gesendet.";
         String link = "/friends/all";
 
-        notificationService.createNotification(otherUser.getId(), NotificationType.FRIEND_REQUEST, message, link);
+        notificationService.createNotification(otherUser, NotificationType.FRIEND_REQUEST, message, link);
 
         return "redirect:/friends/all";
     }
@@ -109,7 +109,7 @@ public class FriendshipController {
         String message = friendship.getAddressee().getUsername() + " hat deine Freundschaftsanfrage angenommen.";
         String link = "/friends/all";
 
-        notificationService.createNotification(friendship.getRequestor().getId(),
+        notificationService.createNotification(friendship.getRequestor(),
                 NotificationType.FRIEND_REQUEST_ACCEPTED,
                 message, link);
         return "redirect:/friends/all";
