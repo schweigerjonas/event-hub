@@ -228,6 +228,9 @@ public class EventController {
             BindingResult result,
             @AuthenticationPrincipal AccountUserDetails details,
             RedirectAttributes redirectAttributes,
+            @RequestParam(name = "locationQuery", required = false) String locationQuery,
+            @RequestParam(name = "locationLat", required = false) Double locationLat,
+            @RequestParam(name = "locationLon", required = false) Double locationLon,
             HttpServletRequest request) {
         // paid events require a price
         if (details == null || details.getUser() == null) {
@@ -245,7 +248,7 @@ public class EventController {
         LocationCoordinates coordinates = null;
         String rawLocation = eventForm.getLocation();
         if (!result.hasFieldErrors("location")) {
-            coordinates = locationService.findCoordinates(rawLocation).orElse(null);
+            coordinates = resolveLocationCoordinates(rawLocation, locationQuery, locationLat, locationLon);
             if (coordinates == null) {
                 result.rejectValue("location", "event.location.invalid", "Adresse wurde nicht gefunden.");
             }
@@ -340,6 +343,9 @@ public class EventController {
         form.setDescription(event.getDescription());
         form.setEventTime(event.getEventTime());
         model.addAttribute("eventForm", form);
+        model.addAttribute("locationQuery", event.getLocation());
+        model.addAttribute("locationLat", event.getLatitude());
+        model.addAttribute("locationLon", event.getLongitude());
         model.addAttribute("eventId", id);
         return "events/event-edit";
     }
@@ -351,6 +357,9 @@ public class EventController {
             BindingResult result,
             @AuthenticationPrincipal AccountUserDetails details,
             RedirectAttributes redirectAttributes,
+            @RequestParam(name = "locationQuery", required = false) String locationQuery,
+            @RequestParam(name = "locationLat", required = false) Double locationLat,
+            @RequestParam(name = "locationLon", required = false) Double locationLon,
             HttpServletRequest request,
             Model model) {
         Event event = eventService.getEventById(id)
@@ -371,7 +380,7 @@ public class EventController {
         LocationCoordinates coordinates = null;
         String rawLocation = eventForm.getLocation();
         if (!result.hasFieldErrors("location")) {
-            coordinates = locationService.findCoordinates(rawLocation).orElse(null);
+            coordinates = resolveLocationCoordinates(rawLocation, locationQuery, locationLat, locationLon);
             if (coordinates == null) {
                 result.rejectValue("location", "event.location.invalid", "Adresse wurde nicht gefunden.");
             }
@@ -843,6 +852,25 @@ public class EventController {
         }
         String trimmed = description.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private LocationCoordinates resolveLocationCoordinates(String rawLocation, String validatedQuery,
+            Double validatedLat, Double validatedLon) {
+        if (validatedLat != null && validatedLon != null && validatedQuery != null && rawLocation != null) {
+            String normalizedRaw = normalizeLocationInput(rawLocation);
+            String normalizedValidated = normalizeLocationInput(validatedQuery);
+            if (!normalizedRaw.isBlank() && normalizedRaw.equalsIgnoreCase(normalizedValidated)) {
+                return new LocationCoordinates(validatedLat, validatedLon);
+            }
+        }
+        return locationService.findCoordinates(rawLocation).orElse(null);
+    }
+
+    private String normalizeLocationInput(String location) {
+        if (location == null) {
+            return "";
+        }
+        return location.trim().replaceAll("\\s+", " ");
     }
 
     private String formatLocation(String location) {

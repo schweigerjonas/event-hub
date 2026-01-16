@@ -393,27 +393,8 @@
 
             if (!Number.isNaN(latValue) && !Number.isNaN(lonValue)) {
                 renderMap(latValue, lonValue, locationQuery);
-            } else if (locationQuery) {
-                // fallback geocode when coordinates are missing
-                const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(locationQuery)}`;
-                fetch(url)
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (!data || data.length === 0) {
-                            if (mapMessage) {
-                                mapMessage.textContent = "Keine Position gefunden.";
-                            }
-                            return;
-                        }
-                        const lat = parseFloat(data[0].lat);
-                        const lon = parseFloat(data[0].lon);
-                        renderMap(lat, lon, locationQuery);
-                    })
-                    .catch(() => {
-                        if (mapMessage) {
-                            mapMessage.textContent = "Karte konnte nicht geladen werden.";
-                        }
-                    });
+            } else if (locationQuery && mapMessage) {
+                mapMessage.textContent = "Keine Koordinaten vorhanden.";
             }
         }
     </script>

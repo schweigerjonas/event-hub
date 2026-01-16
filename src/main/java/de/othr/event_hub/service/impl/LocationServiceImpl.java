@@ -22,7 +22,6 @@ import de.othr.event_hub.service.LocationService;
 public class LocationServiceImpl implements LocationService {
 
     private static final String NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
-    private static final String PHOTON_URL = "https://photon.komoot.io/api/";
     private static final String USER_AGENT = "event-hub/1.0 (oth.eventhub@gmail.com)";
 
     @Override
@@ -32,10 +31,6 @@ public class LocationServiceImpl implements LocationService {
             return Optional.empty();
         }
         for (String query : buildCoordinateQueries(normalized)) {
-            Optional<LocationCoordinates> photon = findPhotonCoordinates(query);
-            if (photon.isPresent()) {
-                return photon;
-            }
             Optional<LocationCoordinates> nominatim = findNominatimCoordinates(query);
             if (nominatim.isPresent()) {
                 return nominatim;
@@ -44,108 +39,34 @@ public class LocationServiceImpl implements LocationService {
         return Optional.empty();
     }
 
-    private Optional<LocationCoordinates> findPhotonCoordinates(String query) {
-        if (query == null || query.isBlank()) {
-            return Optional.empty();
-        }
-        String url = UriComponentsBuilder.fromUriString(PHOTON_URL)
-            .queryParam("q", query)
-            .queryParam("limit", 10)
-            .queryParam("lang", "de")
-            .toUriString();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("User-Agent", USER_AGENT);
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
-        Map<?, ?> body = response.getBody();
-        if (body == null) {
-            return Optional.empty();
-        }
-        Object featuresObj = body.get("features");
-        if (!(featuresObj instanceof List<?> features) || features.isEmpty()) {
-            return Optional.empty();
-        }
-        List<String> queryTokens = tokenizePhotonQueryTokens(query);
-        String cityToken = extractPhotonCityToken(queryTokens);
-        LocationCoordinates fallback = null;
-        LocationCoordinates germanFallback = null;
-        LocationCoordinates cityMismatchFallback = null;
-        for (Object featureObj : features) {
-            if (!(featureObj instanceof Map<?, ?> featureMap)) {
-                continue;
-            }
-            Object geometryObj = featureMap.get("geometry");
-            if (!(geometryObj instanceof Map<?, ?> geometry)) {
-                continue;
-            }
-            Object coordsObj = geometry.get("coordinates");
-            if (!(coordsObj instanceof List<?> coords) || coords.size() < 2) {
-                continue;
-            }
-            double lon = Double.parseDouble(coords.get(0).toString());
-            double lat = Double.parseDouble(coords.get(1).toString());
-            LocationCoordinates candidate = new LocationCoordinates(lat, lon);
-            Object propsObj = featureMap.get("properties");
-            if (propsObj instanceof Map<?, ?> props) {
-                boolean isGerman = "de".equalsIgnoreCase(String.valueOf(props.get("countrycode")));
-                boolean cityMatch = true;
-                String candidateCity = extractPhotonCandidateCity(props);
-                if (!cityToken.isBlank()) {
-                    if (candidateCity == null) {
-                        candidateCity = extractPhotonCandidateRegion(props);
-                    }
-                    if (candidateCity != null) {
-                        String candidateCityNormalized = normalizeForSearch(candidateCity);
-                        if (!candidateCityNormalized.contains(cityToken)) {
-                            cityMatch = false;
-                        }
-                    }
-                }
-                if (cityMatch) {
-                    if (germanFallback == null && isGerman) {
-                        germanFallback = candidate;
-                    }
-                    if (!queryTokens.isEmpty()) {
-                        String candidateText = buildPhotonCandidateText(props);
-                        if (!candidateText.isBlank() && matchesPhotonTokens(candidateText, queryTokens)) {
-                            return Optional.of(candidate);
-                        }
-                    }
-                } else if (cityMismatchFallback == null && isGerman) {
-                    cityMismatchFallback = candidate;
-                }
-            }
-            if (fallback == null) {
-                fallback = candidate;
-            }
-        }
-        if (germanFallback != null) {
-            return Optional.of(germanFallback);
-        }
-        if (cityMismatchFallback != null) {
-            return Optional.of(cityMismatchFallback);
-        }
-        return Optional.ofNullable(fallback);
-    }
-
     private Optional<LocationCoordinates> findNominatimCoordinates(String location) {
         try {
             String normalized = normalizeQuery(location);
             if (normalized.isBlank()) {
                 return Optional.empty();
             }
+            List<String[]> structuredQueries = buildNominatimStructuredQueries(normalized);
+            boolean hasHouseNumber = hasHouseNumberToken(normalized);
+            if (hasHouseNumber) {
+                for (String[] structured : structuredQueries) {
+                    Optional<LocationCoordinates> structuredResult = fetchNominatimCoordinates(
+                        buildNominatimStructuredUrl(structured[0], structured[1], structured[2]));
+                    if (structuredResult.isPresent()) {
+                        return structuredResult;
+                    }
+                }
+            }
             Optional<LocationCoordinates> direct = fetchNominatimCoordinates(buildNominatimQueryUrl(normalized));
             if (direct.isPresent()) {
                 return direct;
             }
-            for (String[] structured : buildNominatimStructuredQueries(normalized)) {
-                Optional<LocationCoordinates> structuredResult = fetchNominatimCoordinates(
-                    buildNominatimStructuredUrl(structured[0], structured[1], structured[2]));
-                if (structuredResult.isPresent()) {
-                    return structuredResult;
+            if (!hasHouseNumber) {
+                for (String[] structured : structuredQueries) {
+                    Optional<LocationCoordinates> structuredResult = fetchNominatimCoordinates(
+                        buildNominatimStructuredUrl(structured[0], structured[1], structured[2]));
+                    if (structuredResult.isPresent()) {
+                        return structuredResult;
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -171,15 +92,16 @@ public class LocationServiceImpl implements LocationService {
     }
 
     private String buildNominatimStructuredUrl(String street, String city, String houseNumber) {
+        String streetValue = street;
+        if (houseNumber != null && !houseNumber.isBlank()) {
+            streetValue = houseNumber + " " + street;
+        }
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(NOMINATIM_URL)
             .queryParam("format", "json")
             .queryParam("limit", "1")
             .queryParam("countrycodes", "de")
-            .queryParam("street", street)
+            .queryParam("street", streetValue)
             .queryParam("city", city);
-        if (houseNumber != null && !houseNumber.isBlank()) {
-            builder.queryParam("housenumber", houseNumber);
-        }
         return builder.toUriString();
     }
 
@@ -255,22 +177,17 @@ public class LocationServiceImpl implements LocationService {
         return null;
     }
 
+    private boolean hasHouseNumberToken(String query) {
+        return query != null && query.matches(".*\\b\\d+[a-zA-Z]?(?:-\\d+[a-zA-Z]?)?\\b.*");
+    }
+
     private List<String> buildCoordinateQueries(String query) {
         Set<String> queries = new LinkedHashSet<>();
         addQueryVariants(queries, query);
-        String withoutCityToken = removeTrailingCityToken(query);
-        if (!withoutCityToken.equalsIgnoreCase(query)) {
-            addQueryVariants(queries, withoutCityToken);
-        }
-        String lastToFront = rotateLastTokenToFront(query);
-        if (!lastToFront.equalsIgnoreCase(query)) {
-            addQueryVariants(queries, lastToFront);
-        }
         String swapped = swapQuery(query);
         if (!swapped.equalsIgnoreCase(query)) {
             addQueryVariants(queries, swapped);
         }
-        queries.add(query + " deutschland");
         return new ArrayList<>(queries);
     }
 
@@ -283,14 +200,6 @@ public class LocationServiceImpl implements LocationService {
             queries.add(asciiVariant);
             queries.addAll(buildStreetVariants(asciiVariant));
             queries.addAll(buildCompoundStreetVariants(asciiVariant));
-        }
-        for (String commaVariant : buildCommaVariants(query)) {
-            queries.add(commaVariant);
-        }
-        if (!asciiVariant.equalsIgnoreCase(query)) {
-            for (String commaVariant : buildCommaVariants(asciiVariant)) {
-                queries.add(commaVariant);
-            }
         }
     }
 
@@ -401,56 +310,6 @@ public class LocationServiceImpl implements LocationService {
         return List.of();
     }
 
-    private String removeTrailingCityToken(String query) {
-        String[] parts = query.trim().split("\\s+");
-        if (parts.length < 3) {
-            return query;
-        }
-        String last = parts[parts.length - 1];
-        if (containsDigit(last)) {
-            return query;
-        }
-        String[] remaining = java.util.Arrays.copyOf(parts, parts.length - 1);
-        return String.join(" ", remaining).trim();
-    }
-
-    private List<String> buildCommaVariants(String query) {
-        List<String> variants = new ArrayList<>();
-        String trimmed = query.trim();
-        int lastSpace = trimmed.lastIndexOf(' ');
-        if (lastSpace < 1) {
-            return variants;
-        }
-        String lastToken = trimmed.substring(lastSpace + 1).trim();
-        if (lastToken.isBlank() || containsDigit(lastToken)) {
-            return variants;
-        }
-        String rest = trimmed.substring(0, lastSpace).trim();
-        if (rest.isBlank()) {
-            return variants;
-        }
-        variants.add(rest + ", " + lastToken);
-        variants.add(lastToken + ", " + rest);
-        return variants;
-    }
-
-    private String rotateLastTokenToFront(String query) {
-        String trimmed = query.trim();
-        int lastSpace = trimmed.lastIndexOf(' ');
-        if (lastSpace < 1) {
-            return trimmed;
-        }
-        String lastToken = trimmed.substring(lastSpace + 1).trim();
-        if (lastToken.isBlank() || containsDigit(lastToken)) {
-            return trimmed;
-        }
-        String rest = trimmed.substring(0, lastSpace).trim();
-        if (rest.isBlank()) {
-            return trimmed;
-        }
-        return lastToken + " " + rest;
-    }
-
     private boolean containsDigit(String value) {
         for (int i = 0; i < value.length(); i++) {
             if (Character.isDigit(value.charAt(i))) {
@@ -458,114 +317,6 @@ public class LocationServiceImpl implements LocationService {
             }
         }
         return false;
-    }
-
-    private List<String> tokenizePhotonQueryTokens(String query) {
-        String normalized = normalizeForSearch(query);
-        String[] parts = normalized.split("\\s+");
-        List<String> tokens = new ArrayList<>();
-        for (String part : parts) {
-            if (part.length() >= 2) {
-                tokens.add(part);
-            }
-        }
-        return tokens;
-    }
-
-    private String extractPhotonCityToken(List<String> tokens) {
-        if (tokens.isEmpty()) {
-            return "";
-        }
-        String lastToken = tokens.get(tokens.size() - 1);
-        if (containsDigit(lastToken)) {
-            return tokens.get(0);
-        }
-        return lastToken;
-    }
-
-    private String extractPhotonCandidateCity(Map<?, ?> props) {
-        Object value = props.get("city");
-        if (value == null) {
-            value = props.get("town");
-        }
-        if (value == null) {
-            value = props.get("village");
-        }
-        if (value == null) {
-            value = props.get("municipality");
-        }
-        if (value == null) {
-            value = props.get("locality");
-        }
-        if (value == null) {
-            value = props.get("hamlet");
-        }
-        if (value == null) {
-            value = props.get("suburb");
-        }
-        if (value == null) {
-            value = props.get("neighbourhood");
-        }
-        if (value == null) {
-            value = props.get("county");
-        }
-        return value != null ? value.toString() : null;
-    }
-
-    private String extractPhotonCandidateRegion(Map<?, ?> props) {
-        Object value = props.get("district");
-        if (value == null) {
-            value = props.get("county");
-        }
-        if (value == null) {
-            value = props.get("state");
-        }
-        return value != null ? value.toString() : null;
-    }
-
-    private boolean matchesPhotonTokens(String candidateText, List<String> tokens) {
-        String normalized = normalizeForSearch(candidateText);
-        for (String token : tokens) {
-            if (normalized.contains(token)) {
-                continue;
-            }
-            if (containsDigit(token)) {
-                String digits = token.replaceAll("\\D+", "");
-                if (!digits.isBlank() && matchesPhotonNumberToken(normalized, digits)) {
-                    continue;
-                }
-            }
-            return false;
-        }
-        return true;
-    }
-
-    private String buildPhotonCandidateText(Map<?, ?> props) {
-        StringBuilder builder = new StringBuilder();
-        appendPhotonIfPresent(builder, props.get("name"));
-        appendPhotonIfPresent(builder, props.get("street"));
-        appendPhotonIfPresent(builder, props.get("housenumber"));
-        appendPhotonIfPresent(builder, props.get("city"));
-        appendPhotonIfPresent(builder, props.get("district"));
-        appendPhotonIfPresent(builder, props.get("state"));
-        appendPhotonIfPresent(builder, props.get("county"));
-        appendPhotonIfPresent(builder, props.get("postcode"));
-        appendPhotonIfPresent(builder, props.get("country"));
-        return builder.toString().trim();
-    }
-
-    private void appendPhotonIfPresent(StringBuilder builder, Object value) {
-        if (value == null) {
-            return;
-        }
-        String text = value.toString().trim();
-        if (text.isBlank()) {
-            return;
-        }
-        if (!builder.isEmpty()) {
-            builder.append(' ');
-        }
-        builder.append(text);
     }
 
     private String normalizeForSearch(String value) {
@@ -576,17 +327,6 @@ public class LocationServiceImpl implements LocationService {
         normalized = normalized.replace("\u00f6", "oe");
         normalized = normalized.replace("\u00fc", "ue");
         return normalized;
-    }
-
-    private boolean matchesPhotonNumberToken(String candidateText, String digits) {
-        String[] parts = candidateText.split("\\s+");
-        for (String part : parts) {
-            String token = part.replaceAll("[^a-z0-9]", "");
-            if (token.startsWith(digits)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private String swapQuery(String query) {

@@ -1,5 +1,6 @@
 package de.othr.event_hub.controller;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -22,11 +23,19 @@ public class LocationController {
 
     @GetMapping("/validate")
     public ResponseEntity<Map<String, Object>> validate(@RequestParam("query") String query) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("valid", false);
         if (query == null || query.trim().length() < 3) {
-            return ResponseEntity.ok(Map.of("valid", false, "candidates", java.util.List.of()));
+            return ResponseEntity.ok(payload);
         }
         String normalized = query.trim();
-        boolean coordinates = locationService.findCoordinates(normalized).isPresent();
-        return ResponseEntity.ok(Map.of("valid", coordinates));
+        return locationService.findCoordinates(normalized)
+            .map(coords -> {
+                payload.put("valid", true);
+                payload.put("lat", coords.latitude());
+                payload.put("lon", coords.longitude());
+                return ResponseEntity.ok(payload);
+            })
+            .orElseGet(() -> ResponseEntity.ok(payload));
     }
 }

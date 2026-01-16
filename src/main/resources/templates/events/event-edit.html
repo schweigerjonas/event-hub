@@ -20,6 +20,9 @@
                 </div>
                 <div id="location-feedback" class="location-feedback" aria-live="polite"></div>
                 <div id="location-server-error" class="invalid-feedback d-block" th:if="${#fields.hasErrors('location')}" th:errors="*{location}"></div>
+                <input type="hidden" id="locationQuery" name="locationQuery" th:value="${locationQuery}">
+                <input type="hidden" id="locationLat" name="locationLat" th:value="${locationLat}">
+                <input type="hidden" id="locationLon" name="locationLon" th:value="${locationLon}">
             </div>
             <div class="col-md-4">
                 <label class="form-label" for="durationMinutes">Dauer (Minuten)</label>
@@ -92,7 +95,22 @@
         const locationStatus = document.getElementById("location-status");
         const locationFeedback = document.getElementById("location-feedback");
         const locationServerError = document.getElementById("location-server-error");
+        const locationQueryInput = document.getElementById("locationQuery");
+        const locationLatInput = document.getElementById("locationLat");
+        const locationLonInput = document.getElementById("locationLon");
         let locationRequestId = 0;
+
+        const clearLocationCache = () => {
+            if (locationQueryInput) {
+                locationQueryInput.value = "";
+            }
+            if (locationLatInput) {
+                locationLatInput.value = "";
+            }
+            if (locationLonInput) {
+                locationLonInput.value = "";
+            }
+        };
 
         const hideServerError = () => {
             if (locationServerError) {
@@ -113,6 +131,7 @@
                 locationFeedback.textContent = "";
                 locationFeedback.classList.remove("is-invalid");
             }
+            clearLocationCache();
         };
 
         const setLocationLoading = () => {
@@ -177,6 +196,16 @@
                 }
                 if (data && data.valid) {
                     setLocationValid();
+                    const latValue = Number.parseFloat(data.lat);
+                    const lonValue = Number.parseFloat(data.lon);
+                    if (locationQueryInput && locationLatInput && locationLonInput
+                        && !Number.isNaN(latValue) && !Number.isNaN(lonValue)) {
+                        locationQueryInput.value = query;
+                        locationLatInput.value = latValue;
+                        locationLonInput.value = lonValue;
+                    } else {
+                        clearLocationCache();
+                    }
                 } else {
                     setLocationInvalid();
                 }
