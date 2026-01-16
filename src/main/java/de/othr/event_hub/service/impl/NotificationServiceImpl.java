@@ -34,17 +34,17 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<Notification> getNotifications(Long userId) {
-        return notificationRepository.findByRecipientId(userId);
+        return notificationRepository.findByRecipient_Id(userId);
     }
 
     @Override
     public List<Notification> getUnreadNotifications(Long userId) {
-        return notificationRepository.findByRecipientIdAndIsReadFalseOrderByCreatedAtDesc(userId);
+        return notificationRepository.findByRecipient_IdAndIsReadFalseOrderByCreatedAtDesc(userId);
     }
 
     @Override
     public Long getUnreadNotificationsCount(Long userId) {
-        return notificationRepository.countByRecipientIdAndIsReadFalse(userId);
+        return notificationRepository.countByRecipient_IdAndIsReadFalse(userId);
     }
 
     @Override
