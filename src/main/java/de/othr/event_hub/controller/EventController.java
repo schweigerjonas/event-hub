@@ -269,7 +269,7 @@ public class EventController {
         // create activity feed log entry
         User eventCreator = createdEvent.getOrganizer();
         String message = eventCreator.getUsername() + " hat ein Event erstellt: " + createdEvent.getName();
-        String link = "/events/" + createdEvent.getId();
+        String link = "events/" + createdEvent.getId();
         activityService.logActivity(eventCreator.getId(), createdEvent.getId(),
                 ActivityType.EVENT_CREATED,
                 message, link);
@@ -524,7 +524,7 @@ public class EventController {
 
         // create activity feed log entry
         String message = details.getUsername() + " hat sich für ein Event angemeldet: " + event.getName();
-        String link = "/events/" + event.getId();
+        String link = "events/" + event.getId();
         activityService.logActivity(details.getUser().getId(), event.getId(),
                 ActivityType.EVENT_JOINED,
                 message, link);
@@ -580,7 +580,7 @@ public class EventController {
         // create activity feed log entry
         String message = details.getUsername() + " hat das Event '" + event.getName() + "' mit " + stars
                 + " Sternen bewertet";
-        String link = "/events/" + event.getId();
+        String link = "events/" + event.getId();
         activityService.logActivity(details.getUser().getId(), event.getId(),
                 ActivityType.EVENT_RATED,
                 message, link);
@@ -786,7 +786,7 @@ public class EventController {
 
         // create activity feed log entry
         String activityMessage = event.getOrganizer().getUsername() + " hat sein Event abgesagt: " + event.getName();
-        String activityLink = "/events/" + event.getId();
+        String activityLink = "events/" + event.getId();
         activityService.logActivity(event.getOrganizer().getId(), event.getId(),
                 ActivityType.EVENT_CANCELLED,
                 activityMessage, activityLink);
