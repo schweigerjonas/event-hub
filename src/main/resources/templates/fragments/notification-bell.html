@@ -1,7 +1,7 @@
 <div th:fragment="notification-bell" class="nav-item dropdown mx-3">
-    <button class="nav-link btn btn-outline-light btn-sm theme-toggle position-relative cursor-pointer"
-        id="notificationDropdown" type="button" th:data-user-id="${#authentication.principal.user.id}"
-        data-bs-toggle="dropdown" aria-expanded="false">
+    <button class="btn btn-outline-light btn-sm theme-toggle position-relative cursor-pointer" id="notificationDropdown"
+        type="button" th:data-user-id="${#authentication.principal.user.id}" data-bs-toggle="dropdown"
+        aria-expanded="false">
         <span class="material-symbols-outlined">notifications</span>
         <span id="unread-count"
             class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle d-none">

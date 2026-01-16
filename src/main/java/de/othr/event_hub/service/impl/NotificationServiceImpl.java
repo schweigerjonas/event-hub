@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import de.othr.event_hub.model.Notification;
+import de.othr.event_hub.model.User;
 import de.othr.event_hub.model.enums.NotificationType;
 import de.othr.event_hub.repository.NotificationRepository;
 import de.othr.event_hub.service.NotificationService;
@@ -20,10 +21,10 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void createNotification(Long recipientId, NotificationType type, String message, String link) {
+    public void createNotification(User recipient, NotificationType type, String message, String link) {
         Notification notification = new Notification();
 
-        notification.setRecipientId(recipientId);
+        notification.setRecipient(recipient);
         notification.setType(type);
         notification.setMessage(message);
         notification.setLink(link);
@@ -33,17 +34,17 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<Notification> getNotifications(Long userId) {
-        return notificationRepository.findByRecipientId(userId);
+        return notificationRepository.findByRecipient_Id(userId);
     }
 
     @Override
     public List<Notification> getUnreadNotifications(Long userId) {
-        return notificationRepository.findByRecipientIdAndIsReadFalseOrderByCreatedAtDesc(userId);
+        return notificationRepository.findByRecipient_IdAndIsReadFalseOrderByCreatedAtDesc(userId);
     }
 
     @Override
     public Long getUnreadNotificationsCount(Long userId) {
-        return notificationRepository.countByRecipientIdAndIsReadFalse(userId);
+        return notificationRepository.countByRecipient_IdAndIsReadFalse(userId);
     }
 
     @Override
