@@ -122,3 +122,57 @@ body {
     max-height: 500px;
     overflow-y: auto;
 }
+
+.timeline {
+    position: relative;
+    padding: 20px 0;
+    list-style: none;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 40px;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+    padding-left: 70px;
+}
+
+.timeline-marker {
+    position: absolute;
+    top: 30px;
+    left: 31px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--app-accent);
+    border: 3px solid var(--app-accent-contrast);
+    box-shadow: 0 0 0 2px #e9ecef;
+}
+
+.timeline-content {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid var(--app-border);
+    background-color: var(--app-card-bg);
+    color: var(--app-text);
+}
+
+.timeline-date {
+    font-size: 0.85rem;
+    color: var(--app-muted);
+    margin-bottom: 5px;
+    display: block;
+}
+
+.empty-feed {
+    color: var(--app-muted);
+}

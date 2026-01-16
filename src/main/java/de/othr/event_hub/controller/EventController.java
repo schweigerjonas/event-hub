@@ -41,10 +41,12 @@ import de.othr.event_hub.model.Friendship;
 import de.othr.event_hub.model.Payment;
 import de.othr.event_hub.model.Rating;
 import de.othr.event_hub.model.User;
+import de.othr.event_hub.model.enums.ActivityType;
 import de.othr.event_hub.model.enums.ChatMembershipRole;
 import de.othr.event_hub.model.enums.ChatRoomType;
 import de.othr.event_hub.model.enums.EventInvitationStatus;
 import de.othr.event_hub.model.enums.NotificationType;
+import de.othr.event_hub.service.ActivityService;
 import de.othr.event_hub.service.ChatMembershipService;
 import de.othr.event_hub.service.ChatRoomService;
 import de.othr.event_hub.service.EmailService;
@@ -81,6 +83,7 @@ public class EventController {
     private final LocationService locationService;
     private final WeatherService weatherService;
     private final NotificationService notificationService;
+    private final ActivityService activityService;
 
     public EventController(
             ChatMembershipService chatMembershipService,
@@ -96,7 +99,8 @@ public class EventController {
             PaymentService paymentService,
             LocationService locationService,
             WeatherService weatherService,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            ActivityService activityService) {
         super();
         this.chatMembershipService = chatMembershipService;
         this.chatRoomService = chatRoomService;
@@ -112,6 +116,7 @@ public class EventController {
         this.locationService = locationService;
         this.weatherService = weatherService;
         this.notificationService = notificationService;
+        this.activityService = activityService;
     }
 
     @GetMapping
@@ -260,6 +265,15 @@ public class EventController {
         event.setOrganizer(details.getUser());
 
         Event createdEvent = eventService.createEvent(event);
+
+        // create activity feed log entry
+        User eventCreator = createdEvent.getOrganizer();
+        String message = eventCreator.getUsername() + " hat ein Event erstellt: " + createdEvent.getName();
+        String link = "events/" + createdEvent.getId();
+        activityService.logActivity(eventCreator.getId(), createdEvent.getId(),
+                ActivityType.EVENT_CREATED,
+                message, link);
+
         EventParticipant organizerParticipant = new EventParticipant();
         organizerParticipant.setEvent(createdEvent);
         organizerParticipant.setUser(details.getUser());
@@ -508,6 +522,13 @@ public class EventController {
         participant.setJoinedAt(now);
         eventParticipantService.createParticipant(participant);
 
+        // create activity feed log entry
+        String message = details.getUsername() + " hat sich für ein Event angemeldet: " + event.getName();
+        String link = "events/" + event.getId();
+        activityService.logActivity(details.getUser().getId(), event.getId(),
+                ActivityType.EVENT_JOINED,
+                message, link);
+
         // join chat room for event
         ChatMembership chatMembership = new ChatMembership();
         chatMembership.setChatRoom(event.getEventChatRoom());
@@ -555,6 +576,15 @@ public class EventController {
         } else {
             ratingService.updateRating(rating);
         }
+
+        // create activity feed log entry
+        String message = details.getUsername() + " hat das Event '" + event.getName() + "' mit " + stars
+                + " Sternen bewertet";
+        String link = "events/" + event.getId();
+        activityService.logActivity(details.getUser().getId(), event.getId(),
+                ActivityType.EVENT_RATED,
+                message, link);
+
         redirectAttributes.addFlashAttribute("success", "Bewertung gespeichert.");
         return "redirect:/events/" + id;
     }
@@ -671,6 +701,13 @@ public class EventController {
         }
         eventParticipantService.deleteParticipant(event, details.getUser());
 
+        // create activity feed log entry
+        String message = details.getUsername() + " hat sich von einem Event abgemeldet: " + event.getName();
+        String link = "";
+        activityService.logActivity(details.getUser().getId(), event.getId(),
+                ActivityType.EVENT_LEFT,
+                message, link);
+
         // delete chat membership
         chatMembershipService.deleteChatMembershipByChatRoomAndUser(event.getEventChatRoom(), details.getUser());
 
@@ -746,6 +783,13 @@ public class EventController {
             notificationService.createNotification(participant.getId(), NotificationType.EVENT_CANCELLATION, message,
                     link);
         }
+
+        // create activity feed log entry
+        String activityMessage = event.getOrganizer().getUsername() + " hat sein Event abgesagt: " + event.getName();
+        String activityLink = "events/" + event.getId();
+        activityService.logActivity(event.getOrganizer().getId(), event.getId(),
+                ActivityType.EVENT_CANCELLED,
+                activityMessage, activityLink);
 
         // set payment event to null
         for (Payment payment : event.getPayments()) {
