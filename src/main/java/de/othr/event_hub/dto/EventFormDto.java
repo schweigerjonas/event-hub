@@ -22,7 +22,7 @@ public class EventFormDto { // form payload for event create/edit
     @NotBlank(message = "Bitte geben Sie einen Namen an.")
     private String name;
 
-    @NotBlank(message = "Bitte geben Sie einen Ort an.")
+    @NotBlank(message = "Bitte geben Sie eine Adresse an.")
     private String location;
 
     @NotNull(message = "Bitte geben Sie die Dauer an.")

@@ -159,6 +159,7 @@ public class PdfService {
             PdfPCell nameHeader = new PdfPCell(new Phrase("Teilnehmer", boldFont));
             PdfPCell joinedHeader = new PdfPCell(new Phrase("Angemeldet am", boldFont));
             PdfPCell amountHeader = new PdfPCell(new Phrase("Bezahlt", boldFont));
+            amountHeader.setHorizontalAlignment(Element.ALIGN_RIGHT);
 
             nameHeader.setBorder(Rectangle.BOTTOM);
             joinedHeader.setBorder(Rectangle.BOTTOM);

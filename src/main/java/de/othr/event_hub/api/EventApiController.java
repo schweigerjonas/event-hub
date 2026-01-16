@@ -1,6 +1,8 @@
 package de.othr.event_hub.api;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -104,7 +106,8 @@ public class EventApiController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         // validate location before persisting
-        LocationCoordinates coordinates = locationService.findCoordinates(dto.getLocation()).orElse(null);
+        String rawLocation = dto.getLocation();
+        LocationCoordinates coordinates = locationService.findCoordinates(rawLocation).orElse(null);
         if (coordinates == null) {
             return ResponseEntity.badRequest().build();
         }
@@ -115,7 +118,7 @@ public class EventApiController {
         }
         Event event = new Event();
         event.setName(dto.getName());
-        event.setLocation(dto.getLocation());
+        event.setLocation(formatLocation(rawLocation));
         event.setLatitude(coordinates.latitude());
         event.setLongitude(coordinates.longitude());
         event.setDurationMinutes(dto.getDurationMinutes());
@@ -139,12 +142,13 @@ public class EventApiController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         // re-validate location on update
-        LocationCoordinates coordinates = locationService.findCoordinates(dto.getLocation()).orElse(null);
+        String rawLocation = dto.getLocation();
+        LocationCoordinates coordinates = locationService.findCoordinates(rawLocation).orElse(null);
         if (coordinates == null) {
             return ResponseEntity.badRequest().build();
         }
         event.setName(dto.getName());
-        event.setLocation(dto.getLocation());
+        event.setLocation(formatLocation(rawLocation));
         event.setLatitude(coordinates.latitude());
         event.setLongitude(coordinates.longitude());
         event.setDurationMinutes(dto.getDurationMinutes());
@@ -317,5 +321,61 @@ public class EventApiController {
         }
         User currentUser = userService.getUserByUsername(auth.getName());
         return currentUser != null && event.getOrganizer().equals(currentUser);
+    }
+
+    private String formatLocation(String location) {
+        if (location == null) {
+            return null;
+        }
+        String trimmed = location.trim().replaceAll("\\s+", " ");
+        if (trimmed.isBlank()) {
+            return trimmed;
+        }
+        String[] parts = trimmed.split(" ");
+        List<String> formatted = new ArrayList<>(parts.length);
+        for (String part : parts) {
+            formatted.add(formatLocationToken(part));
+        }
+        return String.join(" ", formatted).trim();
+    }
+
+    private String formatLocationToken(String token) {
+        if (token.isBlank()) {
+            return token;
+        }
+        if (token.chars().anyMatch(Character::isDigit)) {
+            return token;
+        }
+        String[] parts = token.split("-");
+        if (parts.length > 1) {
+            List<String> formatted = new ArrayList<>(parts.length);
+            for (String part : parts) {
+                formatted.add(capitalizeWord(part));
+            }
+            return String.join("-", formatted);
+        }
+        return capitalizeWord(token);
+    }
+
+    private String capitalizeWord(String word) {
+        if (word.isBlank()) {
+            return word;
+        }
+        int start = 0;
+        int end = word.length();
+        while (start < end && !Character.isLetter(word.charAt(start))) {
+            start++;
+        }
+        while (end > start && !Character.isLetter(word.charAt(end - 1))) {
+            end--;
+        }
+        if (start >= end) {
+            return word;
+        }
+        String prefix = word.substring(0, start);
+        String suffix = word.substring(end);
+        String core = word.substring(start, end).toLowerCase(Locale.GERMAN);
+        String capitalized = Character.toUpperCase(core.charAt(0)) + core.substring(1);
+        return prefix + capitalized + suffix;
     }
 }

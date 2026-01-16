@@ -67,6 +67,7 @@ public class WebSecurityConfig {
                         "/oauth2/**", "/logout")
                 .permitAll()
                 .requestMatchers("/images/**", "/css/**", "/js/**", "/webjars/**", "/script/**").permitAll()
+                .requestMatchers("/locations/**").permitAll()
                 .requestMatchers("/", "/home").permitAll()
                 .requestMatchers("/events", "/events/", "/events/{id:[0-9]+}", "/events/*/join").permitAll()
                 .requestMatchers(HttpMethod.GET, "/events/new").hasAnyAuthority("ADMIN", "ORGANISATOR")

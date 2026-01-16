@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
     xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
 <main layout:fragment="main">
@@ -13,10 +13,13 @@
                 <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
             </div>
             <div class="col-md-6">
-                <label class="form-label" for="location">Ort</label>
-                <input id="location" class="form-control" type="text" th:field="*{location}" list="location-suggestions" required>
-                <datalist id="location-suggestions"></datalist>
-                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('location')}" th:errors="*{location}"></div>
+                <label class="form-label" for="location">Adresse</label>
+                <div class="location-input">
+                    <input id="location" class="form-control" type="text" th:field="*{location}" required>
+                    <span id="location-status" class="location-status material-symbols-outlined" aria-hidden="true"></span>
+                </div>
+                <div id="location-feedback" class="location-feedback" aria-live="polite"></div>
+                <div id="location-server-error" class="invalid-feedback d-block" th:if="${#fields.hasErrors('location')}" th:errors="*{location}"></div>
             </div>
             <div class="col-md-4">
                 <label class="form-label" for="durationMinutes">Dauer (Minuten)</label>
@@ -37,13 +40,14 @@
 
             <div class="col-12">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" th:field="*{paid}">
+                    <input id="paid" class="form-check-input" type="checkbox" th:field="*{paid}">
                     <label class="form-check-label" for="paid">Kostenpflichtig</label>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div id="costs-wrapper" class="col-md-4 mt-1 costs-field" th:classappend="${!eventForm.paid} ? ' is-disabled'">
                 <label class="form-label" for="costs">Preis in EUR</label>
-                <input id="costs" class="form-control" type="number" min="0" step="0.01" th:field="*{costs}">
+                <input id="costs" class="form-control" type="number" min="0" step="0.01" th:field="*{costs}"
+                    th:disabled="${!eventForm.paid}">
                 <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('costs')}" th:errors="*{costs}"></div>
             </div>
             <div class="col-12">
@@ -63,6 +67,7 @@
     <script>
         const paidCheckbox = document.getElementById("paid");
         const costsInput = document.getElementById("costs");
+        const costsWrapper = document.getElementById("costs-wrapper");
 
         // toggle price input for paid events
         const toggleCosts = () => {
@@ -73,6 +78,9 @@
                     costsInput.value = "";
                 }
             }
+            if (costsWrapper) {
+                costsWrapper.classList.toggle("is-disabled", !enabled);
+            }
         };
 
         if (paidCheckbox) {
@@ -81,57 +89,119 @@
         }
 
         const locationInput = document.getElementById("location");
-        const suggestionsList = document.getElementById("location-suggestions");
-        let locationTimer;
-        let lastRequestAt = 0;
+        const locationStatus = document.getElementById("location-status");
+        const locationFeedback = document.getElementById("location-feedback");
+        const locationServerError = document.getElementById("location-server-error");
+        let locationRequestId = 0;
 
-        const buildLocationLabel = (item) => {
-            return item && item.display_name ? item.display_name : "";
+        const hideServerError = () => {
+            if (locationServerError) {
+                locationServerError.classList.add("d-none");
+                locationServerError.classList.remove("d-block");
+            }
         };
 
-        // group input to limit requests
-        const fetchLocationSuggestions = async () => {
-            if (!locationInput || !suggestionsList) {
+        const clearLocationState = () => {
+            hideServerError();
+            if (locationStatus) {
+                locationStatus.textContent = "";
+                locationStatus.classList.remove("is-valid");
+                locationStatus.classList.remove("is-invalid");
+                locationStatus.classList.remove("is-loading");
+            }
+            if (locationFeedback) {
+                locationFeedback.textContent = "";
+                locationFeedback.classList.remove("is-invalid");
+            }
+        };
+
+        const setLocationLoading = () => {
+            hideServerError();
+            if (locationStatus) {
+                locationStatus.textContent = "progress_activity";
+                locationStatus.classList.remove("is-valid");
+                locationStatus.classList.remove("is-invalid");
+                locationStatus.classList.add("is-loading");
+            }
+            if (locationFeedback) {
+                locationFeedback.textContent = "";
+                locationFeedback.classList.remove("is-invalid");
+            }
+        };
+
+        const setLocationValid = () => {
+            hideServerError();
+            if (locationStatus) {
+                locationStatus.textContent = "check_circle";
+                locationStatus.classList.add("is-valid");
+                locationStatus.classList.remove("is-invalid");
+                locationStatus.classList.remove("is-loading");
+            }
+            if (locationFeedback) {
+                locationFeedback.textContent = "";
+                locationFeedback.classList.remove("is-invalid");
+            }
+        };
+
+        const setLocationInvalid = () => {
+            hideServerError();
+            if (locationStatus) {
+                locationStatus.textContent = "cancel";
+                locationStatus.classList.remove("is-valid");
+                locationStatus.classList.remove("is-loading");
+                locationStatus.classList.add("is-invalid");
+            }
+            if (locationFeedback) {
+                locationFeedback.textContent = "Adresse nicht erkannt";
+                locationFeedback.classList.add("is-invalid");
+            }
+        };
+
+        const validateLocation = async () => {
+            if (!locationInput) {
                 return;
             }
             const query = locationInput.value.trim();
+            clearLocationState();
             if (query.length < 3) {
-                suggestionsList.innerHTML = "";
                 return;
             }
-            const now = Date.now();
-            if (now - lastRequestAt < 1000) {
-                return;
-            }
-            lastRequestAt = now;
-            const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&q=${encodeURIComponent(query)}`;
+            const requestId = ++locationRequestId;
+            setLocationLoading();
+            const url = `/locations/validate?query=${encodeURIComponent(query)}`;
             try {
                 const response = await fetch(url, { headers: { "Accept": "application/json" } });
                 const data = await response.json();
-                suggestionsList.innerHTML = "";
-                if (Array.isArray(data)) {
-                    const seen = new Set();
-                    data.forEach((item) => {
-                        const label = buildLocationLabel(item);
-                        if (label && !seen.has(label)) {
-                            seen.add(label);
-                            const option = document.createElement("option");
-                            option.value = label;
-                            suggestionsList.appendChild(option);
-                        }
-                    });
+                if (requestId !== locationRequestId) {
+                    return;
+                }
+                if (data && data.valid) {
+                    setLocationValid();
+                } else {
+                    setLocationInvalid();
                 }
             } catch (error) {
-                suggestionsList.innerHTML = "";
+                if (requestId !== locationRequestId) {
+                    return;
+                }
+                setLocationInvalid();
             }
         };
 
         if (locationInput) {
             locationInput.addEventListener("input", () => {
-                clearTimeout(locationTimer);
-                locationTimer = setTimeout(fetchLocationSuggestions, 350);
+                locationRequestId += 1;
+                clearLocationState();
             });
+            locationInput.addEventListener("blur", validateLocation);
         }
     </script>
 </main>
 </html>
+
+
+
+
+
+
+

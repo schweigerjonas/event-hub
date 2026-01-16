@@ -1,9 +1,11 @@
 package de.othr.event_hub.controller;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -241,10 +243,11 @@ public class EventController {
             result.rejectValue("costs", "event.costs.required", "Bitte geben Sie einen Preis an.");
         }
         LocationCoordinates coordinates = null;
+        String rawLocation = eventForm.getLocation();
         if (!result.hasFieldErrors("location")) {
-            coordinates = locationService.findCoordinates(eventForm.getLocation()).orElse(null);
+            coordinates = locationService.findCoordinates(rawLocation).orElse(null);
             if (coordinates == null) {
-                result.rejectValue("location", "event.location.invalid", "Ort wurde nicht gefunden.");
+                result.rejectValue("location", "event.location.invalid", "Adresse wurde nicht gefunden.");
             }
         }
 
@@ -254,7 +257,7 @@ public class EventController {
 
         Event event = new Event();
         event.setName(eventForm.getName().trim());
-        event.setLocation(eventForm.getLocation().trim());
+        event.setLocation(formatLocation(rawLocation));
         if (coordinates != null) {
             event.setLatitude(coordinates.latitude());
             event.setLongitude(coordinates.longitude());
@@ -366,10 +369,11 @@ public class EventController {
             result.rejectValue("costs", "event.costs.required", "Bitte geben Sie einen Preis an.");
         }
         LocationCoordinates coordinates = null;
+        String rawLocation = eventForm.getLocation();
         if (!result.hasFieldErrors("location")) {
-            coordinates = locationService.findCoordinates(eventForm.getLocation()).orElse(null);
+            coordinates = locationService.findCoordinates(rawLocation).orElse(null);
             if (coordinates == null) {
-                result.rejectValue("location", "event.location.invalid", "Ort wurde nicht gefunden.");
+                result.rejectValue("location", "event.location.invalid", "Adresse wurde nicht gefunden.");
             }
         }
         if (result.hasErrors()) {
@@ -377,7 +381,7 @@ public class EventController {
             return "events/event-edit";
         }
         event.setName(eventForm.getName().trim());
-        event.setLocation(eventForm.getLocation().trim());
+        event.setLocation(formatLocation(rawLocation));
         if (coordinates != null) {
             event.setLatitude(coordinates.latitude());
             event.setLongitude(coordinates.longitude());
@@ -839,6 +843,62 @@ public class EventController {
         }
         String trimmed = description.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String formatLocation(String location) {
+        if (location == null) {
+            return null;
+        }
+        String trimmed = location.trim().replaceAll("\\s+", " ");
+        if (trimmed.isBlank()) {
+            return trimmed;
+        }
+        String[] parts = trimmed.split(" ");
+        List<String> formatted = new ArrayList<>(parts.length);
+        for (String part : parts) {
+            formatted.add(formatLocationToken(part));
+        }
+        return String.join(" ", formatted).trim();
+    }
+
+    private String formatLocationToken(String token) {
+        if (token.isBlank()) {
+            return token;
+        }
+        if (token.chars().anyMatch(Character::isDigit)) {
+            return token;
+        }
+        String[] parts = token.split("-");
+        if (parts.length > 1) {
+            List<String> formatted = new ArrayList<>(parts.length);
+            for (String part : parts) {
+                formatted.add(capitalizeWord(part));
+            }
+            return String.join("-", formatted);
+        }
+        return capitalizeWord(token);
+    }
+
+    private String capitalizeWord(String word) {
+        if (word.isBlank()) {
+            return word;
+        }
+        int start = 0;
+        int end = word.length();
+        while (start < end && !Character.isLetter(word.charAt(start))) {
+            start++;
+        }
+        while (end > start && !Character.isLetter(word.charAt(end - 1))) {
+            end--;
+        }
+        if (start >= end) {
+            return word;
+        }
+        String prefix = word.substring(0, start);
+        String suffix = word.substring(end);
+        String core = word.substring(start, end).toLowerCase(Locale.GERMAN);
+        String capitalized = Character.toUpperCase(core.charAt(0)) + core.substring(1);
+        return prefix + capitalized + suffix;
     }
 
     private List<User> getFriends(User currentUser) {
