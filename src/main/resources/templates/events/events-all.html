@@ -27,7 +27,7 @@
             <input type="hidden" name="tab" th:value="${tab}">
             <div class="col-12 col-md-5">
                 <label class="form-label" for="keyword">Suche</label>
-                <input id="keyword" type="search" name="keyword" class="form-control" placeholder="Name oder Ort" th:value="${keyword}">
+                <input id="keyword" type="search" name="keyword" class="form-control" placeholder="Name oder Adresse" th:value="${keyword}">
             </div>
             <div class="col-6 col-md-2">
                 <label class="form-label" for="sort">Sortierung</label>
@@ -75,7 +75,7 @@
                                 <a class="card-title mb-1 fw-semibold d-block event-link"
                                    th:href="@{'/events/' + ${event.id}}"
                                    th:text="${event.name}">Event</a>
-                                <div class="text-muted" th:text="${event.location}">Ort</div>
+                                <div class="text-muted" th:text="${event.location}">Adresse</div>
                             </div>
                             <div class="d-flex gap-2">
                                 <span th:if="${favouriteEventIds != null and favouriteEventIds.contains(event.id)}">

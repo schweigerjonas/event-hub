@@ -98,6 +98,83 @@ body {
     background: rgba(255, 255, 255, 0.22);
 }
 
+.costs-field.is-disabled {
+    opacity: 0.5;
+}
+
+.costs-field.is-disabled .form-control {
+    border-color: var(--bs-border-color-translucent);
+    color: var(--bs-secondary-color);
+}
+
+[data-bs-theme="light"] .costs-field.is-disabled .form-control {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+[data-bs-theme="dark"] .costs-field.is-disabled .form-control {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.costs-field.is-disabled .form-label {
+    color: var(--bs-secondary-color);
+}
+
+.location-input {
+    position: relative;
+}
+
+.location-input .form-control {
+    padding-right: 2.5rem;
+}
+
+.location-status {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    display: none;
+}
+
+.location-status.is-valid,
+.location-status.is-invalid,
+.location-status.is-loading {
+    display: block;
+}
+
+.location-status.is-valid {
+    color: #198754;
+}
+
+.location-status.is-invalid {
+    color: #dc3545;
+}
+
+.location-status.is-loading {
+    color: var(--app-muted);
+    animation: location-spin 1s linear infinite;
+}
+
+@keyframes location-spin {
+    from {
+        transform: translateY(-50%) rotate(0deg);
+    }
+    to {
+        transform: translateY(-50%) rotate(360deg);
+    }
+}
+
+.location-feedback {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: none;
+}
+
+.location-feedback.is-invalid {
+    display: block;
+    color: #dc3545;
+}
+
 .app-main {
     background-color: var(--app-surface);
     min-height: 100%;
