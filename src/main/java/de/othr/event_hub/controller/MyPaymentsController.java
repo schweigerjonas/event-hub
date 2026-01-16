@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import de.othr.event_hub.config.AccountUserDetails;
 import de.othr.event_hub.model.Authority;
+import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.Payment;
 import de.othr.event_hub.model.User;
 import de.othr.event_hub.service.EventService;
@@ -48,7 +49,7 @@ public class MyPaymentsController {
     @GetMapping("/all")
     public String getMyPayments(
         Model model, 
-        @RequestParam(required = false, defaultValue = "asc") String direction, 
+        @RequestParam(required = false, defaultValue = "desc") String direction, 
         @RequestParam(required = false) Long userId,
         @RequestParam(required = false) Long eventId,
         @RequestParam(required = false, defaultValue = "1") int page, 
@@ -84,7 +85,8 @@ public class MyPaymentsController {
             } else {
                 payments = paymentService.getPaymentsByEvent(eventService.getEventById(eventId).get(), paging);
             }
-            model.addAttribute("events", eventService.getAllEvents());
+            List<Event> events = eventService.getAllEvents().stream().filter(e -> e.getCosts() > 0).collect(java.util.stream.Collectors.toList());
+            model.addAttribute("events", events);
         } else {
             payments = paymentService.getPaymentsByUser(user, paging);
         }
