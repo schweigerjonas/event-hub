@@ -19,7 +19,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Table(name = "event_favourites")
 public class EventFavourite {
-    
+    // join table for event favourites
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

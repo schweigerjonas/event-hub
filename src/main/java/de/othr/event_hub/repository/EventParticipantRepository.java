@@ -19,8 +19,10 @@ public interface EventParticipantRepository extends JpaRepository<EventParticipa
     long countByEvent(Event event);
 
     @Modifying
+    // remove a single participant from an event
     void deleteByEventAndUser(Event event, User user);
 
     @Modifying
+    // remove all participants for an event
     void deleteByEvent(Event event);
 }

@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.User;
 
-public interface EventService {
+public interface EventService { // event business operations
 
     List<Event> getAllEvents();
 

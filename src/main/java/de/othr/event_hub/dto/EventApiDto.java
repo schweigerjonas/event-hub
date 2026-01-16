@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventApiDto {
+public class EventApiDto { // api payload for events
     private Long id;
     private String name;
     private String location;

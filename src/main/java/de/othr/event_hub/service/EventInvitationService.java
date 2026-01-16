@@ -9,7 +9,7 @@ import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.EventInvitation;
 import de.othr.event_hub.model.User;
 
-public interface EventInvitationService {
+public interface EventInvitationService { // invitation business operations
 
     EventInvitation createInvitation(EventInvitation invitation);
 

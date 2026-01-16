@@ -41,6 +41,7 @@ public class EventInvitationServiceImpl implements EventInvitationService {
 
     @Override
     public Page<EventInvitation> getIncomingInvitations(User user, String keyword, Pageable pageable) {
+        // return full incoming list when no search term
         if (keyword == null || keyword.isBlank()) {
             return eventInvitationRepository.findByInvitee(user, pageable);
         }
@@ -49,6 +50,7 @@ public class EventInvitationServiceImpl implements EventInvitationService {
 
     @Override
     public Page<EventInvitation> getOutgoingInvitations(User user, String keyword, Pageable pageable) {
+        // return full outgoing list when no search term
         if (keyword == null || keyword.isBlank()) {
             return eventInvitationRepository.findByInviter(user, pageable);
         }
@@ -57,6 +59,7 @@ public class EventInvitationServiceImpl implements EventInvitationService {
 
     @Override
     public void deleteInvitationsByEvent(Event event) {
+        // cleanup invitations when an event is removed
         eventInvitationRepository.deleteByEvent(event);
     }
 }

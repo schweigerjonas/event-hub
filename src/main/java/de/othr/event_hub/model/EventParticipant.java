@@ -20,7 +20,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "event_participants")
-public class EventParticipant { // participant of an event (for n-to-m relation between event and user) @Martin R.
+public class EventParticipant { // join table for event participants
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

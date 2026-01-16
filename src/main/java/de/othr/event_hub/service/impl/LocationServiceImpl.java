@@ -32,12 +32,14 @@ public class LocationServiceImpl implements LocationService {
             return Optional.empty();
         }
         try {
-            String url = UriComponentsBuilder.fromHttpUrl(NOMINATIM_URL)
+            // build nominatim query
+            String url = UriComponentsBuilder.fromUriString(NOMINATIM_URL)
                 .queryParam("format", "json")
                 .queryParam("limit", "1")
                 .queryParam("q", location)
                 .toUriString();
 
+            // set required user agent
             HttpHeaders headers = new HttpHeaders();
             headers.set("User-Agent", USER_AGENT);
             HttpEntity<Void> entity = new HttpEntity<>(headers);
@@ -48,6 +50,7 @@ public class LocationServiceImpl implements LocationService {
             if (results == null || results.isEmpty()) {
                 return Optional.empty();
             }
+            // parse first search hit
             Object first = results.get(0);
             if (first instanceof Map<?, ?> map) {
                 Object latObj = map.get("lat");

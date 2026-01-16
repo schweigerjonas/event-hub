@@ -25,7 +25,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "events")
-public class Event { // basic event class @Martin R.
+public class Event { // basic event entity
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -57,8 +57,10 @@ public class Event { // basic event class @Martin R.
     private ChatRoom eventChatRoom;
 
     @OneToMany(mappedBy = "event")
+    // payments linked to this event
     private Set<Payment> payments = new HashSet<>();
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    // favourites linked to this event
     private Set<EventFavourite> favourites = new HashSet<>();
 }

@@ -46,12 +46,14 @@ public class EventParticipantServiceImpl implements EventParticipantService {
     @Override
     @Transactional
     public void deleteParticipant(Event event, User user) {
+        // remove a single participant for an event
         eventParticipantRepository.deleteByEventAndUser(event, user);
     }
 
     @Override
     @Transactional
     public void deleteParticipants(Event event) {
+        // bulk delete participants when an event is removed
         eventParticipantRepository.deleteByEvent(event);
     }
 }

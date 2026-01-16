@@ -78,7 +78,7 @@
 
         <div class="list-group mt-3" th:if="${!#lists.isEmpty(invitations)}">
             <div class="list-group-item" th:each="inv : ${invitations}">
-                <div class="d-flex flex-wrap justify-content-between align-items-start">
+                <div class="d-flex flex-wrap justify-content-between align-items-center">
                     <div>
                         <a th:href="@{'/events/' + ${inv.event.id}}" class="fw-bold event-link"
                            th:text="${inv.event.name}">Event</a>
@@ -144,6 +144,7 @@
                     event.preventDefault();
                     return;
                 }
+                // set the event-specific invite endpoint
                 inviteForm.action = `/events/${inviteEvent.value}/invite`;
             });
         }

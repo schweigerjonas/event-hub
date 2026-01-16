@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
     xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
     layout:decorate="~{layout}">
@@ -26,7 +26,7 @@
         <div th:if="${info}" class="alert alert-info" th:text="${info}"></div>
         <div th:if="${error}" class="alert alert-warning" th:text="${error}"></div>
 
-        <div class="row g-3">
+        <div class="row g-3 mb-4">
             <div class="col-lg-8">
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white">Eventdetails</div>
@@ -134,8 +134,7 @@
                                     </div>
                                     <div class="col-12 col-md-7">
                                         <label class="form-label" for="comment">Kommentar (optional)</label>
-                                        <input id="comment" name="comment" class="form-control" type="text"
-                                            th:value="${userRating != null ? userRating.comment : ''}">
+                                        <input id="comment" name="comment" class="form-control" type="text">
                                     </div>
                                     <div class="col-12 col-md-2 d-grid">
                                         <button class="btn btn-outline-primary" type="submit">Speichern</button>
@@ -221,126 +220,123 @@
                 </div>
             </div>
             <div class="col-lg-4">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Aktionen</h5>
-                        <div sec:authorize="isAuthenticated()">
-                            <div th:if="${isOrganizer}">
-                                <form th:action="@{'/events/' + ${event.id} + '/cancel'}" method="post">
-                                    <button class="btn btn-outline-danger w-100" type="submit">Event absagen</button>
-                                </form>
-                                <a class="btn btn-outline-warning w-100 mt-2"
-                                    th:href="@{'/events/' + ${event.id} + '/edit'}">Event bearbeiten</a>
-                                <a class="btn btn-outline-info w-100 mt-2"
-                                    th:href="@{'/events/' + ${event.id} + '/participants/pdf'}">Teilnehmerliste PDF</a>
-                            </div>
-                            <div th:if="${!isOrganizer && !isAdmin}">
-                                <form th:if="${isParticipant}" th:action="@{'/events/' + ${event.id} + '/leave'}"
-                                    method="post">
-                                    <button class="btn btn-outline-danger w-100" type="submit">Abmelden</button>
-                                </form>
-                                <form th:if="${!isParticipant}" th:action="@{'/events/' + ${event.id} + '/join'}"
-                                    method="post">
-                                    <button class="btn btn-primary w-100" type="submit">Teilnehmen</button>
-                                </form>
-                            </div>
-                            <div th:if="${isAdmin && !isOrganizer}">
-                                <form th:action="@{'/events/' + ${event.id} + '/cancel'}" method="post">
-                                    <button class="btn btn-outline-danger w-100 mt-2" type="submit">Event
-                                        absagen</button>
-                                </form>
-                                <a class="btn btn-outline-warning w-100 mt-2"
-                                    th:href="@{'/events/' + ${event.id} + '/edit'}">Event bearbeiten</a>
-                                <a class="btn btn-outline-info w-100 mt-2"
-                                    th:href="@{'/events/' + ${event.id} + '/participants/pdf'}">Teilnehmerliste PDF</a>
-                            </div>
-                            <div th:if="${isParticipant}">
-                                <button class="btn btn-outline-success w-100 mt-2" type="button" data-bs-toggle="modal"
-                                    data-bs-target="#invite-modal" th:disabled="${#lists.isEmpty(friends)}">
-                                    Freunde einladen
-                                </button>
-                                <div class="text-muted small mt-1" th:if="${#lists.isEmpty(friends)}">Keine Freunde
-                                    verfügbar.</div>
-                            </div>
-                            <div th:if="${isParticipant}">
-                                <form th:action="@{'/chats/' + ${event.eventChatRoom.id}}" method="get">
-                                    <button class="btn btn-outline-secondary w-100 mt-2" type="submit">Eventchat
-                                        öffnen</button>
-                                </form>
-                            </div>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Aktionen</h5>
+                    <div sec:authorize="isAuthenticated()">
+                        <div th:if="${isOrganizer}">
+                            <form th:action="@{'/events/' + ${event.id} + '/cancel'}" method="post">
+                                <button class="btn btn-outline-danger w-100" type="submit">Event absagen</button>
+                            </form>
+                            <a class="btn btn-outline-warning w-100 mt-2"
+                                th:href="@{'/events/' + ${event.id} + '/edit'}">Event bearbeiten</a>
+                            <a class="btn btn-outline-info w-100 mt-2"
+                                th:href="@{'/events/' + ${event.id} + '/participants/pdf'}">Teilnehmerliste PDF</a>
                         </div>
-                        <div sec:authorize="!isAuthenticated()">
-                            <form th:action="@{'/events/' + ${event.id} + '/join'}" method="post">
+                        <div th:if="${!isOrganizer && !isAdmin}">
+                            <form th:if="${isParticipant}" th:action="@{'/events/' + ${event.id} + '/leave'}"
+                                method="post">
+                                <button class="btn btn-outline-danger w-100" type="submit">Abmelden</button>
+                            </form>
+                            <form th:if="${!isParticipant}" th:action="@{'/events/' + ${event.id} + '/join'}"
+                                method="post">
                                 <button class="btn btn-primary w-100" type="submit">Teilnehmen</button>
                             </form>
                         </div>
+                        <div th:if="${isAdmin && !isOrganizer}">
+                            <form th:action="@{'/events/' + ${event.id} + '/cancel'}" method="post">
+                                <button class="btn btn-outline-danger w-100 mt-2" type="submit">Event absagen</button>
+                            </form>
+                            <a class="btn btn-outline-warning w-100 mt-2"
+                                th:href="@{'/events/' + ${event.id} + '/edit'}">Event bearbeiten</a>
+                            <a class="btn btn-outline-info w-100 mt-2"
+                                th:href="@{'/events/' + ${event.id} + '/participants/pdf'}">Teilnehmerliste PDF</a>
+                        </div>
+                        <div th:if="${isParticipant}">
+                            <button class="btn btn-outline-success w-100 mt-2" type="button" data-bs-toggle="modal"
+                                data-bs-target="#invite-modal" th:disabled="${#lists.isEmpty(friends)}">
+                                Freunde einladen
+                            </button>
+                            <div class="text-muted small mt-1" th:if="${#lists.isEmpty(friends)}">Keine Freunde
+                                verfügbar.</div>
+                        </div>
+                        <div th:if="${isParticipant}">
+                            <form th:action="@{'/chats/' + ${event.eventChatRoom.id}}" method="get">
+                                <button class="btn btn-outline-secondary w-100 mt-2" type="submit">Eventchat
+                                    öffnen</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div sec:authorize="!isAuthenticated()">
+                        <form th:action="@{'/events/' + ${event.id} + '/join'}" method="post">
+                            <button class="btn btn-primary w-100" type="submit">Teilnehmen</button>
+                        </form>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="mt-4" sec:authorize="isAuthenticated()">
-            <div class="card shadow-sm">
-                <div class="card-header bg-secondary text-white">Teilnehmerliste</div>
-                <div class="card-body">
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-                        <span class="fw-semibold">Teilnehmer</span>
-                        <div class="text-muted small" th:text="${participantsTotalItems} + ' Teilnehmer'"></div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center text-muted small mb-2"
-                        th:if="${canViewPayments}">
-                        <span>Teilnehmer</span>
-                        <span>Bezahlt</span>
-                    </div>
-                    <div th:if="${#lists.isEmpty(participants)}" class="text-muted">Noch keine Teilnehmer.</div>
-                    <ul class="list-group" th:if="${!#lists.isEmpty(participants)}">
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            th:each="participant : ${participants}">
-                            <div class="d-flex align-items-center gap-2">
-                                <span th:text="${participant.user.username}">Username</span>
-                                <span class="badge bg-secondary" th:if="${participant.organizer}">Organisator</span>
-                            </div>
-                            <div class="text-muted small" th:if="${canViewPayments}"
-                                th:text="${#numbers.formatDecimal(participantPaidAmounts[participant.user.id] != null ? participantPaidAmounts[participant.user.id] : 0, 1, 2)} + ' EUR'">
-                                0.00 EUR
-                            </div>
-                        </li>
-                    </ul>
-                    <nav aria-label="Teilnehmer Pagination" class="mt-3" th:if="${participantsTotalPages > 1}">
-                        <ul class="pagination mb-0">
-                            <li class="page-item" th:classappend="${participantsPage == 1} ? 'disabled'">
-                                <a class="page-link"
-                                    th:href="@{/events/{id}(id=${event.id}, participantsPage=1, participantsSize=${participantsSize})}">
-                                    <<< /a>
-                            </li>
-                            <li class="page-item" th:classappend="${participantsPage == 1} ? 'disabled'">
-                                <a class="page-link"
-                                    th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsPage - 1}, participantsSize=${participantsSize})}">Zurück</a>
-                            </li>
-                            <li class="page-item"
-                                th:each="page : ${#numbers.sequence(participantsPage > 2 ? participantsPage - 2 : 1, participantsPage + 2 < participantsTotalPages ? participantsPage + 2 : participantsTotalPages)}"
-                                th:classappend="${page == participantsPage} ? 'active'">
-                                <a class="page-link"
-                                    th:href="@{/events/{id}(id=${event.id}, participantsPage=${page}, participantsSize=${participantsSize})}"
-                                    th:text="${page}">1</a>
-                            </li>
-                            <li class="page-item"
-                                th:classappend="${participantsPage == participantsTotalPages} ? 'disabled'">
-                                <a class="page-link"
-                                    th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsPage + 1}, participantsSize=${participantsSize})}">Weiter</a>
-                            </li>
-                            <li class="page-item"
-                                th:classappend="${participantsPage == participantsTotalPages} ? 'disabled'">
-                                <a class="page-link"
-                                    th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsTotalPages}, participantsSize=${participantsSize})}">>></a>
+            <div class="mt-3" sec:authorize="isAuthenticated()">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">Teilnehmerliste</div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                            <span class="fw-semibold">Teilnehmer</span>
+                            <div class="text-muted small" th:text="${participantsTotalItems} + ' Teilnehmer'"></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center text-muted small mb-2"
+                            th:if="${canViewPayments}">
+                            <span>Teilnehmer</span>
+                            <span>Bezahlt</span>
+                        </div>
+                        <div th:if="${#lists.isEmpty(participants)}" class="text-muted">Noch keine Teilnehmer.</div>
+                        <ul class="list-group" th:if="${!#lists.isEmpty(participants)}">
+                            <li class="list-group-item d-flex justify-content-between align-items-center"
+                                th:each="participant : ${participants}">
+                                <div class="d-flex align-items-center gap-2 h-100">
+                                    <span th:text="${participant.user.username}">Username</span>
+                                    <span class="badge bg-secondary" th:if="${participant.organizer}">Organisator</span>
+                                </div>
+                            <div class="text-muted small d-flex align-items-center" th:if="${canViewPayments}"
+                                    th:text="${#numbers.formatDecimal(participantPaidAmounts[participant.user.id] != null ? participantPaidAmounts[participant.user.id] : 0, 1, 2)} + ' EUR'">
+                                    0.00 EUR
+                                </div>
                             </li>
                         </ul>
-                    </nav>
+                        <nav aria-label="Teilnehmer Pagination" class="mt-3" th:if="${participantsTotalPages > 1}">
+                            <ul class="pagination mb-0">
+                                <li class="page-item" th:classappend="${participantsPage == 1} ? 'disabled'">
+                                    <a class="page-link"
+                                        th:href="@{/events/{id}(id=${event.id}, participantsPage=1, participantsSize=${participantsSize})}">
+                                        <<< /a>
+                                </li>
+                                <li class="page-item" th:classappend="${participantsPage == 1} ? 'disabled'">
+                                    <a class="page-link"
+                                        th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsPage - 1}, participantsSize=${participantsSize})}">Zurück</a>
+                                </li>
+                                <li class="page-item"
+                                    th:each="page : ${#numbers.sequence(participantsPage > 2 ? participantsPage - 2 : 1, participantsPage + 2 < participantsTotalPages ? participantsPage + 2 : participantsTotalPages)}"
+                                    th:classappend="${page == participantsPage} ? 'active'">
+                                    <a class="page-link"
+                                        th:href="@{/events/{id}(id=${event.id}, participantsPage=${page}, participantsSize=${participantsSize})}"
+                                        th:text="${page}">1</a>
+                                </li>
+                                <li class="page-item"
+                                    th:classappend="${participantsPage == participantsTotalPages} ? 'disabled'">
+                                    <a class="page-link"
+                                        th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsPage + 1}, participantsSize=${participantsSize})}">Weiter</a>
+                                </li>
+                                <li class="page-item"
+                                    th:classappend="${participantsPage == participantsTotalPages} ? 'disabled'">
+                                    <a class="page-link"
+                                        th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsTotalPages}, participantsSize=${participantsSize})}">>></a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="invite-modal" tabindex="-1" aria-hidden="true" sec:authorize="isAuthenticated()"
         th:if="${isParticipant}">
         <div class="modal-dialog modal-dialog-centered">
@@ -381,6 +377,7 @@
             const latValue = parseFloat(mapElement.dataset.lat);
             const lonValue = parseFloat(mapElement.dataset.lon);
 
+            // render leaflet map with marker
             const renderMap = (lat, lon, label) => {
                 const map = L.map("event-map").setView([lat, lon], 13);
                 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -397,6 +394,7 @@
             if (!Number.isNaN(latValue) && !Number.isNaN(lonValue)) {
                 renderMap(latValue, lonValue, locationQuery);
             } else if (locationQuery) {
+                // fallback geocode when coordinates are missing
                 const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(locationQuery)}`;
                 fetch(url)
                     .then((response) => response.json())
@@ -422,3 +420,7 @@
 </main>
 
 </html>
+
+
+
+

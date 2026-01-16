@@ -45,5 +45,6 @@ public class EventInvitation {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // set when invitee responds
     private LocalDateTime respondedAt;
 }

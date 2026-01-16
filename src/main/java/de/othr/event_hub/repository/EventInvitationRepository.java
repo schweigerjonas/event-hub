@@ -24,13 +24,16 @@ public interface EventInvitationRepository extends JpaRepository<EventInvitation
 
     Page<EventInvitation> findByInviter(User inviter, Pageable pageable);
 
+    // search incoming invitations by event name
     @Query("SELECT i FROM EventInvitation i WHERE i.invitee = :user AND LOWER(i.event.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<EventInvitation> searchIncoming(@Param("user") User user, @Param("keyword") String keyword, Pageable pageable);
 
+    // search outgoing invitations by event name
     @Query("SELECT i FROM EventInvitation i WHERE i.inviter = :user AND LOWER(i.event.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<EventInvitation> searchOutgoing(@Param("user") User user, @Param("keyword") String keyword, Pageable pageable);
 
     @Transactional
     @Modifying
+    // cleanup invitations for an event
     void deleteByEvent(Event event);
 }

@@ -36,6 +36,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Page<Event> getEvents(String keyword, Pageable pageable) {
+        // return full list when no search term
         if (keyword == null || keyword.isBlank()) {
             return eventRepository.findAll(pageable);
         }
@@ -44,6 +45,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Page<Event> getFavouriteEvents(String keyword, User user, Pageable pageable) {
+        // search within favourite events when a term is provided
         if (keyword == null || keyword.isBlank()) {
             return eventRepository.findAllFavouritesOfUser(user, pageable);
         }
@@ -52,6 +54,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Page<Event> getParticipatingEvents(String keyword, User user, Pageable pageable) {
+        // search within participated events when a term is provided
         if (keyword == null || keyword.isBlank()) {
             return eventRepository.findByParticipant(user, pageable);
         }

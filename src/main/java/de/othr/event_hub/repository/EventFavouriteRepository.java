@@ -8,5 +8,6 @@ import de.othr.event_hub.model.User;
 
 public interface EventFavouriteRepository extends JpaRepository<EventFavourite, Long> {
     
+    // lookup favourite entry for a user and event
     EventFavourite findByEventAndUser(Event event, User user);
 }

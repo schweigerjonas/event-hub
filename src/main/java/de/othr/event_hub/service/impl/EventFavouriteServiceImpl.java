@@ -23,6 +23,7 @@ public class EventFavouriteServiceImpl implements EventFavouriteService {
 
     @Override
     public EventFavourite addEventFavourite(Event event, User user) {
+        // create favourite entry
         EventFavourite eventFavourite = new EventFavourite();
         eventFavourite.setEvent(event);
         eventFavourite.setUser(user);
@@ -31,6 +32,7 @@ public class EventFavouriteServiceImpl implements EventFavouriteService {
 
     @Override
     public void deleteEventFavourite(Event event, User user) {
+        // delete existing favourite entry
         EventFavourite eventFavourite = eventFavouriteRepository.findByEventAndUser(event, user);
         eventFavouriteRepository.delete(eventFavourite);
     }

@@ -42,6 +42,7 @@
     <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
     <script>
         (function () {
+            // persist theme selection
             const themeKey = "eventhub-theme";
             const storedTheme = localStorage.getItem(themeKey);
             const initialTheme = storedTheme ? storedTheme : "light";
