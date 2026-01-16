@@ -17,7 +17,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventFormDto {
+public class EventFormDto { // form payload for event create/edit
 
     @NotBlank(message = "Bitte geben Sie einen Namen an.")
     private String name;

@@ -83,6 +83,21 @@ body {
     max-width: 220px;
 }
 
+.app-sidebar .nav-link {
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.app-sidebar .nav-link:hover,
+.app-sidebar .nav-link:focus {
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.app-sidebar .nav-link.active {
+    background: rgba(255, 255, 255, 0.22);
+}
+
 .app-main {
     background-color: var(--app-surface);
     min-height: 100%;

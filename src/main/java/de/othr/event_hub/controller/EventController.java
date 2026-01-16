@@ -131,6 +131,7 @@ public class EventController {
             @RequestParam(required = false, defaultValue = "9") int size,
             @AuthenticationPrincipal AccountUserDetails user,
             HttpServletRequest request) {
+        // normalize paging/sort inputs and select the right list (discover/mine/favourites)
         int safePage = Math.max(page, 1);
         int safeSize = size < 1 ? 9 : size;
         String sortValue = sort == null ? "time" : sort;
@@ -226,6 +227,7 @@ public class EventController {
             @AuthenticationPrincipal AccountUserDetails details,
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) {
+        // paid events require a price
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/new");
             return "redirect:/login?redirect=/events/new";
@@ -274,6 +276,7 @@ public class EventController {
                 ActivityType.EVENT_CREATED,
                 message, link);
 
+        // organizer is stored as participant too
         EventParticipant organizerParticipant = new EventParticipant();
         organizerParticipant.setEvent(createdEvent);
         organizerParticipant.setUser(details.getUser());
@@ -281,7 +284,7 @@ public class EventController {
         organizerParticipant.setJoinedAt(LocalDateTime.now());
         eventParticipantService.createParticipant(organizerParticipant);
 
-        // create chat room
+        // create event chat room
         LocalDateTime now = LocalDateTime.now();
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setType(ChatRoomType.EVENT);
@@ -290,11 +293,11 @@ public class EventController {
         chatRoom.setEvent(createdEvent);
         chatRoom = chatRoomService.createChatRoom(chatRoom);
 
-        // update event
+        // link chat room back to event
         createdEvent.setEventChatRoom(chatRoom);
         eventService.updateEvent(createdEvent);
 
-        // configure chat membership
+        // add organizer to chat
         ChatMembership chatMembership = new ChatMembership();
         chatMembership.setChatRoom(chatRoom);
         chatMembership.setUser(details.getUser());
@@ -307,7 +310,7 @@ public class EventController {
 
     @GetMapping("/{id}/edit")
     public String showEditForm(
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             @AuthenticationPrincipal AccountUserDetails details,
             Model model,
             RedirectAttributes redirectAttributes,
@@ -340,7 +343,7 @@ public class EventController {
 
     @PostMapping("/{id}/edit")
     public String updateEvent(
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             @Valid @ModelAttribute("eventForm") EventFormDto eventForm,
             BindingResult result,
             @AuthenticationPrincipal AccountUserDetails details,
@@ -391,7 +394,7 @@ public class EventController {
 
     @GetMapping("/{id}")
     public String showEventDetails(
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             @RequestParam(required = false, defaultValue = "1") int participantsPage,
             @RequestParam(required = false, defaultValue = "10") int participantsSize,
             @RequestParam(required = false, defaultValue = "1") int ratingPage,
@@ -410,7 +413,7 @@ public class EventController {
             isParticipant = eventParticipantService.existsParticipant(event, details.getUser());
             isOrganizer = event.getOrganizer() != null && event.getOrganizer().equals(details.getUser());
             isAdmin = hasAuthority(details, "ADMIN");
-            // Payments only for organizer/admin
+            // payments only for organizer/admin
             canViewPayments = isOrganizer || isAdmin;
             int safePage = Math.max(participantsPage, 1);
             int safeSize = participantsSize < 1 ? 10 : participantsSize;
@@ -485,7 +488,7 @@ public class EventController {
 
     @PostMapping("/{id}/join")
     public String joinEvent(
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             @AuthenticationPrincipal AccountUserDetails details,
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) {
@@ -495,7 +498,7 @@ public class EventController {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id);
             return "redirect:/login?redirect=/events/" + id;
         }
-        // Admins cannot join events
+        // admins cannot join events
         if (hasAuthority(details, "ADMIN")) {
             redirectAttributes.addFlashAttribute("error", "Admins k\u00f6nnen nicht an Events teilnehmen.");
             return "redirect:/events/" + id;
@@ -545,7 +548,7 @@ public class EventController {
 
     @PostMapping("/{id}/ratings")
     public String saveRating(
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             @RequestParam("stars") int stars,
             @RequestParam(name = "comment", required = false) String comment,
             @AuthenticationPrincipal AccountUserDetails details,
@@ -591,7 +594,7 @@ public class EventController {
 
     @PostMapping("/{id}/ratings/delete")
     public String deleteRating(
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             @AuthenticationPrincipal AccountUserDetails details,
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) {
@@ -611,12 +614,13 @@ public class EventController {
 
     @PostMapping("/{id}/invite")
     public String inviteFriend(
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             @RequestParam(name = "friendIds", required = false) List<Long> friendIds,
             @RequestParam(name = "redirect", required = false) String redirect,
             @AuthenticationPrincipal AccountUserDetails details,
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) {
+        // invite selected friends to this event
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id);
             return "redirect:/login?redirect=/events/" + id;
@@ -681,7 +685,7 @@ public class EventController {
 
     @PostMapping("/{id}/leave")
     public String leaveEvent(
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             @AuthenticationPrincipal AccountUserDetails details,
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) {
@@ -719,7 +723,7 @@ public class EventController {
 
     @GetMapping("/{id}/participants/pdf")
     public ResponseEntity<byte[]> downloadParticipantsPdf(
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             @AuthenticationPrincipal AccountUserDetails details,
             HttpServletRequest request) {
         Event event = eventService.getEventById(id)
@@ -756,7 +760,7 @@ public class EventController {
 
     @PostMapping("/{id}/cancel")
     public String cancelEvent(
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             @AuthenticationPrincipal AccountUserDetails details,
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) {
@@ -779,15 +783,15 @@ public class EventController {
         String link = "/events";
         // send email and in app notification for event cancellation
         for (EventParticipant participant : participants) {
-            emailService.sendEventCancellation(participant.getUser(), event, details.getUser());
+            emailService.sendEventCancellation(participant.getUser(), event, organizer);
             notificationService.createNotification(participant.getUser(), NotificationType.EVENT_CANCELLATION, message,
                     link);
         }
 
         // create activity feed log entry
-        String activityMessage = event.getOrganizer().getUsername() + " hat sein Event abgesagt: " + event.getName();
+        String activityMessage = organizer.getUsername() + " hat sein Event abgesagt: " + event.getName();
         String activityLink = "";
-        activityService.logActivity(event.getOrganizer(), event.getId(),
+        activityService.logActivity(organizer, event.getId(),
                 ActivityType.EVENT_CANCELLED,
                 activityMessage, activityLink);
 
@@ -807,7 +811,7 @@ public class EventController {
     }
 
     @PostMapping("/{id}/toggleFavourite")
-    public String toggleFavouriteStatus(@PathVariable("id") Long id,
+    public String toggleFavouriteStatus(@PathVariable Long id,
             @AuthenticationPrincipal AccountUserDetails details) {
         User user = details.getUser();
         Event event = eventService.getEventById(id).get();

@@ -71,6 +71,7 @@ public class EventInvitationController {
         if (details == null || details.getUser() == null) {
             return "redirect:/login?redirect=/invitations";
         }
+        // normalize paging params
         int safePage = Math.max(page, 1);
         int safeSize = size < 1 ? 10 : size;
         Pageable pageable = PageRequest.of(safePage - 1, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -88,6 +89,7 @@ public class EventInvitationController {
         model.addAttribute("totalItems", invitations.getTotalElements());
         model.addAttribute("pageSize", safeSize);
         model.addAttribute("keyword", keyword == null ? "" : keyword);
+        // provide data for invite form
         Pageable eventPageable = PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "eventTime"));
         model.addAttribute("participatingEvents",
             eventService.getParticipatingEvents(null, details.getUser(), eventPageable).getContent());
@@ -97,7 +99,7 @@ public class EventInvitationController {
 
     @PostMapping("/{id}/accept")
     public String acceptInvitation(
-        @PathVariable("id") Long id,
+        @PathVariable Long id,
         @AuthenticationPrincipal AccountUserDetails details,
         RedirectAttributes redirectAttributes
     ) {
@@ -131,7 +133,7 @@ public class EventInvitationController {
             participant.setJoinedAt(now);
             participantService.createParticipant(participant);
 
-            // join chat room for event
+            // add chat membership for event
             ChatMembership chatMembership = new ChatMembership();
             chatMembership.setChatRoom(event.getEventChatRoom());
             chatMembership.setUser(details.getUser());
@@ -148,7 +150,7 @@ public class EventInvitationController {
 
     @PostMapping("/{id}/decline")
     public String declineInvitation(
-        @PathVariable("id") Long id,
+        @PathVariable Long id,
         @AuthenticationPrincipal AccountUserDetails details,
         RedirectAttributes redirectAttributes
     ) {
@@ -174,6 +176,7 @@ public class EventInvitationController {
 
     private List<User> getFriends(User currentUser) {
         List<Friendship> friendships = friendshipService.findActiveFriendshipsByUser(currentUser);
+        // resolve the other user in each friendship
         return friendships.stream()
             .map(friendship -> friendship.getRequestor().equals(currentUser)
                 ? friendship.getAddressee()

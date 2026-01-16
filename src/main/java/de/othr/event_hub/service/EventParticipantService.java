@@ -7,7 +7,7 @@ import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.EventParticipant;
 import de.othr.event_hub.model.User;
 
-public interface EventParticipantService {
+public interface EventParticipantService { // participant business operations
 
     EventParticipant createParticipant(EventParticipant participant);
 

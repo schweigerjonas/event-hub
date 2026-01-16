@@ -62,6 +62,7 @@ public class EventApiController {
         @RequestParam(required = false, defaultValue = "1") int page,
         @RequestParam(required = false, defaultValue = "10") int size
     ) {
+        // map sort param to entity field
         String sortValue = sort == null ? "time" : sort;
         String sortField;
         switch (sortValue) {
@@ -79,6 +80,7 @@ public class EventApiController {
         Sort.Direction sortDirection = "desc".equalsIgnoreCase(direction)
             ? Sort.Direction.DESC
             : Sort.Direction.ASC;
+        // normalize paging params
         int safePage = Math.max(page, 1);
         int safeSize = size < 1 ? 10 : size;
         Pageable pageable = PageRequest.of(safePage - 1, safeSize, Sort.by(sortDirection, sortField));
@@ -88,7 +90,7 @@ public class EventApiController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EventApiDto> getEvent(@PathVariable("id") Long id) {
+    public ResponseEntity<EventApiDto> getEvent(@PathVariable Long id) {
         Optional<Event> eventOpt = eventService.getEventById(id);
         if (eventOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -101,10 +103,12 @@ public class EventApiController {
         if (!canCreateEvents()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+        // validate location before persisting
         LocationCoordinates coordinates = locationService.findCoordinates(dto.getLocation()).orElse(null);
         if (coordinates == null) {
             return ResponseEntity.badRequest().build();
         }
+        // only admin can set another organizer
         User organizer = resolveOrganizer(dto.getOrganizerId());
         if (organizer == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -125,7 +129,7 @@ public class EventApiController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EventApiDto> updateEvent(@PathVariable("id") Long id, @RequestBody EventApiDto dto) {
+    public ResponseEntity<EventApiDto> updateEvent(@PathVariable Long id, @RequestBody EventApiDto dto) {
         Optional<Event> eventOpt = eventService.getEventById(id);
         if (eventOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -134,6 +138,7 @@ public class EventApiController {
         if (!canModifyEvent(event)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+        // re-validate location on update
         LocationCoordinates coordinates = locationService.findCoordinates(dto.getLocation()).orElse(null);
         if (coordinates == null) {
             return ResponseEntity.badRequest().build();
@@ -155,7 +160,7 @@ public class EventApiController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEvent(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
         Optional<Event> eventOpt = eventService.getEventById(id);
         if (eventOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -170,7 +175,7 @@ public class EventApiController {
 
     @GetMapping("/{id}/participants")
     public ResponseEntity<List<EventParticipantApiDto>> getParticipants(
-        @PathVariable("id") Long id,
+        @PathVariable Long id,
         @RequestParam(required = false, defaultValue = "1") int page,
         @RequestParam(required = false, defaultValue = "10") int size
     ) {
@@ -178,6 +183,7 @@ public class EventApiController {
         if (eventOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        // keep organizer on top of participant list
         int safePage = Math.max(page, 1);
         int safeSize = size < 1 ? 10 : size;
         Pageable pageable = PageRequest.of(safePage - 1, safeSize, Sort.by(Sort.Direction.DESC, "organizer").and(Sort.by(Sort.Direction.DESC, "joinedAt")));
@@ -188,7 +194,7 @@ public class EventApiController {
 
     @PostMapping("/{id}/participants")
     public ResponseEntity<EventParticipantApiDto> addParticipant(
-        @PathVariable("id") Long id,
+        @PathVariable Long id,
         @RequestParam("userId") Long userId
     ) {
         Optional<Event> eventOpt = eventService.getEventById(id);
@@ -197,6 +203,7 @@ public class EventApiController {
         }
         Event event = eventOpt.get();
         User user = userService.getUserById(userId);
+        // skip duplicate participants
         if (participantService.existsParticipant(event, user)) {
             return ResponseEntity.ok().build();
         }
@@ -211,8 +218,8 @@ public class EventApiController {
 
     @DeleteMapping("/{id}/participants/{participantId}")
     public ResponseEntity<Void> deleteParticipant(
-        @PathVariable("id") Long id,
-        @PathVariable("participantId") Long participantId
+        @PathVariable Long id,
+        @PathVariable Long participantId
     ) {
         Optional<Event> eventOpt = eventService.getEventById(id);
         if (eventOpt.isEmpty()) {
@@ -256,6 +263,7 @@ public class EventApiController {
     }
 
     private User resolveOrganizer(Long organizerId) {
+        // admin can assign organizer explicitly
         if (isAdmin() && organizerId != null) {
             return userService.getUserById(organizerId);
         }
@@ -283,6 +291,7 @@ public class EventApiController {
         if (auth == null || !auth.isAuthenticated()) {
             return false;
         }
+        // only admin or organizer can create events
         return auth.getAuthorities().stream()
             .anyMatch(a -> "ADMIN".equals(a.getAuthority()) || "ORGANISATOR".equals(a.getAuthority()));
     }
@@ -297,6 +306,7 @@ public class EventApiController {
         if (isAdmin) {
             return true;
         }
+        // organizer can only modify own events
         boolean isOrganizerRole = auth.getAuthorities().stream()
             .anyMatch(a -> "ORGANISATOR".equals(a.getAuthority()));
         if (!isOrganizerRole) {

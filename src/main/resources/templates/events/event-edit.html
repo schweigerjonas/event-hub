@@ -64,6 +64,7 @@
         const paidCheckbox = document.getElementById("paid");
         const costsInput = document.getElementById("costs");
 
+        // toggle price input for paid events
         const toggleCosts = () => {
             const enabled = paidCheckbox && paidCheckbox.checked;
             if (costsInput) {
@@ -88,6 +89,7 @@
             return item && item.display_name ? item.display_name : "";
         };
 
+        // group input to limit requests
         const fetchLocationSuggestions = async () => {
             if (!locationInput || !suggestionsList) {
                 return;

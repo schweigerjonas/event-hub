@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventParticipantApiDto {
+public class EventParticipantApiDto { // api payload for event participants
     private Long id;
     private Long eventId;
     private Long userId;
