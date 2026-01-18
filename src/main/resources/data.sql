@@ -58,109 +58,109 @@ UPDATE events SET chatroom_id = 3 WHERE id = 2;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (3, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Yoga im Grünen', 'Regensburg', 49.0134, 12.1016, 60, 30, 'Sanftes Flow-Training im Park.', NOW() + 3, 0.0, 2, null);
+VALUES ('Yoga im Grünen', 'Bismarckplatz 1 Regensburg', 49.0134, 12.1016, 60, 30, 'Sanftes Flow-Training im Park.', NOW() + 3, 0.0, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 3, 2);
 UPDATE events SET chatroom_id = 4 WHERE id = 3;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (4, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Bücherbörse für Studierende', 'Nürnberg', 49.4521, 11.0767, 180, 80, 'Tausch und Verkauf gebrauchter Bücher.', NOW() + 4, 0.0, 2, null);
+VALUES ('Bücherbörse für Studierende', 'Hauptmarkt 18 Nürnberg', 49.4521, 11.0767, 180, 80, 'Tausch und Verkauf gebrauchter Bücher.', NOW() + 4, 0.0, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 4, 2);
 UPDATE events SET chatroom_id = 5 WHERE id = 4;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (5, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Kreativ-Workshop: Öl & Acryl', 'Augsburg', 48.3705, 10.8978, 150, 20, 'Malen mit Öl- und Acrylfarben.', NOW() + 5, 25.00, 2, null);
+VALUES ('Comedy Night: Open Mic', 'Maximilianstraße 38 Augsburg', 48.3705, 10.8978, 150, 20, 'Stand-up und Impro-Acts am Abend.', NOW() + 5, 25.00, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 5, 2);
 UPDATE events SET chatroom_id = 6 WHERE id = 5;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (6, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Konzertabend: Düster & Laut', 'Würzburg', 49.7913, 9.9534, 200, 120, 'Lokale Bands mit kräftigem Sound.', NOW() + 6, 12.00, 2, null);
+VALUES ('Live-Konzert: Indie & Rock', 'Theaterstraße 1 Würzburg', 49.7913, 9.9534, 200, 120, 'Lokale Bands mit kraftvollem Sound.', NOW() + 6, 12.00, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 6, 2);
 UPDATE events SET chatroom_id = 7 WHERE id = 6;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (7, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Stadtführung Altstadt', 'Bamberg', 49.8988, 10.9028, 90, 35, 'Geschichte, Gassen und gute Laune.', NOW() + 7, 8.00, 2, null);
+VALUES ('Stadtführung Altstadt', 'Grüner Markt 14 Bamberg', 49.8988, 10.9028, 90, 35, 'Geschichte, Gassen und gute Laune.', NOW() + 7, 8.00, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 7, 2);
 UPDATE events SET chatroom_id = 8 WHERE id = 7;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (8, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Sonnenuntergang am Fluss', 'Passau', 48.5667, 13.4319, 60, 50, 'Gemeinsamer Spaziergang mit Ausblick.', NOW() + 8, 0.0, 2, null);
+VALUES ('Sonnenuntergang am Fluss', 'Domplatz 1 Passau', 48.5667, 13.4319, 60, 50, 'Gemeinsamer Spaziergang mit Ausblick.', NOW() + 8, 0.0, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 8, 2);
 UPDATE events SET chatroom_id = 9 WHERE id = 8;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (9, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Spieleabend mit Würfeln', 'Ingolstadt', 48.7651, 11.4237, 180, 40, 'Brettspiele, Würfelspiele, gute Stimmung.', NOW() + 9, 5.00, 2, null);
+VALUES ('Stand-up Comedy: Open Mic', 'Theresienstraße 25 Ingolstadt', 48.7651, 11.4237, 180, 40, 'Kurze Sets, neue Talente, gute Stimmung.', NOW() + 9, 5.00, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 9, 2);
 UPDATE events SET chatroom_id = 10 WHERE id = 9;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (10, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Fotowalk für Anfänger', 'Landshut', 48.5442, 12.1469, 120, 25, 'Grundlagen und Tipps unterwegs.', NOW() + 10, 0.0, 2, null);
+VALUES ('Fotowalk für Anfänger', 'Altstadt 79 Landshut', 48.5442, 12.1469, 120, 25, 'Grundlagen und Tipps unterwegs.', NOW() + 10, 0.0, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 10, 2);
 UPDATE events SET chatroom_id = 11 WHERE id = 10;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (11, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Kaffee & Kuchen: Omas Rezepte', 'Erlangen', 49.5897, 11.0119, 90, 30, 'Hausgemachte Klassiker zum Probieren.', NOW() + 11, 6.50, 2, null);
+VALUES ('Comedy & Drinks', 'Hauptstraße 23 Erlangen', 49.5897, 11.0119, 90, 30, 'Stand-up am Abend mit Getränken.', NOW() + 11, 6.50, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 11, 2);
 UPDATE events SET chatroom_id = 12 WHERE id = 11;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (12, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Open-Air-Kino', 'Fürth', 49.4771, 10.9887, 150, 100, 'Sommerfilm im Freien.', NOW() + 12, 9.00, 2, null);
+VALUES ('Open-Air-Kino', 'Gustavstraße 12 Fürth', 49.4771, 10.9887, 150, 100, 'Sommerfilm im Freien.', NOW() + 12, 9.00, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 12, 2);
 UPDATE events SET chatroom_id = 13 WHERE id = 12;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (13, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Laufgruppe: 5km', 'Rosenheim', 47.8564, 12.1229, 60, 60, 'Gemeinsam laufen, Tempo 6:00.', NOW() + 13, 0.0, 2, null);
+VALUES ('Laufgruppe: 5km', 'Max-Josefs-Platz 20 Rosenheim', 47.8564, 12.1229, 60, 60, 'Gemeinsam laufen, Tempo 6:00.', NOW() + 13, 0.0, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 13, 2);
 UPDATE events SET chatroom_id = 14 WHERE id = 13;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (14, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Radltour an der Donau', 'Deggendorf', 48.8408, 12.9607, 180, 40, 'Entspannte Tour mit Pausen.', NOW() + 14, 0.0, 2, null);
+VALUES ('Radltour an der Donau', 'Luitpoldplatz 1 Deggendorf', 48.8408, 12.9607, 180, 40, 'Entspannte Tour mit Pausen.', NOW() + 14, 0.0, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 14, 2);
 UPDATE events SET chatroom_id = 15 WHERE id = 14;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (15, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Kochkurs: Süß & Herzhaft', 'Weiden', 49.6764, 12.1568, 160, 18, 'Kochen mit regionalen Zutaten.', NOW() + 15, 30.00, 2, null);
+VALUES ('Kochkurs: Süß & Herzhaft', 'Oberer Markt 1 Weiden', 49.6764, 12.1568, 160, 18, 'Kochen mit regionalen Zutaten.', NOW() + 15, 30.00, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 15, 2);
 UPDATE events SET chatroom_id = 16 WHERE id = 15;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (16, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Science Slam', 'Bayreuth', 49.9456, 11.5713, 120, 150, 'Forschung kurz und witzig.', NOW() + 16, 10.00, 2, null);
+VALUES ('Science Slam', 'Opernstraße 14 Bayreuth', 49.9456, 11.5713, 120, 150, 'Forschung kurz und witzig.', NOW() + 16, 10.00, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 16, 2);
 UPDATE events SET chatroom_id = 17 WHERE id = 16;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (17, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Poetry Night', 'Hof', 50.312, 11.9126, 90, 70, 'Gedichte und Texte von lokalen Autor:innen.', NOW() + 17, 0.0, 2, null);
+VALUES ('Poetry Night', 'Altstadt 30 Hof', 50.312, 11.9126, 90, 70, 'Gedichte und Texte von lokalen Autor:innen.', NOW() + 17, 0.0, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 17, 2);
 UPDATE events SET chatroom_id = 18 WHERE id = 17;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (18, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Töpfern für Einsteiger', 'Cham', 49.2256, 12.655, 140, 16, 'Ton, Drehscheibe und Geduld.', NOW() + 18, 22.00, 2, null);
+VALUES ('Töpfern für Einsteiger', 'Rodinger Straße 12 Cham', 49.2256, 12.655, 140, 16, 'Ton, Drehscheibe und Geduld.', NOW() + 18, 22.00, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 18, 2);
 UPDATE events SET chatroom_id = 19 WHERE id = 18;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (19, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Klettertreff', 'Amberg', 49.441, 11.8628, 120, 20, 'Bouldern für alle Levels.', NOW() + 19, 7.00, 2, null);
+VALUES ('Klettertreff', 'Marktplatz 1 Amberg', 49.441, 11.8628, 120, 20, 'Bouldern für alle Levels.', NOW() + 19, 7.00, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 19, 2);
 UPDATE events SET chatroom_id = 20 WHERE id = 19;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (20, 2, NOW(), 'CHATADMIN');
 
 INSERT INTO events (name, location, latitude, longitude, duration_minutes, max_participants, description, event_time, costs, organizer_id, chatroom_id)
-VALUES ('Winterwanderung mit Hüttenstopp', 'Garmisch-Partenkirchen', 47.492, 11.0955, 240, 30, 'Schnee, Aussicht und heiße Getränke.', NOW() + 20, 0.0, 2, null);
+VALUES ('Winterwanderung mit Hüttenstopp', 'Olympiastraße 27 Garmisch-Partenkirchen', 47.492, 11.0955, 240, 30, 'Schnee, Aussicht und heiße Getränke.', NOW() + 20, 0.0, 2, null);
 INSERT INTO chat_rooms (type, name, created_at, event_id, owner_id) VALUES ('EVENT', null, NOW(), 20, 2);
 UPDATE events SET chatroom_id = 21 WHERE id = 20;
 INSERT INTO chat_memberships (chatroom_id, user_id, joined_at, role) VALUES (21, 2, NOW(), 'CHATADMIN');

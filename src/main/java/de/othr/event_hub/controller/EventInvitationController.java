@@ -1,7 +1,11 @@
 package de.othr.event_hub.controller;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -91,9 +95,22 @@ public class EventInvitationController {
         model.addAttribute("keyword", keyword == null ? "" : keyword);
         // provide data for invite form
         Pageable eventPageable = PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "eventTime"));
-        model.addAttribute("participatingEvents",
-            eventService.getParticipatingEvents(null, details.getUser(), eventPageable).getContent());
+        List<Event> participatingEvents =
+            eventService.getParticipatingEvents(null, details.getUser(), eventPageable).getContent();
+        model.addAttribute("participatingEvents", participatingEvents);
         model.addAttribute("friends", getFriends(details.getUser()));
+        // prevent inviting users already participating in the selected event
+        Map<Long, Set<Long>> participantIdsByEvent = new HashMap<>();
+        for (Event event : participatingEvents) {
+            Set<Long> participantIds = new HashSet<>();
+            for (EventParticipant participant : participantService.getAllParticipants(event)) {
+                if (participant.getUser() != null) {
+                    participantIds.add(participant.getUser().getId());
+                }
+            }
+            participantIdsByEvent.put(event.getId(), participantIds);
+        }
+        model.addAttribute("participantIdsByEvent", participantIdsByEvent);
         return "invitations/invitations-all";
     }
 

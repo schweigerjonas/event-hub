@@ -91,6 +91,13 @@ public class EventApiController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<List<EventApiDto>> getAllEvents() {
+        List<Event> events = eventService.getAllEvents();
+        List<EventApiDto> dtos = events.stream().map(this::toDto).collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<EventApiDto> getEvent(@PathVariable Long id) {
         Optional<Event> eventOpt = eventService.getEventById(id);
