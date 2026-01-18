@@ -124,6 +124,10 @@ public class EventInvitationController {
             return "redirect:/invitations";
         }
         if (!participantService.existsParticipant(event, details.getUser())) {
+            if (event.getCosts() > 0) {
+                return "redirect:/events/" + id + "/payments";
+            }
+
             LocalDateTime now = LocalDateTime.now();
 
             EventParticipant participant = new EventParticipant();
