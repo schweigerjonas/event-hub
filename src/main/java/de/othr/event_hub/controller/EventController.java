@@ -440,6 +440,13 @@ public class EventController {
             model.addAttribute("participantsTotalPages", participants.getTotalPages());
             model.addAttribute("participantsTotalItems", participants.getTotalElements());
             model.addAttribute("participantsSize", safeSize);
+            Set<Long> participantUserIds = new HashSet<>();
+            for (EventParticipant participant : eventParticipantService.getAllParticipants(event)) {
+                if (participant.getUser() != null) {
+                    participantUserIds.add(participant.getUser().getId());
+                }
+            }
+            model.addAttribute("participantUserIds", participantUserIds);
             if (canViewPayments) {
                 Map<Long, Double> paidAmounts = new HashMap<>();
                 for (EventParticipant participant : participants.getContent()) {

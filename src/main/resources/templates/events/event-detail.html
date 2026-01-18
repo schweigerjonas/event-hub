@@ -350,10 +350,16 @@
                         <div th:if="${#lists.isEmpty(friends)}" class="text-muted">Keine Freunde verfügbar.</div>
                         <div class="list-group" th:if="${!#lists.isEmpty(friends)}">
                             <label class="list-group-item d-flex align-items-center gap-2"
-                                th:each="friend : ${friends}">
+                                th:each="friend : ${friends}"
+                                th:classappend="${participantUserIds != null and #sets.contains(participantUserIds, friend.id)} ? ' text-muted opacity-50' : ''">
                                 <input class="form-check-input m-0" type="checkbox" name="friendIds"
-                                    th:value="${friend.id}">
+                                    th:value="${friend.id}"
+                                    th:disabled="${participantUserIds != null and #sets.contains(participantUserIds, friend.id)}">
                                 <span th:text="${friend.username}">Freund</span>
+                                <span class="badge bg-secondary ms-auto"
+                                    th:if="${participantUserIds != null and #sets.contains(participantUserIds, friend.id)}">
+                                    Teilnehmer
+                                </span>
                             </label>
                         </div>
                     </div>

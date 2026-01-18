@@ -135,9 +135,31 @@
         </nav>
     </div>
 
-    <script>
+    <script th:inline="javascript">
         const inviteForm = document.getElementById("invite-form");
         const inviteEvent = document.getElementById("invite-event");
+        const participantIdsByEvent = /*[[${participantIdsByEvent}]]*/ {};
+        const friendInputs = document.querySelectorAll("#invite-form input[name='friendIds']");
+        const updateFriendAvailability = () => {
+            if (!inviteEvent) {
+                return;
+            }
+            const selectedEventId = inviteEvent.value;
+            const participantIds = participantIdsByEvent[selectedEventId] || [];
+            const participantSet = new Set(participantIds.map(String));
+            friendInputs.forEach((input) => {
+                const isParticipant = participantSet.has(input.value);
+                input.disabled = isParticipant;
+                if (isParticipant) {
+                    input.checked = false;
+                }
+                const label = input.closest("label");
+                if (label) {
+                    label.classList.toggle("text-muted", isParticipant);
+                    label.classList.toggle("opacity-50", isParticipant);
+                }
+            });
+        };
         if (inviteForm && inviteEvent) {
             inviteForm.addEventListener("submit", (event) => {
                 if (!inviteEvent.value) {
@@ -147,6 +169,8 @@
                 // set the event-specific invite endpoint
                 inviteForm.action = `/events/${inviteEvent.value}/invite`;
             });
+            inviteEvent.addEventListener("change", updateFriendAvailability);
+            updateFriendAvailability();
         }
     </script>
 </main>
