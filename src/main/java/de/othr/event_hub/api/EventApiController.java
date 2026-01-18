@@ -203,6 +203,17 @@ public class EventApiController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/{id}/participants/all")
+    public ResponseEntity<List<EventParticipantApiDto>> getAllParticipants(@PathVariable Long id) {
+        Optional<Event> eventOpt = eventService.getEventById(id);
+        if (eventOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        List<EventParticipant> participants = participantService.getAllParticipants(eventOpt.get());
+        List<EventParticipantApiDto> dtos = participants.stream().map(this::toParticipantDto).collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
     @PostMapping("/{id}/participants")
     public ResponseEntity<EventParticipantApiDto> addParticipant(
         @PathVariable Long id,
