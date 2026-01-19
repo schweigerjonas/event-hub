@@ -17,6 +17,18 @@ INSERT INTO user_authorities(user_id, authority_id) VALUES (3, 3);
 INSERT INTO user_authorities(user_id, authority_id) VALUES (4, 1);
 INSERT INTO user_authorities(user_id, authority_id) VALUES (5, 1);
 
+-- Add notifications
+INSERT INTO notifications (recipient_id, type, message, link, is_read, created_at) VALUES (1, 2, 'organizer hat dich zum Event "Frühstück & Netzwerken" eingeladen.', '/invitations', FALSE, NOW());
+INSERT INTO notifications (recipient_id, type, message, link, is_read, created_at) VALUES (1, 1, 'organizer hat deine Freundschaftsanfrage angenommen.', '/friends/all', FALSE, NOW());
+INSERT INTO notifications (recipient_id, type, message, link, is_read, created_at) VALUES (1, 3, 'Das Event "Spieleabend für Strategen" wurde leider abgesagt.', '/events', FALSE, NOW()-20);
+INSERT INTO notifications (recipient_id, type, message, link, is_read, created_at) VALUES (5, 0, 'user hat dir eine Freundschaftsanfrage gesendet.', '/friends/all', FALSE, NOW()-10);
+
+-- Add activities
+INSERT INTO activities (actor_id, event_id, type, message, link, timestamp) VALUES (2, 2, 0, 'organizer hat ein Event erstellt: Käseverkostung am See', 'events/2', NOW() - 12);
+INSERT INTO activities (actor_id, event_id, type, message, link, timestamp) VALUES (2, 3, 0, 'organizer hat ein Event erstellt: Yoga im Grünen', 'events/3', NOW() - 8);
+INSERT INTO activities (actor_id, event_id, type, message, link, timestamp) VALUES (2, 99, 3, 'organizer hat sein Event abgesagt: Spieleabend für Strategen', '', NOW() - 4);
+INSERT INTO activities (actor_id, event_id, type, message, link, timestamp) VALUES (1, 1, 4, 'user hat das Event "Frühstück & Netzwerken" mit 5 Sternen bewertet', 'events/1', NOW() - 2);
+
 -- Add friendships
 INSERT INTO friendships (requestor_id, addressee_id, status, created_at, accepted_at) VALUES (1, 2, 'ACCEPTED', NOW() - 20, NOW() - 10);
 INSERT INTO friendships (requestor_id, addressee_id, status, created_at, accepted_at) VALUES (1, 5, 'PENDING', NOW() - 5, null); 
