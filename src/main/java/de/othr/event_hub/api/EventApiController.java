@@ -1,5 +1,6 @@
 package de.othr.event_hub.api;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -26,13 +27,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 import de.othr.event_hub.dto.EventApiDto;
 import de.othr.event_hub.dto.EventParticipantApiDto;
+import de.othr.event_hub.model.ChatMembership;
+import de.othr.event_hub.model.ChatRoom;
 import de.othr.event_hub.model.Event;
 import de.othr.event_hub.model.EventParticipant;
+import de.othr.event_hub.model.Payment;
 import de.othr.event_hub.model.User;
+import de.othr.event_hub.model.enums.ChatMembershipRole;
+import de.othr.event_hub.model.enums.ChatRoomType;
 import de.othr.event_hub.service.EventParticipantService;
+import de.othr.event_hub.service.EventInvitationService;
 import de.othr.event_hub.service.EventService;
+import de.othr.event_hub.service.ChatMembershipService;
+import de.othr.event_hub.service.ChatRoomService;
 import de.othr.event_hub.service.LocationCoordinates;
 import de.othr.event_hub.service.LocationService;
+import de.othr.event_hub.service.RatingService;
 import de.othr.event_hub.service.UserService;
 
 @RestController
@@ -41,17 +51,29 @@ public class EventApiController {
 
     private final EventService eventService;
     private final EventParticipantService participantService;
+    private final EventInvitationService eventInvitationService;
+    private final RatingService ratingService;
+    private final ChatRoomService chatRoomService;
+    private final ChatMembershipService chatMembershipService;
     private final UserService userService;
     private final LocationService locationService;
 
     public EventApiController(
         EventService eventService,
         EventParticipantService participantService,
+        EventInvitationService eventInvitationService,
+        RatingService ratingService,
+        ChatRoomService chatRoomService,
+        ChatMembershipService chatMembershipService,
         UserService userService,
         LocationService locationService
     ) {
         this.eventService = eventService;
         this.participantService = participantService;
+        this.eventInvitationService = eventInvitationService;
+        this.ratingService = ratingService;
+        this.chatRoomService = chatRoomService;
+        this.chatMembershipService = chatMembershipService;
         this.userService = userService;
         this.locationService = locationService;
     }
@@ -112,11 +134,29 @@ public class EventApiController {
         if (!canCreateEvents()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+        if (dto.getName() == null || dto.getName().isBlank()) {
+            return ResponseEntity.badRequest().header("X-Error", "name_required").build();
+        }
+        if (dto.getLocation() == null || dto.getLocation().isBlank()) {
+            return ResponseEntity.badRequest().header("X-Error", "location_required").build();
+        }
+        if (dto.getDurationMinutes() == null || dto.getDurationMinutes() <= 0) {
+            return ResponseEntity.badRequest().header("X-Error", "duration_invalid").build();
+        }
+        if (dto.getMaxParticipants() == null || dto.getMaxParticipants() <= 0) {
+            return ResponseEntity.badRequest().header("X-Error", "max_participants_invalid").build();
+        }
+        if (dto.getCosts() < 0) {
+            return ResponseEntity.badRequest().header("X-Error", "costs_invalid").build();
+        }
+        if (dto.getEventTime() == null || dto.getEventTime().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.badRequest().header("X-Error", "event_time_invalid").build();
+        }
         // validate location before persisting
         String rawLocation = dto.getLocation();
         LocationCoordinates coordinates = locationService.findCoordinates(rawLocation).orElse(null);
         if (coordinates == null) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().header("X-Error", "location_not_found").build();
         }
         // only admin can set another organizer
         User organizer = resolveOrganizer(dto.getOrganizerId());
@@ -135,6 +175,30 @@ public class EventApiController {
         event.setCosts(dto.getCosts());
         event.setOrganizer(organizer);
         Event created = eventService.createEvent(event);
+        EventParticipant organizerParticipant = new EventParticipant();
+        organizerParticipant.setEvent(created);
+        organizerParticipant.setUser(organizer);
+        organizerParticipant.setOrganizer(true);
+        organizerParticipant.setJoinedAt(LocalDateTime.now());
+        participantService.createParticipant(organizerParticipant);
+
+        LocalDateTime now = LocalDateTime.now();
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.setType(ChatRoomType.EVENT);
+        chatRoom.setOwner(organizer);
+        chatRoom.setCreatedAt(now);
+        chatRoom.setEvent(created);
+        chatRoom = chatRoomService.createChatRoom(chatRoom);
+
+        created.setEventChatRoom(chatRoom);
+        eventService.updateEvent(created);
+
+        ChatMembership chatMembership = new ChatMembership();
+        chatMembership.setChatRoom(chatRoom);
+        chatMembership.setUser(organizer);
+        chatMembership.setRole(ChatMembershipRole.CHATADMIN);
+        chatMembership.setJoinedAt(now);
+        chatMembershipService.createChatMembership(chatMembership);
         return ResponseEntity.ok(toDto(created));
     }
 
@@ -148,11 +212,33 @@ public class EventApiController {
         if (!canModifyEvent(event)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+        if (dto.getName() == null || dto.getName().isBlank()) {
+            return ResponseEntity.badRequest().header("X-Error", "name_required").build();
+        }
+        if (dto.getLocation() == null || dto.getLocation().isBlank()) {
+            return ResponseEntity.badRequest().header("X-Error", "location_required").build();
+        }
+        if (dto.getDurationMinutes() == null || dto.getDurationMinutes() <= 0) {
+            return ResponseEntity.badRequest().header("X-Error", "duration_invalid").build();
+        }
+        if (dto.getMaxParticipants() == null || dto.getMaxParticipants() <= 0) {
+            return ResponseEntity.badRequest().header("X-Error", "max_participants_invalid").build();
+        }
+        long currentParticipants = participantService.countParticipants(event);
+        if (dto.getMaxParticipants() < currentParticipants) {
+            return ResponseEntity.badRequest().header("X-Error", "max_participants_too_small").build();
+        }
+        if (dto.getCosts() < 0) {
+            return ResponseEntity.badRequest().header("X-Error", "costs_invalid").build();
+        }
+        if (dto.getEventTime() == null || dto.getEventTime().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.badRequest().header("X-Error", "event_time_invalid").build();
+        }
         // re-validate location on update
         String rawLocation = dto.getLocation();
         LocationCoordinates coordinates = locationService.findCoordinates(rawLocation).orElse(null);
         if (coordinates == null) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().header("X-Error", "location_not_found").build();
         }
         event.setName(dto.getName());
         event.setLocation(formatLocation(rawLocation));
@@ -180,6 +266,15 @@ public class EventApiController {
         if (!canModifyEvent(event)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+        if (event.getPayments() != null) {
+            for (Payment payment : event.getPayments()) {
+                payment.setEvent(null);
+            }
+            event.getPayments().clear();
+        }
+        eventInvitationService.deleteInvitationsByEvent(event);
+        ratingService.deleteRatingsByEvent(event);
+        participantService.deleteParticipants(event);
         eventService.deleteEvent(event);
         return ResponseEntity.noContent().build();
     }
@@ -193,6 +288,10 @@ public class EventApiController {
         Optional<Event> eventOpt = eventService.getEventById(id);
         if (eventOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
+        }
+        User currentUser = getCurrentUser();
+        if (!canViewParticipants(eventOpt.get(), currentUser)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         // keep organizer on top of participant list
         int safePage = Math.max(page, 1);
@@ -209,6 +308,10 @@ public class EventApiController {
         if (eventOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        User currentUser = getCurrentUser();
+        if (!canViewParticipants(eventOpt.get(), currentUser)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         List<EventParticipant> participants = participantService.getAllParticipants(eventOpt.get());
         List<EventParticipantApiDto> dtos = participants.stream().map(this::toParticipantDto).collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
@@ -217,14 +320,31 @@ public class EventApiController {
     @PostMapping("/{id}/participants")
     public ResponseEntity<EventParticipantApiDto> addParticipant(
         @PathVariable Long id,
-        @RequestParam("userId") Long userId
+        @RequestParam Long userId
     ) {
         Optional<Event> eventOpt = eventService.getEventById(id);
         if (eventOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         Event event = eventOpt.get();
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        if (!isAdmin() && !currentUser.getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        if (event.getCosts() > 0) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).header("X-Error", "payment_required").build();
+        }
+        if (event.getMaxParticipants() != null
+                && participantService.countParticipants(event) >= event.getMaxParticipants()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).header("X-Error", "event_full").build();
+        }
         User user = userService.getUserById(userId);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
         // skip duplicate participants
         if (participantService.existsParticipant(event, user)) {
             return ResponseEntity.ok().build();
@@ -248,6 +368,10 @@ public class EventApiController {
             return ResponseEntity.notFound().build();
         }
         Event event = eventOpt.get();
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         EventParticipant participant = participantService.getAllParticipants(event).stream()
             .filter(p -> p.getId().equals(participantId))
             .findFirst()
@@ -255,8 +379,24 @@ public class EventApiController {
         if (participant == null) {
             return ResponseEntity.notFound().build();
         }
+        if (!canModifyEvent(event) && (participant.getUser() == null || !participant.getUser().equals(currentUser))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         participantService.deleteParticipant(event, participant.getUser());
         return ResponseEntity.noContent().build();
+    }
+
+    private boolean canViewParticipants(Event event, User currentUser) {
+        if (currentUser == null) {
+            return false;
+        }
+        if (isAdmin()) {
+            return true;
+        }
+        if (event.getOrganizer() != null && event.getOrganizer().equals(currentUser)) {
+            return true;
+        }
+        return participantService.existsParticipant(event, currentUser);
     }
 
     private EventApiDto toDto(Event event) {

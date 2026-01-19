@@ -31,7 +31,8 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label" for="maxParticipants">Max. Teilnehmer</label>
-                <input id="maxParticipants" class="form-control" type="number" min="1" th:field="*{maxParticipants}" required>
+                <input id="maxParticipants" class="form-control" type="number" min="1" th:field="*{maxParticipants}"
+                    th:attr="data-current-participants=${currentParticipants}" required>
                 <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('maxParticipants')}" th:errors="*{maxParticipants}"></div>
             </div>
             <div class="col-md-4">
@@ -49,7 +50,7 @@
             </div>
             <div id="costs-wrapper" class="col-md-4 mt-1 costs-field" th:classappend="${!eventForm.paid} ? ' is-disabled'">
                 <label class="form-label" for="costs">Preis in EUR</label>
-                <input id="costs" class="form-control" type="number" min="0" step="0.01" th:field="*{costs}"
+                <input id="costs" class="form-control" type="number" min="0.01" step="0.01" th:field="*{costs}"
                     th:disabled="${!eventForm.paid}">
                 <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('costs')}" th:errors="*{costs}"></div>
             </div>
@@ -98,6 +99,8 @@
         const locationQueryInput = document.getElementById("locationQuery");
         const locationLatInput = document.getElementById("locationLat");
         const locationLonInput = document.getElementById("locationLon");
+        const eventTimeInput = document.getElementById("eventTime");
+        const maxParticipantsInput = document.getElementById("maxParticipants");
         let locationRequestId = 0;
 
         const clearLocationCache = () => {
@@ -223,6 +226,80 @@
                 clearLocationState();
             });
             locationInput.addEventListener("blur", validateLocation);
+        }
+
+        const updateEventTimeMin = () => {
+            if (!eventTimeInput) {
+                return;
+            }
+            const now = new Date();
+            now.setSeconds(0, 0);
+            eventTimeInput.min = now.toISOString().slice(0, 16);
+        };
+
+        const validateEventTime = () => {
+            if (!eventTimeInput) {
+                return;
+            }
+            const value = eventTimeInput.value;
+            if (!value) {
+                eventTimeInput.setCustomValidity("");
+                return;
+            }
+            const selected = new Date(value);
+            const now = new Date();
+            if (selected < now) {
+                eventTimeInput.setCustomValidity("Bitte wählen Sie einen Startzeitpunkt in der Zukunft.");
+            } else {
+                eventTimeInput.setCustomValidity("");
+            }
+        };
+
+        const validateMaxParticipants = () => {
+            if (!maxParticipantsInput) {
+                return;
+            }
+            const value = maxParticipantsInput.value;
+            if (!value) {
+                maxParticipantsInput.setCustomValidity("");
+                return;
+            }
+            const current = Number.parseInt(maxParticipantsInput.dataset.currentParticipants || "0", 10);
+            const selected = Number.parseInt(value, 10);
+            if (!Number.isNaN(current) && !Number.isNaN(selected) && selected < current) {
+                maxParticipantsInput.setCustomValidity("Max. Teilnehmer darf nicht kleiner als die aktuelle Teilnehmerzahl sein.");
+            } else {
+                maxParticipantsInput.setCustomValidity("");
+            }
+        };
+
+        if (eventTimeInput) {
+            updateEventTimeMin();
+            validateEventTime();
+            eventTimeInput.addEventListener("input", validateEventTime);
+            eventTimeInput.addEventListener("blur", validateEventTime);
+        }
+        if (maxParticipantsInput) {
+            validateMaxParticipants();
+            maxParticipantsInput.addEventListener("input", validateMaxParticipants);
+            maxParticipantsInput.addEventListener("blur", validateMaxParticipants);
+        }
+
+        const form = document.querySelector("form");
+        if (form && eventTimeInput) {
+            form.addEventListener("submit", (event) => {
+                validateEventTime();
+                validateMaxParticipants();
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (eventTimeInput.validationMessage) {
+                        eventTimeInput.reportValidity();
+                    } else if (maxParticipantsInput && maxParticipantsInput.validationMessage) {
+                        maxParticipantsInput.reportValidity();
+                    }
+                }
+            });
         }
     </script>
 </main>

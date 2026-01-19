@@ -86,6 +86,7 @@ public class EventController {
     private final WeatherService weatherService;
     private final NotificationService notificationService;
     private final ActivityService activityService;
+    private static final Map<Long, Object> EVENT_JOIN_LOCKS = new java.util.concurrent.ConcurrentHashMap<>();
 
     public EventController(
             ChatMembershipService chatMembershipService,
@@ -224,13 +225,13 @@ public class EventController {
 
     @PostMapping
     public String createEvent(
-            @Valid @ModelAttribute("eventForm") EventFormDto eventForm,
+            @Valid @ModelAttribute EventFormDto eventForm,
             BindingResult result,
             @AuthenticationPrincipal AccountUserDetails details,
             RedirectAttributes redirectAttributes,
-            @RequestParam(name = "locationQuery", required = false) String locationQuery,
-            @RequestParam(name = "locationLat", required = false) Double locationLat,
-            @RequestParam(name = "locationLon", required = false) Double locationLon,
+            @RequestParam(required = false) String locationQuery,
+            @RequestParam(required = false) Double locationLat,
+            @RequestParam(required = false) Double locationLon,
             HttpServletRequest request) {
         // paid events require a price
         if (details == null || details.getUser() == null) {
@@ -244,6 +245,9 @@ public class EventController {
         }
         if (eventForm.isPaid() && (eventForm.getCosts() == null || eventForm.getCosts() <= 0)) {
             result.rejectValue("costs", "event.costs.required", "Bitte geben Sie einen Preis an.");
+        }
+        if (eventForm.getEventTime() != null && eventForm.getEventTime().isBefore(LocalDateTime.now())) {
+            result.rejectValue("eventTime", "event.time.past", "Startzeitpunkt darf nicht in der Vergangenheit liegen.");
         }
         LocationCoordinates coordinates = null;
         String rawLocation = eventForm.getLocation();
@@ -343,6 +347,7 @@ public class EventController {
         form.setDescription(event.getDescription());
         form.setEventTime(event.getEventTime());
         model.addAttribute("eventForm", form);
+        model.addAttribute("currentParticipants", eventParticipantService.countParticipants(event));
         model.addAttribute("locationQuery", event.getLocation());
         model.addAttribute("locationLat", event.getLatitude());
         model.addAttribute("locationLon", event.getLongitude());
@@ -353,13 +358,13 @@ public class EventController {
     @PostMapping("/{id}/edit")
     public String updateEvent(
             @PathVariable Long id,
-            @Valid @ModelAttribute("eventForm") EventFormDto eventForm,
+            @Valid @ModelAttribute EventFormDto eventForm,
             BindingResult result,
             @AuthenticationPrincipal AccountUserDetails details,
             RedirectAttributes redirectAttributes,
-            @RequestParam(name = "locationQuery", required = false) String locationQuery,
-            @RequestParam(name = "locationLat", required = false) Double locationLat,
-            @RequestParam(name = "locationLon", required = false) Double locationLon,
+            @RequestParam(required = false) String locationQuery,
+            @RequestParam(required = false) Double locationLat,
+            @RequestParam(required = false) Double locationLon,
             HttpServletRequest request,
             Model model) {
         Event event = eventService.getEventById(id)
@@ -367,6 +372,11 @@ public class EventController {
         if (details == null || details.getUser() == null) {
             request.getSession(true).setAttribute("loginRedirect", "/events/" + id + "/edit");
             return "redirect:/login?redirect=/events/" + id + "/edit";
+        }
+        long participantCount = eventParticipantService.countParticipants(event);
+        if (eventForm.getMaxParticipants() != null && eventForm.getMaxParticipants() < participantCount) {
+            result.rejectValue("maxParticipants", "event.maxParticipants.tooSmall",
+                    "Max. Teilnehmer darf nicht kleiner als die aktuelle Teilnehmerzahl sein.");
         }
         boolean isOrganizer = event.getOrganizer() != null && event.getOrganizer().equals(details.getUser());
         boolean isAdmin = hasAuthority(details, "ADMIN");
@@ -376,6 +386,9 @@ public class EventController {
         }
         if (eventForm.isPaid() && (eventForm.getCosts() == null || eventForm.getCosts() <= 0)) {
             result.rejectValue("costs", "event.costs.required", "Bitte geben Sie einen Preis an.");
+        }
+        if (eventForm.getEventTime() != null && eventForm.getEventTime().isBefore(LocalDateTime.now())) {
+            result.rejectValue("eventTime", "event.time.past", "Startzeitpunkt darf nicht in der Vergangenheit liegen.");
         }
         LocationCoordinates coordinates = null;
         String rawLocation = eventForm.getLocation();
@@ -387,6 +400,7 @@ public class EventController {
         }
         if (result.hasErrors()) {
             model.addAttribute("eventId", id);
+            model.addAttribute("currentParticipants", participantCount);
             return "events/event-edit";
         }
         event.setName(eventForm.getName().trim());
@@ -426,6 +440,7 @@ public class EventController {
             isParticipant = eventParticipantService.existsParticipant(event, details.getUser());
             isOrganizer = event.getOrganizer() != null && event.getOrganizer().equals(details.getUser());
             isAdmin = hasAuthority(details, "ADMIN");
+            model.addAttribute("currentUserId", details.getUser().getId());
             // payments only for organizer/admin
             canViewPayments = isOrganizer || isAdmin;
             int safePage = Math.max(participantsPage, 1);
@@ -520,57 +535,59 @@ public class EventController {
         }
         // admins cannot join events
         if (hasAuthority(details, "ADMIN")) {
-            redirectAttributes.addFlashAttribute("error", "Admins k\u00f6nnen nicht an Events teilnehmen.");
+            redirectAttributes.addFlashAttribute("error", "Admins können nicht an Events teilnehmen.");
             return "redirect:/events/" + id;
         }
-        if (eventParticipantService.existsParticipant(event, details.getUser())) {
-            redirectAttributes.addFlashAttribute("info", "Du nimmst bereits teil.");
-            return "redirect:/events/" + id;
+        Object lock = EVENT_JOIN_LOCKS.computeIfAbsent(event.getId(), key -> new Object());
+        synchronized (lock) {
+            if (eventParticipantService.existsParticipant(event, details.getUser())) {
+                redirectAttributes.addFlashAttribute("info", "Du nimmst bereits teil.");
+                return "redirect:/events/" + id;
+            }
+            if (event.getMaxParticipants() != null
+                    && eventParticipantService.countParticipants(event) >= event.getMaxParticipants()) {
+                redirectAttributes.addFlashAttribute("error", "Dieses Event ist bereits ausgebucht.");
+                return "redirect:/events/" + id;
+            }
+            if (event.getCosts() > 0) {
+                return "redirect:/events/" + id + "/payments";
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+
+            EventParticipant participant = new EventParticipant();
+            participant.setEvent(event);
+            participant.setUser(details.getUser());
+            participant.setOrganizer(false);
+            participant.setJoinedAt(now);
+            eventParticipantService.createParticipant(participant);
+
+            // create activity feed log entry
+            String message = details.getUsername() + " hat sich f\u00fcr ein Event angemeldet: " + event.getName();
+            String link = "events/" + event.getId();
+            activityService.logActivity(details.getUser(), event.getId(),
+                    ActivityType.EVENT_JOINED,
+                    message, link);
+
+            // join chat room for event
+            ChatMembership chatMembership = new ChatMembership();
+            chatMembership.setChatRoom(event.getEventChatRoom());
+            chatMembership.setUser(details.getUser());
+            chatMembership.setRole(ChatMembershipRole.MEMBER);
+            chatMembership.setJoinedAt(now);
+            chatMembershipService.createChatMembership(chatMembership);
         }
-        if (event.getMaxParticipants() != null
-                && eventParticipantService.countParticipants(event) >= event.getMaxParticipants()) {
-            redirectAttributes.addFlashAttribute("error", "Dieses Event ist bereits ausgebucht.");
-            return "redirect:/events/" + id;
-        }
-        if (event.getCosts() > 0) {
-            return "redirect:/events/" + id + "/payments";
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-
-        EventParticipant participant = new EventParticipant();
-        participant.setEvent(event);
-        participant.setUser(details.getUser());
-        participant.setOrganizer(false);
-        participant.setJoinedAt(now);
-        eventParticipantService.createParticipant(participant);
-
-        // create activity feed log entry
-        String message = details.getUsername() + " hat sich für ein Event angemeldet: " + event.getName();
-        String link = "events/" + event.getId();
-        activityService.logActivity(details.getUser(), event.getId(),
-                ActivityType.EVENT_JOINED,
-                message, link);
-
-        // join chat room for event
-        ChatMembership chatMembership = new ChatMembership();
-        chatMembership.setChatRoom(event.getEventChatRoom());
-        chatMembership.setUser(details.getUser());
-        chatMembership.setRole(ChatMembershipRole.MEMBER);
-        chatMembership.setJoinedAt(now);
-        chatMembershipService.createChatMembership(chatMembership);
 
         redirectAttributes.addFlashAttribute(
                 "success",
                 "Du hast dich zum Event \"" + event.getName() + "\" angemeldet.");
         return "redirect:/events/" + id;
     }
-
-    @PostMapping("/{id}/ratings")
+@PostMapping("/{id}/ratings")
     public String saveRating(
             @PathVariable Long id,
-            @RequestParam("stars") int stars,
-            @RequestParam(name = "comment", required = false) String comment,
+            @RequestParam int stars,
+            @RequestParam(required = false) String comment,
             @AuthenticationPrincipal AccountUserDetails details,
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) {
@@ -635,8 +652,8 @@ public class EventController {
     @PostMapping("/{id}/invite")
     public String inviteFriend(
             @PathVariable Long id,
-            @RequestParam(name = "friendIds", required = false) List<Long> friendIds,
-            @RequestParam(name = "redirect", required = false) String redirect,
+            @RequestParam(required = false) List<Long> friendIds,
+            @RequestParam(required = false) String redirect,
             @AuthenticationPrincipal AccountUserDetails details,
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) {
@@ -738,6 +755,43 @@ public class EventController {
         redirectAttributes.addFlashAttribute(
                 "success",
                 "Du hast dich vom Event \"" + event.getName() + "\" abgemeldet.");
+        return "redirect:/events/" + id;
+    }
+
+    @PostMapping("/{id}/participants/{participantId}/remove")
+    public String removeParticipant(
+            @PathVariable Long id,
+            @PathVariable Long participantId,
+            @AuthenticationPrincipal AccountUserDetails details,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
+        Event event = eventService.getEventById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (details == null || details.getUser() == null) {
+            request.getSession(true).setAttribute("loginRedirect", "/events/" + id);
+            return "redirect:/login?redirect=/events/" + id;
+        }
+        boolean isOrganizer = event.getOrganizer() != null && event.getOrganizer().equals(details.getUser());
+        boolean isAdmin = hasAuthority(details, "ADMIN");
+        if (!isOrganizer && !isAdmin) {
+            return "redirect:/events/" + id;
+        }
+        EventParticipant participant = eventParticipantService.getAllParticipants(event).stream()
+                .filter(p -> p.getId().equals(participantId))
+                .findFirst()
+                .orElse(null);
+        if (participant == null || participant.getUser() == null) {
+            redirectAttributes.addFlashAttribute("error", "Teilnehmer nicht gefunden.");
+            return "redirect:/events/" + id;
+        }
+        if (participant.isOrganizer() || participant.getUser().equals(details.getUser())) {
+            redirectAttributes.addFlashAttribute("error", "Dieser Teilnehmer kann nicht entfernt werden.");
+            return "redirect:/events/" + id;
+        }
+        eventParticipantService.deleteParticipant(event, participant.getUser());
+        chatMembershipService.deleteChatMembershipByChatRoomAndUser(event.getEventChatRoom(), participant.getUser());
+        redirectAttributes.addFlashAttribute("success",
+                participant.getUser().getUsername() + " wurde entfernt.");
         return "redirect:/events/" + id;
     }
 
@@ -954,3 +1008,5 @@ public class EventController {
                 .anyMatch(granted -> granted.getAuthority().equalsIgnoreCase(authority));
     }
 }
+
+
