@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    layout:decorate="~{layout}">
+<main layout:fragment="main">
+    <div class="container py-4">
+        <div class="row">
+            <div class="col-md-8">
+                <h1 class="mb-4">Freundes-Aktivitäten</h1>
+
+                <div th:if="${#lists.isEmpty(activities)}" class="empty-feed">
+                    <h4>Noch keine Neuigkeiten</h4>
+                    <p>Sobald deine Freunde Events beitreten oder erstellen, siehst du es hier!</p>
+                </div>
+
+                <ul th:unless="${#lists.isEmpty(activities)}" class="timeline">
+                    <li th:each="activity: ${activities}" class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date">
+                                <i class="bi bi-clock"></i>
+                                <span th:text="${#temporals.format(activity.timestamp, 'dd. MMMM yyyy, HH:mm')}"></span>
+                            </span>
+                            <p class="mb-0 d-flex align-items-center gap-3">
+                                <span th:text="${activity.message}"></span>
+                                <a th:if="${!activity.link.equals('')}" th:href="@{/{link}(link=${activity.link})}"
+                                    class="btn btn-sm btn-link p-0 ms-1">Ansehen</a>
+                            </p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
+
+</html>

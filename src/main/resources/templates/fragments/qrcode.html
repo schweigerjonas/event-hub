@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <title>2FA Setup</title>
+</head>
+
+<body>
+    <div class="centered">
+        <div class="card shadow p-4 text-center">
+            <div class="card-body">
+                <h2 class="card-title mb-4">2FA Einrichten</h2>
+                <p class="text-muted small">
+                    Scannen Sie diesen Code mit Ihrer <strong>Google Authenticator App</strong>, um Ihr Konto zu
+                    verknüpfen.
+                </p>
+
+                <div class="bg-light p-3 mb-4 rounded">
+                    <img th:src="${qrUrl}" alt="QR Code" class="img-fluid" />
+                </div>
+
+                <div class="alert alert-info py-2 small">
+                    Nach dem Scannen können Sie sich mit dem generierten Code anmelden.
+                </div>
+
+                <a th:href="@{/login}" class="btn btn-primary w-100">
+                    <strong>Weiter zum Login</strong>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+<style>
+    html,
+    body {
+        height: 100%;
+    }
+
+    .card {
+        max-width: 400px;
+        width: 90%;
+    }
+
+    .centered {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+</style>
+
+</html>

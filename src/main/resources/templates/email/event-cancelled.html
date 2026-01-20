@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Event abgesagt</title>
+    <style>
+        body {
+            background-color: #f4f6f8;
+            padding: 20px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .mail-container {
+            background-color: #ffffff;
+            border-radius: 6px;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+            border: 1px solid #e2e5e9;
+        }
+        .muted {
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+<div class="mail-container">
+    <h2>Event abgesagt</h2>
+    <p>Hallo <strong th:text="${recipient.username}">Name</strong>,</p>
+    <p>
+        das Event <strong th:text="${event.name}">Eventname</strong> wurde abgesagt.
+    </p>
+    <p class="muted">
+        Organisator: <span th:text="${organizer.username}">Organisator</span>
+    </p>
+    <p class="muted" th:if="${event.eventTime != null}">
+        Geplanter Termin: <span th:text="${#temporals.format(event.eventTime, 'dd.MM.yyyy HH:mm')}"></span>
+    </p>
+    <p class="muted">
+        Wir entschuldigen uns fuer die Umstaende.
+    </p>
+</div>
+</body>
+</html>

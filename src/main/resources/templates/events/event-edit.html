@@ -1,0 +1,310 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<main layout:fragment="main">
+    <div class="container mt-4">
+        <h1 class="mb-4">Event bearbeiten</h1>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form th:action="@{'/events/' + ${eventId} + '/edit'}" th:object="${eventForm}" method="post" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label" for="name">Name</label>
+                <input id="name" class="form-control" type="text" th:field="*{name}" required>
+                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="location">Adresse</label>
+                <div class="location-input">
+                    <input id="location" class="form-control" type="text" th:field="*{location}" required>
+                    <span id="location-status" class="location-status material-symbols-outlined" aria-hidden="true"></span>
+                </div>
+                <div id="location-feedback" class="location-feedback" aria-live="polite"></div>
+                <div id="location-server-error" class="invalid-feedback d-block" th:if="${#fields.hasErrors('location')}" th:errors="*{location}"></div>
+                <input type="hidden" id="locationQuery" name="locationQuery" th:value="${locationQuery}">
+                <input type="hidden" id="locationLat" name="locationLat" th:value="${locationLat}">
+                <input type="hidden" id="locationLon" name="locationLon" th:value="${locationLon}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="durationMinutes">Dauer (Minuten)</label>
+                <input id="durationMinutes" class="form-control" type="number" min="1" th:field="*{durationMinutes}" required>
+                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('durationMinutes')}" th:errors="*{durationMinutes}"></div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="maxParticipants">Max. Teilnehmer</label>
+                <input id="maxParticipants" class="form-control" type="number" min="1" th:field="*{maxParticipants}"
+                    th:attr="data-current-participants=${currentParticipants}" required>
+                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('maxParticipants')}" th:errors="*{maxParticipants}"></div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="eventTime">Startzeit</label>
+                <input id="eventTime" class="form-control" type="datetime-local" th:field="*{eventTime}" required>
+                <div class="form-text">24-Stunden-Format</div>
+                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('eventTime')}" th:errors="*{eventTime}"></div>
+            </div>
+
+            <div class="col-12">
+                <div class="form-check">
+                    <input id="paid" class="form-check-input" type="checkbox" th:field="*{paid}">
+                    <label class="form-check-label" for="paid">Kostenpflichtig</label>
+                </div>
+            </div>
+            <div id="costs-wrapper" class="col-md-4 mt-1 costs-field" th:classappend="${!eventForm.paid} ? ' is-disabled'">
+                <label class="form-label" for="costs">Preis in EUR</label>
+                <input id="costs" class="form-control" type="number" min="0.01" step="0.01" th:field="*{costs}"
+                    th:disabled="${!eventForm.paid}">
+                <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('costs')}" th:errors="*{costs}"></div>
+            </div>
+            <div class="col-12">
+                <label class="form-label" for="description">Beschreibung (optional)</label>
+                <textarea id="description" class="form-control" rows="4" th:field="*{description}"></textarea>
+            </div>
+
+                    <div class="col-12 d-flex gap-2">
+                        <button class="btn btn-primary" type="submit">Änderungen speichern</button>
+                        <a class="btn btn-outline-secondary" th:href="@{'/events/' + ${eventId}}">Abbrechen</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const paidCheckbox = document.getElementById("paid");
+        const costsInput = document.getElementById("costs");
+        const costsWrapper = document.getElementById("costs-wrapper");
+
+        // toggle price input for paid events
+        const toggleCosts = () => {
+            const enabled = paidCheckbox && paidCheckbox.checked;
+            if (costsInput) {
+                costsInput.disabled = !enabled;
+                if (!enabled) {
+                    costsInput.value = "";
+                }
+            }
+            if (costsWrapper) {
+                costsWrapper.classList.toggle("is-disabled", !enabled);
+            }
+        };
+
+        if (paidCheckbox) {
+            toggleCosts();
+            paidCheckbox.addEventListener("change", toggleCosts);
+        }
+
+        const locationInput = document.getElementById("location");
+        const locationStatus = document.getElementById("location-status");
+        const locationFeedback = document.getElementById("location-feedback");
+        const locationServerError = document.getElementById("location-server-error");
+        const locationQueryInput = document.getElementById("locationQuery");
+        const locationLatInput = document.getElementById("locationLat");
+        const locationLonInput = document.getElementById("locationLon");
+        const eventTimeInput = document.getElementById("eventTime");
+        const maxParticipantsInput = document.getElementById("maxParticipants");
+        let locationRequestId = 0;
+
+        const clearLocationCache = () => {
+            if (locationQueryInput) {
+                locationQueryInput.value = "";
+            }
+            if (locationLatInput) {
+                locationLatInput.value = "";
+            }
+            if (locationLonInput) {
+                locationLonInput.value = "";
+            }
+        };
+
+        const hideServerError = () => {
+            if (locationServerError) {
+                locationServerError.classList.add("d-none");
+                locationServerError.classList.remove("d-block");
+            }
+        };
+
+        const clearLocationState = () => {
+            hideServerError();
+            if (locationStatus) {
+                locationStatus.textContent = "";
+                locationStatus.classList.remove("is-valid");
+                locationStatus.classList.remove("is-invalid");
+                locationStatus.classList.remove("is-loading");
+            }
+            if (locationFeedback) {
+                locationFeedback.textContent = "";
+                locationFeedback.classList.remove("is-invalid");
+            }
+            clearLocationCache();
+        };
+
+        const setLocationLoading = () => {
+            hideServerError();
+            if (locationStatus) {
+                locationStatus.textContent = "progress_activity";
+                locationStatus.classList.remove("is-valid");
+                locationStatus.classList.remove("is-invalid");
+                locationStatus.classList.add("is-loading");
+            }
+            if (locationFeedback) {
+                locationFeedback.textContent = "";
+                locationFeedback.classList.remove("is-invalid");
+            }
+        };
+
+        const setLocationValid = () => {
+            hideServerError();
+            if (locationStatus) {
+                locationStatus.textContent = "check_circle";
+                locationStatus.classList.add("is-valid");
+                locationStatus.classList.remove("is-invalid");
+                locationStatus.classList.remove("is-loading");
+            }
+            if (locationFeedback) {
+                locationFeedback.textContent = "";
+                locationFeedback.classList.remove("is-invalid");
+            }
+        };
+
+        const setLocationInvalid = () => {
+            hideServerError();
+            if (locationStatus) {
+                locationStatus.textContent = "cancel";
+                locationStatus.classList.remove("is-valid");
+                locationStatus.classList.remove("is-loading");
+                locationStatus.classList.add("is-invalid");
+            }
+            if (locationFeedback) {
+                locationFeedback.textContent = "Adresse nicht erkannt";
+                locationFeedback.classList.add("is-invalid");
+            }
+        };
+
+        const validateLocation = async () => {
+            if (!locationInput) {
+                return;
+            }
+            const query = locationInput.value.trim();
+            clearLocationState();
+            if (query.length < 3) {
+                return;
+            }
+            const requestId = ++locationRequestId;
+            setLocationLoading();
+            const url = `/locations/validate?query=${encodeURIComponent(query)}`;
+            try {
+                const response = await fetch(url, { headers: { "Accept": "application/json" } });
+                const data = await response.json();
+                if (requestId !== locationRequestId) {
+                    return;
+                }
+                if (data && data.valid) {
+                    setLocationValid();
+                    const latValue = Number.parseFloat(data.lat);
+                    const lonValue = Number.parseFloat(data.lon);
+                    if (locationQueryInput && locationLatInput && locationLonInput
+                        && !Number.isNaN(latValue) && !Number.isNaN(lonValue)) {
+                        locationQueryInput.value = query;
+                        locationLatInput.value = latValue;
+                        locationLonInput.value = lonValue;
+                    } else {
+                        clearLocationCache();
+                    }
+                } else {
+                    setLocationInvalid();
+                }
+            } catch (error) {
+                if (requestId !== locationRequestId) {
+                    return;
+                }
+                setLocationInvalid();
+            }
+        };
+
+        if (locationInput) {
+            locationInput.addEventListener("input", () => {
+                locationRequestId += 1;
+                clearLocationState();
+            });
+            locationInput.addEventListener("blur", validateLocation);
+        }
+
+        const updateEventTimeMin = () => {
+            if (!eventTimeInput) {
+                return;
+            }
+            const now = new Date();
+            now.setSeconds(0, 0);
+            eventTimeInput.min = now.toISOString().slice(0, 16);
+        };
+
+        const validateEventTime = () => {
+            if (!eventTimeInput) {
+                return;
+            }
+            const value = eventTimeInput.value;
+            if (!value) {
+                eventTimeInput.setCustomValidity("");
+                return;
+            }
+            const selected = new Date(value);
+            const now = new Date();
+            if (selected < now) {
+                eventTimeInput.setCustomValidity("Bitte wählen Sie einen Startzeitpunkt in der Zukunft.");
+            } else {
+                eventTimeInput.setCustomValidity("");
+            }
+        };
+
+        const validateMaxParticipants = () => {
+            if (!maxParticipantsInput) {
+                return;
+            }
+            const value = maxParticipantsInput.value;
+            if (!value) {
+                maxParticipantsInput.setCustomValidity("");
+                return;
+            }
+            const current = Number.parseInt(maxParticipantsInput.dataset.currentParticipants || "0", 10);
+            const selected = Number.parseInt(value, 10);
+            if (!Number.isNaN(current) && !Number.isNaN(selected) && selected < current) {
+                maxParticipantsInput.setCustomValidity("Max. Teilnehmer darf nicht kleiner als die aktuelle Teilnehmerzahl sein.");
+            } else {
+                maxParticipantsInput.setCustomValidity("");
+            }
+        };
+
+        if (eventTimeInput) {
+            updateEventTimeMin();
+            validateEventTime();
+            eventTimeInput.addEventListener("input", validateEventTime);
+            eventTimeInput.addEventListener("blur", validateEventTime);
+        }
+        if (maxParticipantsInput) {
+            validateMaxParticipants();
+            maxParticipantsInput.addEventListener("input", validateMaxParticipants);
+            maxParticipantsInput.addEventListener("blur", validateMaxParticipants);
+        }
+
+        const form = document.querySelector("form");
+        if (form && eventTimeInput) {
+            form.addEventListener("submit", (event) => {
+                validateEventTime();
+                validateMaxParticipants();
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (eventTimeInput.validationMessage) {
+                        eventTimeInput.reportValidity();
+                    } else if (maxParticipantsInput && maxParticipantsInput.validationMessage) {
+                        maxParticipantsInput.reportValidity();
+                    }
+                }
+            });
+        }
+    </script>
+</main>
+</html>
+
+
+
+

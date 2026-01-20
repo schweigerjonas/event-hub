@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+
+<main layout:fragment="main">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4" th:if="${chatRoom.type.toString().equals('GROUP')}">
+            <div class="d-flex align-items-center gap-3">
+                <a th:href="@{/chats/all}" class="text-decoration-none text-dark">
+                    <i class="bi bi-caret-left-fill fs-1"></i>
+                </a>
+
+                <h1 class="mb-0 flex-grow-1 text-center" th:text="${chatRoom.name}"></h1>
+            </div>
+            <!-- chat admin can see edit button -->
+            <button th:if="${chatRoom.owner.id == currentUser.id}"
+                    type="button"
+                    class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center"
+                    style="width:48px; height:48px;"
+                    data-bs-toggle="modal"
+                    data-bs-target="#edit-chat-modal">
+                <span class="material-symbols-outlined fs-5">edit</span>
+            </button>
+
+            <!-- global admin can see edit button -->
+            <button sec:authorize="hasAuthority('ADMIN')"
+                    type="button"
+                    class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center"
+                    style="width:48px; height:48px;"
+                    data-bs-toggle="modal"
+                    data-bs-target="#edit-chat-modal">
+                <span class="material-symbols-outlined fs-5">edit</span>
+            </button>
+
+            <!-- chat users can see info button -->
+            <button th:if="${chatRoom.owner.id != currentUser.id}"
+                    sec:authorize="!hasAuthority('ADMIN')"
+                    type="button"
+                    class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center"
+                    style="width:48px; height:48px;"
+                    data-bs-toggle="modal"
+                    data-bs-target="#chat-info-modal">
+                <span class="material-symbols-outlined fs-5">info</span>
+            </button>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-4" th:if="${chatRoom.type.toString().equals('EVENT')}">
+            <div class="d-flex align-items-center gap-3">
+                <a th:href="@{/events/{id}(id=${chatRoom.event.id})}" class="text-decoration-none text-dark">
+                    <i class="bi bi-caret-left-fill fs-1"></i>
+                </a>
+
+                <h1 class="text-center" th:text="${chatRoom.event.name}"></h1>
+            </div>
+        </div>
+
+        <div id="chat-box" 
+            class="chat-container d-flex flex-column gap-3 mb-5 overflow-auto" 
+            style="max-height: 60vh;" 
+            th:attr="
+                data-chatroom-id=${chatRoom.id}, 
+                data-user-id=${currentUser.id}, 
+                data-is-chat-owner=${chatRoom.owner.id == currentUser.id},
+                data-is-global-admin=${#authorization.expression('hasAuthority(''ADMIN'')')}
+            ">
+            <!-- Pagination -->
+            <!-- <nav aria-label="Pagination" th:if="${totalPages > 0}">
+                <ul class="pagination">
+                    <li class=" page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                        <a th:replace="~{fragments/messagePaging :: paging(1, '<<', 'Erste Seite')}"></a>
+                    </li>
+                    <li class="page-item font-weight-bold" th:classappend="${currentPage == 1} ? 'disabled'">
+                        <a th:replace="~{fragments/messagePaging :: paging(${currentPage - 1}, 'Zurück', 'Vorherige Seite')} "></a>
+                    </li>
+                    <li class="page-item disabled" th:if="${currentPage - 2 > 1}">
+                        <a class="page-link" href="#">...</a>
+                    </li>
+                    <li class="page-item" th:classappend="${page == currentPage} ? 'active'" th:each="page : ${#numbers.sequence(currentPage > 2 ? currentPage - 2 : 1, currentPage + 2 < totalPages ? currentPage + 2 : totalPages)}">
+                        <a th:replace="~{fragments/messagePaging :: paging(${page}, ${page}, 'Seite ' + ${page})}"></a>
+                    </li>
+                    <li class="page-item disabled" th:if="${currentPage + 2 < totalPages}">
+                        <a class="page-link" href="#">...</a>
+                    </li>
+                    <li class="page-item font-weight-bold" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                        <a th:replace="~{fragments/messagePaging :: paging(${currentPage + 1},'Weiter', 'Nächste Seite')}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                        <a th:replace="~{fragments/messagePaging :: paging(${totalPages}, '>>', 'Letzte Seite')}"></a>
+                    </li>
+                </ul>
+            </nav> -->
+            <!-- Pagination with load more Button -->
+             <div th:if="${currentPage < totalPages}" class="mb-3">
+                <a th:replace="~{fragments/messagePaging :: loadMore(${currentPage + 1})}"></a>
+            </div>
+
+            <div th:each="msg : ${messages}"
+                class="d-flex"
+                th:id="'message-' + ${msg.id}"
+                th:classappend="${msg.sender.id == currentUser.id} ? 'justify-content-end' : 'justify-content-start'"
+                th:attr="data-sender-id=${msg.sender.id}, data-deleted=${msg.isDeleted}">
+
+                <div class="chat-bubble"
+                    th:classappend="${msg.sender.id == currentUser.id} ? 'own' : 'other'">
+
+                    <strong th:if="${msg.sender.id != currentUser.id}"
+                            th:text="${msg.sender.username}"></strong>
+
+                    <div class="message-content">
+                        <div th:if="${msg.isDeleted}" class="d-flex align-items-start">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <p class="fst-italic mb-0">Diese Nachricht wurde gelöscht</p>
+                        </div>
+
+                        <p th:if="${!msg.isDeleted}"
+                        class="mb-1 mt-1"
+                        th:text="${msg.message}"></p>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <small class="text-muted"
+                            th:text="${#temporals.format(msg.sentAt, 'dd.MM.yyyy, HH:mm')}"></small>
+
+                        <button th:if="${!msg.isDeleted} and (${chatRoom.owner.id == currentUser.id} or ${#authorization.expression('hasAuthority(''ADMIN'')')} or ${msg.sender.id == currentUser.id})"
+                                class="btn btn-link p-0 text-danger delete-btn"
+                                th:attr="data-message-id=${msg.id}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form id="chat-form" class="d-flex gap-2">
+            <input type="text" id="message-input" class="form-control" placeholder="Nachricht schreiben...">
+            <button type="submit"
+                    class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
+                    style="width:48px; height:48px;">
+                <span class="material-symbols-outlined fs-4">chevron_right</span>
+            </button>
+        </form>
+
+        <!-- edit chat modal -->
+        <div th:insert="~{chats/fragments/edit-chat-modal :: edit-chat-modal}"></div>
+
+        <!-- chat info modal -->
+        <div th:insert="~{chats/fragments/chat-info-modal :: chat-info-modal}"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const chatId = chatBox.dataset.chatroomId;
+        const userId = Number(chatBox.dataset.userId);
+        const isChatOwner = chatBox.dataset.isChatOwner === 'true';
+        const isGlobalAdmin = chatBox.dataset.isGlobalAdmin === 'true';
+
+        const socket = new SockJS('/ws-chat');
+        const stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, () => {
+            stompClient.subscribe('/topic/chats/' + chatId, payload => {
+                const msg = JSON.parse(payload.body);
+                appendOrUpdateMessage(msg);
+            });
+        });
+
+        // SEND MESSAGE
+        document.getElementById('chat-form').addEventListener('submit', e => {
+            e.preventDefault();
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            stompClient.send(
+                `/app/chat/${chatId}/send`,
+                {},
+                JSON.stringify({ userId, message: text })
+            );
+            input.value = '';
+        });
+
+        // DELETE MESSAGE (event delegation)
+        chatBox.addEventListener('click', e => {
+            const btn = e.target.closest('.delete-btn');
+            if (!btn) return;
+
+            const messageId = btn.dataset.messageId;
+            stompClient.send(
+                `/app/chat/${chatId}/deleteMessage/${messageId}`,
+                {},
+                {}
+            );
+        });
+
+        // RENDER / UPDATE MESSAGE
+        function appendOrUpdateMessage(message) {
+            let wrapper = document.getElementById(`message-${message.id}`);
+
+            // ===== UPDATE EXISTING =====
+            if (wrapper) {
+                wrapper.dataset.deleted = message.deleted;
+
+                const content = wrapper.querySelector('.message-content');
+                content.innerHTML = `
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <p class="fst-italic mb-0">Diese Nachricht wurde gelöscht</p>
+                    </div>
+                `;
+
+                const deleteBtn = wrapper.querySelector('.delete-btn');
+                if (deleteBtn) deleteBtn.remove();
+                return;
+            }
+
+            // ===== CREATE NEW =====
+            wrapper = document.createElement('div');
+            wrapper.id = `message-${message.id}`;
+            wrapper.classList.add('d-flex');
+            wrapper.dataset.senderId = message.senderId;
+            wrapper.dataset.deleted = message.deleted;
+
+            const bubble = document.createElement('div');
+            bubble.classList.add('chat-bubble');
+
+            const isOwn = message.senderId === userId;
+            wrapper.classList.add(isOwn ? 'justify-content-end' : 'justify-content-start');
+            bubble.classList.add(isOwn ? 'own' : 'other');
+
+            if (!isOwn) {
+                const sender = document.createElement('strong');
+                sender.textContent = message.senderName;
+                bubble.appendChild(sender);
+            }
+
+            const content = document.createElement('div');
+            content.classList.add('message-content');
+
+            if (message.deleted) {
+                content.innerHTML = `
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <p class="fst-italic mb-0">Diese Nachricht wurde gelöscht</p>
+                    </div>
+                `;
+            } else {
+                const p = document.createElement('p');
+                p.classList.add('mb-1', 'mt-1');
+                p.textContent = message.message;
+                content.appendChild(p);
+            }
+
+            const footer = document.createElement('div');
+            footer.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'mt-1');
+
+            const time = document.createElement('small');
+            time.classList.add('text-muted');
+            time.textContent = new Date(message.sentAt).toLocaleString('de-DE');
+
+            footer.appendChild(time);
+
+            const canDelete =
+                !message.deleted &&
+                (
+                    message.senderId === userId ||
+                    isChatOwner ||
+                    isGlobalAdmin
+                );
+
+            console.log(canDelete);
+
+            if (canDelete) {
+                const delBtn = document.createElement('button');
+                delBtn.classList.add('btn', 'btn-link', 'p-0', 'text-danger', 'delete-btn');
+                delBtn.dataset.messageId = message.id;
+                delBtn.innerHTML = '<i class="bi bi-trash"></i>';
+                footer.appendChild(delBtn);
+            }
+
+            bubble.append(content, footer);
+            wrapper.appendChild(bubble);
+            chatBox.appendChild(wrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const chatContainer = document.querySelector('.chat-container');
+            if (!chatContainer) return;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentPage = parseInt(urlParams.get("page") || "1");
+
+            // page 1: scroll to bottom
+            if (currentPage === 1) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                return;
+            }
+
+            // get scroll offset if load more button was clicked
+            const oldScrollOffset = sessionStorage.getItem("chatScrollOffset");
+            if (oldScrollOffset !== null) {
+                const offset = parseInt(oldScrollOffset);
+                chatContainer.scrollTop = chatContainer.scrollHeight - offset;
+                sessionStorage.removeItem("chatScrollOffset");
+            }
+        });
+
+        // save scroll offset before clicking on load more
+        document.addEventListener("click", e => {
+            if (e.target.closest(".load-more")) {
+                const chatContainer = document.querySelector('.chat-container');
+                if (!chatContainer) return;
+
+                const offset = chatContainer.scrollHeight - chatContainer.scrollTop;
+                sessionStorage.setItem("chatScrollOffset", offset);
+            }
+        });
+    </script>
+</main>
+</html>

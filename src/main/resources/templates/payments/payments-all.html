@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+
+<main layout:fragment="main">
+    <div class="container mt-4">
+        <h1 class="mb-4 text-center">Zahlungen</h1>
+
+        <form th:action="@{/payments/all}" method="get" class="row g-2 align-items-end mb-3">
+            <div class="col-6 col-md-2" sec:authorize="hasAuthority('ADMIN')">
+                <label class="form-label" for="userId">Benutzer</label>
+                <select id="userId" name="userId" class="form-select">
+                    <option value="">alle Benutzer</option>
+                    <option th:each="user : ${users}"
+                            th:value="${user.id}"
+                            th:text="${user.username}"
+                            th:selected="${user.id == userId}">
+                    </option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2" sec:authorize="hasAuthority('ORGANISATOR')">
+                <label class="form-label" for="eventId">Event</label>
+                <select id="eventId" name="eventId" class="form-select">
+                    <option value="">alle Events</option>
+                    <option th:each="event : ${events}"
+                            th:value="${event.id}"
+                            th:text="${event.name}"
+                            th:selected="${event.id == eventId}">
+                    </option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="direction">Sortierung</label>
+                <select id="direction" name="direction" class="form-select">
+                    <option value="asc" th:selected="${direction == 'asc'}">Älteste zuerst</option>
+                    <option value="desc" th:selected="${direction == 'desc'}">Neueste zuerst</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="size">Einträge</label>
+                <select id="size" name="size" class="form-select">
+                    <option th:each="s : ${ {5, 10, 15} }" th:value="${s}" th:text="${s}" th:selected="${s == pageSize}"></option>
+                </select>
+            </div>
+            <div class="col-6 col-md-1 d-grid">
+                <button class="btn btn-outline-secondary" type="submit">Suchen</button>
+            </div>
+        </form>
+
+        <form th:action="@{/payments/adminpdf/{userId}(userId=${userId})}" method="get" th:if="${!#lists.isEmpty(payments)} and ${userId != null}" sec:authorize="hasAuthority('ADMIN')">
+            <button type="submit" class="btn btn-primary mb-3">
+                Zahlungen des Benutzers als PDF herunterladen
+            </button>
+        </form>
+
+        <form th:action="@{/payments/pdf}" method="get" th:if="${!#lists.isEmpty(payments)}" sec:authorize="hasAuthority('BENUTZER')">
+            <button type="submit" class="btn btn-primary mb-3">
+                Meine Zahlungen als PDF herunterladen
+            </button>
+        </form>
+
+        <form th:action="@{/events/{eventId}/participants/pdf(eventId=${eventId})}" method="get" th:if="${!#lists.isEmpty(payments)} and ${eventId != null}" sec:authorize="hasAuthority('ORGANISATOR')">
+            <button type="submit" class="btn btn-primary mb-3">
+                Teilnehmerliste als PDF herunterladen
+            </button>
+        </form>
+
+        <div th:if="${#lists.isEmpty(payments)}">
+            Keine Zahlungen vorhanden
+        </div>
+
+        <ul class="list-group" th:if="${!#lists.isEmpty(payments)}">
+            <li class="list-group-item d-flex justify-content-between align-items-center mb-2" th:each="payment : ${payments}">
+                <div>
+                    <div th:if="${payment.event} == null">
+                        <strong>gelöschtes Event</strong><br>
+                    </div>
+                    <div th:if="${payment.event} != null">
+                        <strong th:text="${payment.event.name}"></strong><br>
+                    </div>
+                    <div sec:authorize="hasAuthority('ORGANISATOR')">
+                        <strong th:text="${payment.user.username}"></strong><br>
+                    </div>
+                    <small class="text-muted">Betrag: <span th:text="${payment.amount}"></span> €</small><br>
+                    <small class="text-muted">Bezahlt am: <span th:text="${#temporals.format(payment.timestamp, 'dd.MM.yyyy HH:mm')}"></span></small><br>
+                    <small class="text-muted">Transaktions-ID (PayPal): <span th:text="${payment.paypalTransactionId}"></span></small>
+                </div>
+
+                <div>
+                    <div class="btn btn-success btn-sm" th:if="${payment.status.toString() == 'COMPLETED'}">
+                        erfolgreich
+                    </div>
+                    <div class="btn btn-danger btn-sm" th:if="${payment.status.toString() == 'FAILED'}">
+                        fehlgeschlagen
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+        <!--pagination code --> 
+        <nav aria-label="Pagination" th:if="${totalPages > 0}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                    <a th:replace="~{fragments/paymentsPaging :: paging(1, '<<', 'First Page')}"></a>
+                </li>
+                <li class="page-item font-weight-bold" th:classappend="${currentPage == 1} ? 'disabled'">
+                    <a th:replace="~{fragments/paymentsPaging :: paging(${currentPage - 1}, 'Zurück', 'Previous Page')}"></a>
+                </li>
+                <li class="page-item disabled" th:if="${currentPage - 2 > 1}">
+                    <a class="page-link" href="#">...</a>
+                </li>
+                <li class="page-item" th:classappend="${page == currentPage} ? 'active'"
+                th:each="page : ${#numbers.sequence(currentPage > 2 ? currentPage - 2 : 1, currentPage + 2 < totalPages ? currentPage + 2 : 
+                totalPages)}">
+                    <a th:replace="~{fragments/paymentsPaging :: paging(${page}, ${page}, 'Page ' + ${page})}"></a>
+                </li>
+                <li class="page-item disabled" th:if="${currentPage + 2 < totalPages}">
+                    <a class="page-link" href="#">...</a>
+                </li>
+                <li class="page-item font-weight-bold" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                    <a th:replace="~{fragments/paymentsPaging :: paging(${currentPage + 1},'Weiter', 'Next Page')}"></a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                    <a th:replace="~{fragments/paymentsPaging :: paging(${totalPages}, '>>', 'Last Page')}"></a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</main>
+</html>

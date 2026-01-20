@@ -1,0 +1,43 @@
+<div th:fragment="edit-user-modal" class="modal fade" id="edit-user-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="edit-user-modal-label">
+                    <strong>Benutzer: </strong><span id="modal-username-header"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="edit-user-form" th:method="PUT">
+                <div class="modal-body">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="radio_user" value="BENUTZER"
+                            th:name="authority">
+                        <label class="form-check-label" for="radio_user">Benutzer</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="radio_organizer" value="ORGANISATOR"
+                            th:name="authority">
+                        <label class="form-check-label" for="radio_organizer">Organisator</label>
+                    </div>
+                    <div class="form-check form-check-inline mb-3">
+                        <input class="form-check-input" type="radio" id="radio_admin" value="ADMIN" th:name="authority">
+                        <label class="form-check-label" for="radio_organizer">Admin</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="edit-email" th:name="email"
+                            placeholder="Email-Adresse" required>
+                        <label for="edit-email">Email-Adresse</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="edit-username" th:name="username"
+                            placeholder="Benutzername" required>
+                        <label for="edit-username">Benutzername</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Änderungen speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,44 @@
+<div th:fragment="chat-info-modal"
+     class="modal fade"
+     id="chat-info-modal"
+     tabindex="-1">
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <strong>Chat-Informationen</strong>
+                </h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Gruppenname</label>
+                    <p class="form-control-plaintext"
+                       th:text="${chatRoom.name}">
+                    </p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Gruppenmitglieder</label>
+
+                    <ul class="list-group">
+                        <li class="list-group-item"
+                            th:each="user : ${chatMembers}">
+                            <span th:text="${user.username}"></span>
+                            <span th:if="${user.id == chatRoom.owner.id}" class="badge bg-primary ms-2">Admin</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Schließen
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>

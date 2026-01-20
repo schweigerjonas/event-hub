@@ -1,0 +1,445 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    layout:decorate="~{layout}">
+<main layout:fragment="main">
+    <div class="container mt-4">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+                <div class="d-flex gap-2 align-items-center">
+                    <h1 class="mb-1" th:text="${event.name}">Event</h1>
+                    <form th:if="${isFavourite != null}" th:action="@{'/events/' + ${event.id} + '/toggleFavourite'}"
+                        method="post">
+                        <button type="submit" class="btn btn-link p-2" style="height: 100%">
+                            <div th:if="${isFavourite}"><i class="bi bi-star-fill"></i></div>
+                            <div th:if="${!isFavourite}"><i class="bi bi-star"></i></div>
+                        </button>
+                    </form>
+                </div>
+                <div class="text-muted" th:text="${event.location}">Adresse</div>
+            </div>
+            <a class="btn btn-outline-secondary" th:href="@{/events}">Zurück zur Übersicht</a>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${info}" class="alert alert-info" th:text="${info}"></div>
+        <div th:if="${error}" class="alert alert-warning" th:text="${error}"></div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">Eventdetails</div>
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Datum</div>
+                            <div class="col-sm-8">
+                                <span th:if="${event.eventTime != null}"
+                                    th:text="${#temporals.format(event.eventTime, 'dd.MM.yyyy HH:mm')}"></span>
+                                <span th:if="${event.eventTime == null}">Nicht angegeben</span>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Dauer</div>
+                            <div class="col-sm-8">
+                                <span th:if="${event.durationMinutes != null}"
+                                    th:text="${event.durationMinutes} + ' min'"></span>
+                                <span th:if="${event.durationMinutes == null}">Nicht angegeben</span>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Max. Teilnehmer</div>
+                            <div class="col-sm-8">
+                                <span th:if="${event.maxParticipants != null}"
+                                    th:text="${event.maxParticipants}"></span>
+                                <span th:if="${event.maxParticipants == null}">Nicht angegeben</span>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Kosten</div>
+                            <div class="col-sm-8">
+                                <span th:if="${event.costs > 0}"
+                                    th:text="${#numbers.formatDecimal(event.costs, 1, 2)} + ' EUR'"></span>
+                                <span th:if="${event.costs <= 0}">Kostenlos</span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 text-muted">Organisator</div>
+                            <div class="col-sm-8"
+                                th:text="${event.organizer != null ? event.organizer.username : 'Unbekannt'}"></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 text-muted">Wettervorhersage</div>
+                            <div class="col-sm-8">
+                                <div th:if="${weatherDto != null}" class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="material-symbols-outlined"
+                                            th:text="${weatherDto.getWeatherIconName}"></span>
+                                        <span th:text="${weatherDto.getTemperature} + ' °C'"></span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1 text-primary">
+                                        <span class="material-symbols-outlined">water_drop</span>
+                                        <span th:text="${weatherDto.precipitationProbability} + '%'"></span>
+                                    </div>
+                                </div>
+
+                                <div th:unless="${weatherDto != null}" class="text-muted italic">
+                                    <small>Vorhersage erst 7 Tage vor Beginn</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h5>Beschreibung</h5>
+                            <p th:if="${event.description != null && !event.description.isBlank()}"
+                                th:text="${event.description}"></p>
+                            <p class="text-muted" th:if="${event.description == null || event.description.isBlank()}">
+                                Keine Beschreibung vorhanden.</p>
+                        </div>
+
+                        <div class="mt-4">
+                            <h5>Karte</h5>
+                            <div id="event-map" class="rounded border" style="min-height: 320px;"
+                                th:if="${event.location != null && !event.location.isBlank()}"
+                                th:data-location="${event.location}" th:data-lat="${event.latitude}"
+                                th:data-lon="${event.longitude}">
+                            </div>
+                            <div id="map-message" class="text-muted small mt-2"></div>
+                            <div class="text-muted small mt-2"
+                                th:if="${event.location == null || event.location.isBlank()}">
+                                Keine Location vorhanden.
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+                                <h5 class="mb-0">Bewertungen</h5>
+                                <div class="text-muted small" th:if="${ratingCount > 0}">
+                                    <span th:text="${#numbers.formatDecimal(ratingAverage, 1, 1)}">0.0</span> / 5
+                                    (<span th:text="${ratingCount}">0</span>)
+                                </div>
+                                <div class="text-muted small" th:if="${ratingCount == 0}">Noch keine Bewertungen</div>
+                            </div>
+
+                            <div sec:authorize="isAuthenticated()" th:if="${isParticipant && !isOrganizer}">
+                                <form class="row g-2 align-items-end"
+                                    th:action="@{'/events/' + ${event.id} + '/ratings'}" method="post">
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label" for="stars">Sterne</label>
+                                        <select id="stars" name="stars" class="form-select" required>
+                                            <option th:each="s : ${ {1,2,3,4,5} }" th:value="${s}"
+                                                th:selected="${userRating != null && userRating.stars == s}"
+                                                th:text="${s}">1</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-7">
+                                        <label class="form-label" for="comment">Kommentar (optional)</label>
+                                        <input id="comment" name="comment" class="form-control" type="text"
+                                            maxlength="500">
+                                    </div>
+                                    <div class="col-12 col-md-2 d-grid">
+                                        <button class="btn btn-outline-primary" type="submit">Speichern</button>
+                                    </div>
+                                </form>
+                                <form th:if="${userRating != null}"
+                                    th:action="@{'/events/' + ${event.id} + '/ratings/delete'}" method="post"
+                                    class="mt-2">
+                                    <button class="btn btn-outline-danger btn-sm" type="submit">Bewertung
+                                        löschen</button>
+                                </form>
+                            </div>
+
+                            <div sec:authorize="isAuthenticated()" th:if="${isParticipant && isOrganizer}"
+                                class="opacity-50">
+                                <form class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label" for="stars-disabled">Sterne</label>
+                                        <select id="stars-disabled" class="form-select" disabled>
+                                            <option>1</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-7">
+                                        <label class="form-label" for="comment-disabled">Kommentar (optional)</label>
+                                        <input id="comment-disabled" class="form-control" type="text" disabled
+                                            maxlength="500">
+                                    </div>
+                                    <div class="col-12 col-md-2 d-grid">
+                                        <button class="btn btn-outline-primary" type="button" disabled>Speichern</button>
+                                    </div>
+                                </form>
+                                <div class="text-muted small mt-2">Organisator kann eigenes Event nicht bewerten.</div>
+                            </div>
+                            <form class="row g-2 align-items-end mt-3" th:action="@{'/events/' + ${event.id}}"
+                                method="get">
+                                <input type="hidden" name="ratingPage" value="1">
+                                <input type="hidden" name="ratingSize" th:value="${ratingSize}">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="ratingKeyword">Suche</label>
+                                    <input id="ratingKeyword" type="search" name="ratingKeyword" class="form-control"
+                                        placeholder="Bewertungen durchsuchen" th:value="${ratingKeyword}">
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <label class="form-label" for="ratingSize">Einträge</label>
+                                    <select id="ratingSize" name="ratingSize" class="form-select">
+                                        <option th:each="s : ${ {5, 10, 15} }" th:value="${s}" th:text="${s}"
+                                            th:selected="${s == ratingSize}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-6 col-md-3 d-grid">
+                                    <button class="btn btn-outline-secondary" type="submit">Filtern</button>
+                                </div>
+                            </form>
+
+                            <div class="mt-3" th:if="${#lists.isEmpty(ratings)}">
+                                <div class="text-muted">Keine Bewertungen gefunden.</div>
+                            </div>
+                            <ul class="list-group mt-2" th:if="${!#lists.isEmpty(ratings)}">
+                                <li class="list-group-item" th:each="rating : ${ratings}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong th:text="${rating.user.username}">User</strong>
+                                        <span class="badge bg-primary" th:text="${rating.stars} + ' / 5'">5</span>
+                                    </div>
+                                    <div class="text-muted small" th:if="${rating.createdAt != null}"
+                                        th:text="${#temporals.format(rating.createdAt, 'dd.MM.yyyy HH:mm')}"></div>
+                                    <div th:if="${rating.comment != null && !rating.comment.isBlank()}"
+                                        th:text="${rating.comment}"></div>
+                                </li>
+                            </ul>
+
+                            <nav aria-label="Bewertungen Pagination" class="mt-3" th:if="${ratingTotalPages > 1}">
+                                <ul class="pagination mb-0">
+                                    <li class="page-item" th:classappend="${ratingPage == 1} ? 'disabled'">
+                                        <a class="page-link"
+                                            th:href="@{/events/{id}(id=${event.id}, ratingPage=1, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}">
+                                            <<< /a>
+                                    </li>
+                                    <li class="page-item" th:classappend="${ratingPage == 1} ? 'disabled'">
+                                        <a class="page-link"
+                                            th:href="@{/events/{id}(id=${event.id}, ratingPage=${ratingPage - 1}, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}">Zurück</a>
+                                    </li>
+                                    <li class="page-item"
+                                        th:each="page : ${#numbers.sequence(ratingPage > 2 ? ratingPage - 2 : 1, ratingPage + 2 < ratingTotalPages ? ratingPage + 2 : ratingTotalPages)}"
+                                        th:classappend="${page == ratingPage} ? 'active'">
+                                        <a class="page-link"
+                                            th:href="@{/events/{id}(id=${event.id}, ratingPage=${page}, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}"
+                                            th:text="${page}">1</a>
+                                    </li>
+                                    <li class="page-item"
+                                        th:classappend="${ratingPage == ratingTotalPages} ? 'disabled'">
+                                        <a class="page-link"
+                                            th:href="@{/events/{id}(id=${event.id}, ratingPage=${ratingPage + 1}, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}">Weiter</a>
+                                    </li>
+                                    <li class="page-item"
+                                        th:classappend="${ratingPage == ratingTotalPages} ? 'disabled'">
+                                        <a class="page-link"
+                                            th:href="@{/events/{id}(id=${event.id}, ratingPage=${ratingTotalPages}, ratingSize=${ratingSize}, ratingKeyword=${ratingKeyword})}">>></a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Aktionen</h5>
+                    <div sec:authorize="isAuthenticated()">
+                        <div th:if="${isOrganizer}">
+                            <form th:action="@{'/events/' + ${event.id} + '/cancel'}" method="post">
+                                <button class="btn btn-outline-danger w-100" type="submit">Event absagen</button>
+                            </form>
+                            <a class="btn btn-outline-warning w-100 mt-2"
+                                th:href="@{'/events/' + ${event.id} + '/edit'}">Event bearbeiten</a>
+                            <a class="btn btn-outline-info w-100 mt-2"
+                                th:href="@{'/events/' + ${event.id} + '/participants/pdf'}">Teilnehmerliste PDF</a>
+                        </div>
+                        <div th:if="${!isOrganizer && !isAdmin}">
+                            <form th:if="${isParticipant}" th:action="@{'/events/' + ${event.id} + '/leave'}"
+                                method="post">
+                                <button class="btn btn-outline-danger w-100" type="submit">Abmelden</button>
+                            </form>
+                            <form th:if="${!isParticipant}" th:action="@{'/events/' + ${event.id} + '/join'}"
+                                method="post">
+                                <button class="btn btn-primary w-100" type="submit">Teilnehmen</button>
+                            </form>
+                        </div>
+                        <div th:if="${isAdmin && !isOrganizer}">
+                            <form th:action="@{'/events/' + ${event.id} + '/cancel'}" method="post">
+                                <button class="btn btn-outline-danger w-100 mt-2" type="submit">Event absagen</button>
+                            </form>
+                            <a class="btn btn-outline-warning w-100 mt-2"
+                                th:href="@{'/events/' + ${event.id} + '/edit'}">Event bearbeiten</a>
+                            <a class="btn btn-outline-info w-100 mt-2"
+                                th:href="@{'/events/' + ${event.id} + '/participants/pdf'}">Teilnehmerliste PDF</a>
+                        </div>
+                        <div th:if="${isParticipant}">
+                            <button class="btn btn-outline-success w-100 mt-2" type="button" data-bs-toggle="modal"
+                                data-bs-target="#invite-modal" th:disabled="${#lists.isEmpty(friends)}">
+                                Freunde einladen
+                            </button>
+                            <div class="text-muted small mt-1" th:if="${#lists.isEmpty(friends)}">Keine Freunde
+                                verfügbar.</div>
+                        </div>
+                        <div th:if="${isParticipant}">
+                            <form th:action="@{'/chats/' + ${event.eventChatRoom.id}}" method="get">
+                                <button class="btn btn-outline-secondary w-100 mt-2" type="submit">Eventchat
+                                    öffnen</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div sec:authorize="!isAuthenticated()">
+                        <form th:action="@{'/events/' + ${event.id} + '/join'}" method="post">
+                            <button class="btn btn-primary w-100" type="submit">Teilnehmen</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3" sec:authorize="isAuthenticated()">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">Teilnehmerliste</div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                            <span class="fw-semibold">Teilnehmer</span>
+                            <div class="text-muted small" th:text="${participantsTotalItems} + ' Teilnehmer'"></div>
+                        </div>
+                        <div class="d-flex align-items-center text-muted small mb-2" th:if="${canViewPayments}">
+                            <div class="flex-grow-1">Teilnehmer</div>
+                            <div class="text-center" style="width: 120px;">Bezahlt</div>
+                            <div th:if="${isOrganizer || isAdmin}" style="width: 96px;"></div>
+                        </div>
+                        <div th:if="${#lists.isEmpty(participants)}" class="text-muted">Noch keine Teilnehmer.</div>
+                        <ul class="list-group" th:if="${!#lists.isEmpty(participants)}">
+                            <li class="list-group-item d-flex align-items-center"
+                                th:each="participant : ${participants}">
+                                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                                    <span th:text="${participant.user.username}">Username</span>
+                                    <span class="badge bg-secondary" th:if="${participant.organizer}">Organisator</span>
+                                </div>
+                                <div class="text-muted small text-center" style="width: 120px; transform: translateX(6px);" th:if="${canViewPayments}">
+                                    <span th:if="${!participant.organizer}"
+                                        th:text="${#numbers.formatDecimal(participantPaidAmounts[participant.user.id] != null ? participantPaidAmounts[participant.user.id] : 0, 1, 2)} + ' EUR'">
+                                        0.00 EUR
+                                    </span>
+                                </div>
+                                <div class="text-end" style="width: 96px;" th:if="${isOrganizer || isAdmin}">
+                                    <form th:if="${currentUserId != null and participant.user != null and !participant.organizer and participant.user.id != currentUserId}"
+                                        th:action="@{'/events/' + ${event.id} + '/participants/' + ${participant.id} + '/remove'}"
+                                        method="post">
+                                        <button class="btn btn-outline-danger btn-sm" type="submit"
+                                            onclick="return confirm('Teilnehmer wirklich entfernen?');">Entfernen</button>
+                                    </form>
+                                    <span th:unless="${currentUserId != null and participant.user != null and !participant.organizer and participant.user.id != currentUserId}">&nbsp;</span>
+                                </div>
+                            </li>
+                        </ul>
+                        <nav aria-label="Teilnehmer Pagination" class="mt-3" th:if="${participantsTotalPages > 1}">
+                            <ul class="pagination mb-0">
+                                <li class="page-item" th:classappend="${participantsPage == 1} ? 'disabled'">
+                                    <a class="page-link"
+                                        th:href="@{/events/{id}(id=${event.id}, participantsPage=1, participantsSize=${participantsSize})}">
+                                        <<< /a>
+                                </li>
+                                <li class="page-item" th:classappend="${participantsPage == 1} ? 'disabled'">
+                                    <a class="page-link"
+                                        th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsPage - 1}, participantsSize=${participantsSize})}">Zurück</a>
+                                </li>
+                                <li class="page-item"
+                                    th:each="page : ${#numbers.sequence(participantsPage > 2 ? participantsPage - 2 : 1, participantsPage + 2 < participantsTotalPages ? participantsPage + 2 : participantsTotalPages)}"
+                                    th:classappend="${page == participantsPage} ? 'active'">
+                                    <a class="page-link"
+                                        th:href="@{/events/{id}(id=${event.id}, participantsPage=${page}, participantsSize=${participantsSize})}"
+                                        th:text="${page}">1</a>
+                                </li>
+                                <li class="page-item"
+                                    th:classappend="${participantsPage == participantsTotalPages} ? 'disabled'">
+                                    <a class="page-link"
+                                        th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsPage + 1}, participantsSize=${participantsSize})}">Weiter</a>
+                                </li>
+                                <li class="page-item"
+                                    th:classappend="${participantsPage == participantsTotalPages} ? 'disabled'">
+                                    <a class="page-link"
+                                        th:href="@{/events/{id}(id=${event.id}, participantsPage=${participantsTotalPages}, participantsSize=${participantsSize})}">>></a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="invite-modal" tabindex="-1" aria-hidden="true" sec:authorize="isAuthenticated()"
+        th:if="${isParticipant}">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Freunde einladen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <form th:action="@{'/events/' + ${event.id} + '/invite'}" method="post">
+                    <div class="modal-body">
+                        <div th:if="${#lists.isEmpty(friends)}" class="text-muted">Keine Freunde verfügbar.</div>
+                        <div class="list-group" th:if="${!#lists.isEmpty(friends)}">
+                            <label class="list-group-item d-flex align-items-center gap-2"
+                                th:each="friend : ${friends}"
+                                th:classappend="${participantUserIds != null and #sets.contains(participantUserIds, friend.id)} ? ' text-muted opacity-50' : ''">
+                                <input class="form-check-input m-0" type="checkbox" name="friendIds"
+                                    th:value="${friend.id}"
+                                    th:disabled="${participantUserIds != null and #sets.contains(participantUserIds, friend.id)}">
+                                <span th:text="${friend.username}">Freund</span>
+                                <span class="badge bg-secondary ms-auto"
+                                    th:if="${participantUserIds != null and #sets.contains(participantUserIds, friend.id)}">
+                                    Teilnehmer
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Abbrechen</button>
+                        <button type="submit" class="btn btn-primary" th:disabled="${#lists.isEmpty(friends)}">Einladung
+                            absenden</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const mapElement = document.getElementById("event-map");
+        const mapMessage = document.getElementById("map-message");
+        if (mapElement) {
+            const locationQuery = mapElement.dataset.location;
+            const latValue = parseFloat(mapElement.dataset.lat);
+            const lonValue = parseFloat(mapElement.dataset.lon);
+
+            // render leaflet map with marker
+            const renderMap = (lat, lon, label) => {
+                const map = L.map("event-map").setView([lat, lon], 13);
+                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                    maxZoom: 19,
+                    attribution: "&copy; OpenStreetMap"
+                }).addTo(map);
+                if (label) {
+                    L.marker([lat, lon]).addTo(map).bindPopup(label).openPopup();
+                } else {
+                    L.marker([lat, lon]).addTo(map);
+                }
+            };
+
+            if (!Number.isNaN(latValue) && !Number.isNaN(lonValue)) {
+                renderMap(latValue, lonValue, locationQuery);
+            } else if (locationQuery && mapMessage) {
+                mapMessage.textContent = "Keine Koordinaten vorhanden.";
+            }
+        }
+    </script>
+</main>
+
+</html>
+
+
+
+
