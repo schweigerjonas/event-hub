@@ -79,7 +79,7 @@ public class PaymentController {
             String baseURL = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
             String cancelUrl = baseURL + "/events/" + id + "/payments/cancel";
             String successUrl = baseURL + "/events/" + id + "/payments/success";
-            Payment payment = paypalService.createPayment(Double.valueOf(amount), currency, method, "sale", description, cancelUrl, successUrl);
+            Payment payment = paypalService.createPayment(Double.valueOf(amount), currency, method == null ? null : method.toLowerCase(), "sale", description, cancelUrl, successUrl);
             
             for (Links links: payment.getLinks()) {
                 if (links.getRel().equals("approval_url")) {
