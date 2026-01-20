@@ -609,10 +609,6 @@ public class EventController {
             redirectAttributes.addFlashAttribute("error", "Organisator kann eigenes Event nicht bewerten.");
             return "redirect:/events/" + id;
         }
-        if (event.getEventTime() != null && event.getEventTime().isAfter(LocalDateTime.now())) {
-            redirectAttributes.addFlashAttribute("error", "Bewertung erst nach Eventstart.");
-            return "redirect:/events/" + id;
-        }
         String trimmedComment = comment == null ? null : comment.trim();
         if (trimmedComment != null && !trimmedComment.isBlank() && trimmedComment.length() > 500) {
             redirectAttributes.addFlashAttribute("error", "Kommentar ist zu lang.");
