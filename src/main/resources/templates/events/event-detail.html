@@ -121,7 +121,7 @@
                                 <div class="text-muted small" th:if="${ratingCount == 0}">Noch keine Bewertungen</div>
                             </div>
 
-                            <div sec:authorize="isAuthenticated()" th:if="${isParticipant}">
+                            <div sec:authorize="isAuthenticated()" th:if="${isParticipant && !isOrganizer}">
                                 <form class="row g-2 align-items-end"
                                     th:action="@{'/events/' + ${event.id} + '/ratings'}" method="post">
                                     <div class="col-12 col-md-3">
@@ -134,7 +134,8 @@
                                     </div>
                                     <div class="col-12 col-md-7">
                                         <label class="form-label" for="comment">Kommentar (optional)</label>
-                                        <input id="comment" name="comment" class="form-control" type="text">
+                                        <input id="comment" name="comment" class="form-control" type="text"
+                                            maxlength="500">
                                     </div>
                                     <div class="col-12 col-md-2 d-grid">
                                         <button class="btn btn-outline-primary" type="submit">Speichern</button>
@@ -148,6 +149,26 @@
                                 </form>
                             </div>
 
+                            <div sec:authorize="isAuthenticated()" th:if="${isParticipant && isOrganizer}"
+                                class="opacity-50">
+                                <form class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label" for="stars-disabled">Sterne</label>
+                                        <select id="stars-disabled" class="form-select" disabled>
+                                            <option>1</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-7">
+                                        <label class="form-label" for="comment-disabled">Kommentar (optional)</label>
+                                        <input id="comment-disabled" class="form-control" type="text" disabled
+                                            maxlength="500">
+                                    </div>
+                                    <div class="col-12 col-md-2 d-grid">
+                                        <button class="btn btn-outline-primary" type="button" disabled>Speichern</button>
+                                    </div>
+                                </form>
+                                <div class="text-muted small mt-2">Organisator kann eigenes Event nicht bewerten.</div>
+                            </div>
                             <form class="row g-2 align-items-end mt-3" th:action="@{'/events/' + ${event.id}}"
                                 method="get">
                                 <input type="hidden" name="ratingPage" value="1">
@@ -155,7 +176,7 @@
                                 <div class="col-12 col-md-6">
                                     <label class="form-label" for="ratingKeyword">Suche</label>
                                     <input id="ratingKeyword" type="search" name="ratingKeyword" class="form-control"
-                                        placeholder="Kommentar durchsuchen" th:value="${ratingKeyword}">
+                                        placeholder="Bewertungen durchsuchen" th:value="${ratingKeyword}">
                                 </div>
                                 <div class="col-6 col-md-3">
                                     <label class="form-label" for="ratingSize">Einträge</label>

@@ -489,7 +489,7 @@ public class EventController {
         model.addAttribute("canViewPayments", canViewPayments);
 
         int safeRatingPage = Math.max(ratingPage, 1);
-        int safeRatingSize = ratingSize < 1 ? 5 : ratingSize;
+        int safeRatingSize = ratingSize < 1 ? 5 : Math.min(ratingSize, 50);
         Pageable ratingPageable = PageRequest.of(
                 safeRatingPage - 1,
                 safeRatingSize,
@@ -605,12 +605,25 @@ public class EventController {
             redirectAttributes.addFlashAttribute("error", "Bitte wähle 1 bis 5 Sterne.");
             return "redirect:/events/" + id;
         }
+        if (event.getOrganizer() != null && event.getOrganizer().equals(details.getUser())) {
+            redirectAttributes.addFlashAttribute("error", "Organisator kann eigenes Event nicht bewerten.");
+            return "redirect:/events/" + id;
+        }
+        if (event.getEventTime() != null && event.getEventTime().isAfter(LocalDateTime.now())) {
+            redirectAttributes.addFlashAttribute("error", "Bewertung erst nach Eventstart.");
+            return "redirect:/events/" + id;
+        }
+        String trimmedComment = comment == null ? null : comment.trim();
+        if (trimmedComment != null && !trimmedComment.isBlank() && trimmedComment.length() > 500) {
+            redirectAttributes.addFlashAttribute("error", "Kommentar ist zu lang.");
+            return "redirect:/events/" + id;
+        }
         Rating rating = ratingService.getRatingByEventAndUser(event, details.getUser())
                 .orElseGet(Rating::new);
         rating.setEvent(event);
         rating.setUser(details.getUser());
         rating.setStars(stars);
-        rating.setComment(comment == null || comment.isBlank() ? null : comment.trim());
+        rating.setComment(trimmedComment == null || trimmedComment.isBlank() ? null : trimmedComment);
         if (rating.getId() == null) {
             ratingService.createRating(rating);
         } else {
@@ -664,18 +677,27 @@ public class EventController {
         }
         Event event = eventService.getEventById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (!eventParticipantService.existsParticipant(event, details.getUser())) {
+            redirectAttributes.addFlashAttribute("error", "Nur Teilnehmer können Freunde einladen.");
+            return buildSafeRedirect(redirect, id);
+        }
         List<User> friends = getFriends(details.getUser());
         if (friendIds == null || friendIds.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Bitte mindestens einen Freund auswählen.");
             return buildSafeRedirect(redirect, id);
         }
         int sentCount = 0;
+        int skippedCount = 0;
         for (Long friendId : friendIds) {
             User friend = friends.stream()
                     .filter(user -> user.getId().equals(friendId))
                     .findFirst()
                     .orElse(null);
             if (friend != null) {
+                if (eventParticipantService.existsParticipant(event, friend)) {
+                    skippedCount++;
+                    continue;
+                }
                 EventInvitation invitation = eventInvitationService
                         .getInvitationByEventAndInvitee(event, friend)
                         .orElse(null);
@@ -714,6 +736,8 @@ public class EventController {
         }
         if (sentCount > 0) {
             redirectAttributes.addFlashAttribute("success", "Einladung versendet an " + sentCount + " Freund(e).");
+        } else if (skippedCount > 0) {
+            redirectAttributes.addFlashAttribute("info", "Ausgewählte Freunde nehmen bereits teil.");
         } else {
             redirectAttributes.addFlashAttribute("error", "Einladung konnte nicht versendet werden.");
         }
