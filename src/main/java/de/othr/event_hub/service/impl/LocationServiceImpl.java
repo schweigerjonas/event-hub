@@ -1,4 +1,4 @@
-﻿package de.othr.event_hub.service.impl;
+package de.othr.event_hub.service.impl;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -50,7 +50,7 @@ public class LocationServiceImpl implements LocationService {
             if (hasHouseNumber) {
                 for (String[] structured : structuredQueries) {
                     Optional<LocationCoordinates> structuredResult = fetchNominatimCoordinates(
-                        buildNominatimStructuredUrl(structured[0], structured[1], structured[2]));
+                            buildNominatimStructuredUrl(structured[0], structured[1], structured[2]));
                     if (structuredResult.isPresent()) {
                         return structuredResult;
                     }
@@ -63,7 +63,7 @@ public class LocationServiceImpl implements LocationService {
             if (!hasHouseNumber) {
                 for (String[] structured : structuredQueries) {
                     Optional<LocationCoordinates> structuredResult = fetchNominatimCoordinates(
-                        buildNominatimStructuredUrl(structured[0], structured[1], structured[2]));
+                            buildNominatimStructuredUrl(structured[0], structured[1], structured[2]));
                     if (structuredResult.isPresent()) {
                         return structuredResult;
                     }
@@ -84,11 +84,11 @@ public class LocationServiceImpl implements LocationService {
 
     private String buildNominatimQueryUrl(String query) {
         return UriComponentsBuilder.fromUriString(NOMINATIM_URL)
-            .queryParam("format", "json")
-            .queryParam("limit", "1")
-            .queryParam("countrycodes", "de")
-            .queryParam("q", query)
-            .toUriString();
+                .queryParam("format", "json")
+                .queryParam("limit", "1")
+                .queryParam("countrycodes", "de")
+                .queryParam("q", query)
+                .toUriString();
     }
 
     private String buildNominatimStructuredUrl(String street, String city, String houseNumber) {
@@ -97,11 +97,11 @@ public class LocationServiceImpl implements LocationService {
             streetValue = houseNumber + " " + street;
         }
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(NOMINATIM_URL)
-            .queryParam("format", "json")
-            .queryParam("limit", "1")
-            .queryParam("countrycodes", "de")
-            .queryParam("street", streetValue)
-            .queryParam("city", city);
+                .queryParam("format", "json")
+                .queryParam("limit", "1")
+                .queryParam("countrycodes", "de")
+                .queryParam("street", streetValue)
+                .queryParam("city", city);
         return builder.toUriString();
     }
 
@@ -146,8 +146,8 @@ public class LocationServiceImpl implements LocationService {
             return;
         }
         String[] streetParts = cityLast
-            ? java.util.Arrays.copyOf(parts, parts.length - 1)
-            : java.util.Arrays.copyOfRange(parts, 1, parts.length);
+                ? java.util.Arrays.copyOf(parts, parts.length - 1)
+                : java.util.Arrays.copyOfRange(parts, 1, parts.length);
         if (streetParts.length == 0) {
             return;
         }
@@ -159,11 +159,11 @@ public class LocationServiceImpl implements LocationService {
         if (houseNumber != null) {
             String streetName = String.join(" ", java.util.Arrays.copyOf(streetParts, streetParts.length - 1)).trim();
             if (!streetName.isBlank()) {
-                structured.add(new String[]{streetName, city, houseNumber});
-                structured.add(new String[]{streetName, city, ""});
+                structured.add(new String[] { streetName, city, houseNumber });
+                structured.add(new String[] { streetName, city, "" });
             }
         }
-        structured.add(new String[]{street, city, ""});
+        structured.add(new String[] { street, city, "" });
     }
 
     private String extractNominatimHouseNumber(String[] streetParts) {
@@ -280,9 +280,9 @@ public class LocationServiceImpl implements LocationService {
     private boolean isStreetToken(String token) {
         String normalized = token.toLowerCase();
         return "straße".equals(normalized)
-            || "strasse".equals(normalized)
-            || "str.".equals(normalized)
-            || "str".equals(normalized);
+                || "strasse".equals(normalized)
+                || "str.".equals(normalized)
+                || "str".equals(normalized);
     }
 
     private String normalizeStreetToken(String token) {
