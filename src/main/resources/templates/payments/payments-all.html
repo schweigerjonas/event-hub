@@ -80,6 +80,9 @@
                     <div th:if="${payment.event} != null">
                         <strong th:text="${payment.event.name}"></strong><br>
                     </div>
+                    <div sec:authorize="hasAuthority('ORGANISATOR')">
+                        <strong th:text="${payment.user.username}"></strong><br>
+                    </div>
                     <small class="text-muted">Betrag: <span th:text="${payment.amount}"></span> €</small><br>
                     <small class="text-muted">Bezahlt am: <span th:text="${#temporals.format(payment.timestamp, 'dd.MM.yyyy HH:mm')}"></span></small><br>
                     <small class="text-muted">Transaktions-ID (PayPal): <span th:text="${payment.paypalTransactionId}"></span></small>
