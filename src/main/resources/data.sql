@@ -9,6 +9,11 @@ INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUE
 INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('admin@gmail.com', 'admin', '$2a$12$8MRcgh3lTl2xjHFc5X1MvO8XH2MHjTBsPQW1Sx.N4CvE1eMlEp7Mq', 1, false, 'MFSG22LOONUXQ5DFMVXGG2DBOI======');
 INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('user2@gmail.com', 'user2', '$2b$12$Z6Gf/tv5QL0gTRjUWYtOVe4XUEOrs9O3.HWpvt9hUbVOxbmkzf/AW', 1, false, 'OVZWK4RSONUXQ5DFMVXGG2DBOI======');
 INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('user3@gmail.com', 'user3', '$2a$12$dFswRWOmIRet32bS91WWMOYXT1eyHI8FUezDks/bq67LlC6tGIzUu', 1, false, 'OVZWK4RSONUXQ5DFMVXGG2DBOI======');
+INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('max.mustermann@mail.com', 'maxmuster', '$2a$12$dFswRWOmIRet32bS91WWMOYXT1eyHI8FUezDks/bq67LlC6tGIzUu', 1, false, 'OVZWK4RSONUXQ5DFMVXGG2DBOI======');
+INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('julia.schmidt@mail.com', 'schmidtjulia', '$2a$12$dFswRWOmIRet32bS91WWMOYXT1eyHI8FUezDks/bq67LlC6tGIzUu', 1, false, 'OVZWK4RSONUXQ5DFMVXGG2DBOI======');
+INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('lukas.weber@mail.com', 'weberluk', '$2a$12$dFswRWOmIRet32bS91WWMOYXT1eyHI8FUezDks/bq67LlC6tGIzUu', 1, false, 'OVZWK4RSONUXQ5DFMVXGG2DBOI======');
+INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('sarah.fischer@mail.com', 'sarahfischer', '$2a$12$dFswRWOmIRet32bS91WWMOYXT1eyHI8FUezDks/bq67LlC6tGIzUu', 1, false, 'OVZWK4RSONUXQ5DFMVXGG2DBOI======');
+INSERT INTO users (email, username, password, active, is_using2fa, secret) VALUES ('thomas.mayer@mail.com', 'mayerthommy', '$2a$12$dFswRWOmIRet32bS91WWMOYXT1eyHI8FUezDks/bq67LlC6tGIzUu', 1, false, 'OVZWK4RSONUXQ5DFMVXGG2DBOI======');
 
 -- Add user roles
 INSERT INTO user_authorities(user_id, authority_id) VALUES (1, 1);
@@ -16,6 +21,11 @@ INSERT INTO user_authorities(user_id, authority_id) VALUES (2, 2);
 INSERT INTO user_authorities(user_id, authority_id) VALUES (3, 3);
 INSERT INTO user_authorities(user_id, authority_id) VALUES (4, 1);
 INSERT INTO user_authorities(user_id, authority_id) VALUES (5, 1);
+INSERT INTO user_authorities(user_id, authority_id) VALUES (6, 1);
+INSERT INTO user_authorities(user_id, authority_id) VALUES (7, 1);
+INSERT INTO user_authorities(user_id, authority_id) VALUES (8, 1);
+INSERT INTO user_authorities(user_id, authority_id) VALUES (9, 1);
+INSERT INTO user_authorities(user_id, authority_id) VALUES (10, 1);
 
 -- Add notifications
 INSERT INTO notifications (recipient_id, type, message, link, is_read, created_at) VALUES (1, 2, 'organizer hat dich zum Event "Frühstück & Netzwerken" eingeladen.', '/invitations', FALSE, NOW());
