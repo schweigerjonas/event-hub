@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,6 +52,7 @@ public class FriendshipApiController {
     }
     
     @GetMapping("/{id}")
+    @PreAuthorize("@friendshipSecurity.canAccessFriendship(#id, authentication)")
     public ResponseEntity<EntityModel<FriendshipDTO>> getFriendshipById(@PathVariable("id") Long id) {
         Optional<Friendship> friendshipOpt = friendshipService.getFriendshipById(id);
         
@@ -68,6 +70,7 @@ public class FriendshipApiController {
     }
 
     @PostMapping
+    @PreAuthorize("@friendshipSecurity.canCreateFriendship(#friendship, authentication)")
     public ResponseEntity<EntityModel<FriendshipDTO>> createFriendship(@RequestBody FriendshipDTO friendship) {
         User requestor;
         User addressee;
@@ -90,6 +93,7 @@ public class FriendshipApiController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("@friendshipSecurity.canUpdateFriendship(#id, #friendship, authentication)")
     public ResponseEntity<EntityModel<FriendshipDTO>> updateFriendship(@PathVariable("id") Long id, @RequestBody FriendshipDTO friendship) {
         User requestor;
         User addressee;
@@ -112,6 +116,7 @@ public class FriendshipApiController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("@friendshipSecurity.canAccessFriendship(#id, authentication)")
     public ResponseEntity<EntityModel<FriendshipDTO>> deleteFriendship(@PathVariable("id") Long id) {
         Optional<Friendship> friendship = friendshipService.getFriendshipById(id);
         if (!friendship.isPresent()) {
@@ -129,6 +134,7 @@ public class FriendshipApiController {
 
     // Custom queries
     @GetMapping("/active/{userId}")
+    @PreAuthorize("@friendshipSecurity.isCurrentUser(#userId, authentication)")
     public ResponseEntity<CollectionModel<EntityModel<FriendshipDTO>>> findActiveFriendshipsByUser(@PathVariable("userId") Long userId) {
         User user;
         try {
@@ -143,6 +149,7 @@ public class FriendshipApiController {
     }
 
     @GetMapping("/requested/by/{userId}")
+    @PreAuthorize("@friendshipSecurity.isCurrentUser(#userId, authentication)")
     public ResponseEntity<CollectionModel<EntityModel<FriendshipDTO>>> findPendingFriendshipsByUser(@PathVariable("userId") Long userId) {
         User user;
         try {
@@ -157,6 +164,7 @@ public class FriendshipApiController {
     }
 
     @GetMapping("/requested/to/{userId}")
+    @PreAuthorize("@friendshipSecurity.isCurrentUser(#userId, authentication)")
     public ResponseEntity<CollectionModel<EntityModel<FriendshipDTO>>> findPendingFriendshipsToUser(@PathVariable("userId") Long userId) {
         User user;
         try {
@@ -187,6 +195,7 @@ public class FriendshipApiController {
     }
 
     @GetMapping("/user/{id}/friendships")
+    @PreAuthorize("@friendshipSecurity.isCurrentUser(#id, authentication)")
     public ResponseEntity<UserFriendshipsDTO> getfriendshipsByUser(@PathVariable("id") Long id) {
         User user;
         try {
