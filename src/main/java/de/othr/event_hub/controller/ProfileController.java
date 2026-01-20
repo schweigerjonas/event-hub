@@ -174,9 +174,7 @@ public class ProfileController {
         user.setUsing2FA(newStatus);
         userService.updateUser(user);
 
-        Authentication newAuth = new UsernamePasswordAuthenticationToken(user, auth.getCredentials(),
-                auth.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(newAuth);
+        refreshAuthentication(user.getUsername());
 
         if (newStatus) {
             String qrCode = userService.generateQRUrl(user);
