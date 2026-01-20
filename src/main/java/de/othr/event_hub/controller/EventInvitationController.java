@@ -180,6 +180,10 @@ public class EventInvitationController {
         if (details == null || details.getUser() == null || !invitation.getInvitee().equals(details.getUser())) {
             return "redirect:/login?redirect=/invitations";
         }
+        if (invitation.getStatus() != EventInvitationStatus.PENDING) {
+            redirectAttributes.addFlashAttribute("error", "Einladung ist nicht mehr aktiv.");
+            return "redirect:/invitations";
+        }
         invitation.setStatus(EventInvitationStatus.DECLINED);
         invitation.setRespondedAt(LocalDateTime.now());
         invitationService.updateInvitation(invitation);
